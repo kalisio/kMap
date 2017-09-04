@@ -9,7 +9,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 })
 
-let baseMixin = {
+let baseMapMixin = {
   methods: {
     setupControls () {
       this.controls.forEach(control => control.addTo(this.map))
@@ -72,6 +72,6 @@ let baseMixin = {
   }
 }
 
-Store.set('mixins.map.base', baseMixin)
+Store.set('mixins.map.baseMap', baseMapMixin)
 
-export default baseMixin
+export default baseMapMixin

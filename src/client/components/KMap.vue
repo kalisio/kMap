@@ -1,16 +1,17 @@
 <template>
-  <div>
-    <div id="map"></div>
-  </div>
+  <div id="map"></div>
 </template>
 
 <script>
 import L from 'leaflet'
-import mixins from '../mixins'
+import * as mixins from '../mixins'
 
 export default {
   name: 'k-map',
-  mixins: [mixins.base, mixins.baseLayers, mixins.fullscreen]
+  mixins: [mixins.vue.baseMap, mixins.vue.baseLayers, mixins.vue.fullscreen, mixins.vue.scalebar, mixins.vue.measure],
+  mounted () {
+    this.$emit('mapReady')
+  }
 }
 </script>
 

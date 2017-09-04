@@ -1,6 +1,5 @@
 import makeDebug from 'debug'
-export * as mixins from './mixins'
-
+export * from './mixins'
 
 const debug = makeDebug('kalisio:kMap')
 

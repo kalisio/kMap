@@ -10,7 +10,7 @@ let baseLayersMixin = {
   },
   methods: {
     setupBaseLayers () {
-      this.configuration.baseLayers.forEach(baseLayer => {
+      this.$store.get('config.map.baseLayers').forEach(baseLayer => {
         this.baseLayers.push(L[baseLayer.type](...baseLayer.arguments))
       })
     }
