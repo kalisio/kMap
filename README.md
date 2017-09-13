@@ -17,7 +17,7 @@ yarn add kMap
 
 ## Documentation
 
-The [kDocs](https://kalisio.gitbooks.io/kalisio/) are loaded with awesome stuff and tell you everything you need to know about using and configuring Kaelia.
+The [kDocs](https://kalisio.gitbooks.io/kalisio/) are loaded with awesome stuff and tell you everything you need to know about using and configuring it.
 
 ## License
 
