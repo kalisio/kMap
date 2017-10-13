@@ -1,3 +1,4 @@
+import lodash from 'lodash'
 import L from 'leaflet'
 import 'leaflet-basemaps/L.Control.Basemaps.js'
 import 'leaflet-basemaps/L.Control.Basemaps.css'
@@ -11,7 +12,12 @@ let baseLayersMixin = {
   methods: {
     setupBaseLayers () {
       this.$store.get('config.map.baseLayers').forEach(baseLayer => {
-        this.baseLayers.push(L[baseLayer.type](...baseLayer.arguments))
+        let index = lodash.findIndex(baseLayer.arguments, function(o) { return typeof o.crs === 'string' })
+        if (index > -1) {
+          let crs = baseLayer.arguments[index].crs
+          baseLayer.arguments[index].crs = L.CRS[crs]
+        }
+        this.baseLayers.push(lodash.get(L, baseLayer.type)(...baseLayer.arguments))
       })
     }
   },
