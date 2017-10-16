@@ -56,6 +56,7 @@
     "lib": "lib"
   },
   "dependencies": {
+    "cesium": "^1.38.0",
     "debug": "^2.6.4",
     "feathers": "^2.1.4",
     "feathers-authentication": "^1.2.2",

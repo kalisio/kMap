@@ -3,12 +3,11 @@
 </template>
 
 <script>
-import L from 'leaflet'
 import * as mixins from '../mixins'
 
 export default {
   name: 'k-map',
-  mixins: [mixins.vue.baseMap, mixins.vue.baseLayers, mixins.vue.fullscreen, mixins.vue.scalebar, mixins.vue.measure],
+  mixins: [mixins.map.baseMap, mixins.map.baseLayers, mixins.map.fullscreen, mixins.map.scalebar, mixins.map.measure],
   mounted () {
     this.$emit('mapReady')
   }

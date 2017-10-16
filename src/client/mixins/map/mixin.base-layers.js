@@ -12,10 +12,10 @@ let baseLayersMixin = {
   methods: {
     setupBaseLayers () {
       this.$store.get('config.map.baseLayers').forEach(baseLayer => {
-        let index = lodash.findIndex(baseLayer.arguments, function(o) { return typeof o.crs === 'string' })
-        if (index > -1) {
-          let crs = baseLayer.arguments[index].crs
-          baseLayer.arguments[index].crs = L.CRS[crs]
+        // Transform from string to actual object
+        let argument = lodash.find(baseLayer.arguments, argument => typeof argument.crs === 'string')
+        if (argument) {
+          argument.crs = L.CRS[argument.crs]
         }
         this.baseLayers.push(lodash.get(L, baseLayer.type)(...baseLayer.arguments))
       })

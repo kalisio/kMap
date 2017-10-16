@@ -1,1 +1,2 @@
-export * as vue from './vue'
+export * as map from './map'
+export * as globe from './globe'
