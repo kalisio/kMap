@@ -16,7 +16,6 @@ let baseGlobeMixin = {
   },
   mounted () {
     // Initialize the globe now the DOM is ready
-    console.log('globe', this.options)
     this.viewer = new Cesium.Viewer('globe', this.options)
     this.$on('globeReady', _ => {
       // TODO

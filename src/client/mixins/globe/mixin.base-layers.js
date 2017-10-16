@@ -19,7 +19,14 @@ let baseLayersMixin = {
         })
         this.imageryProviderViewModels.push(new Cesium.ProviderViewModel(options))
       })
-      console.log(this.imageryProviderViewModels)
+      if (this.imageryProviderViewModels.length > 0) {
+        if (this.options.baseLayerPicker) {
+          this.options.selectedImageryProviderViewModel = this.imageryProviderViewModels[0]
+          this.options.imageryProviderViewModels = this.imageryProviderViewModels
+        } else {
+          this.options.imageryProvider = this.imageryProviderViewModels[0].creationCommand()
+        }
+      }
     },
     setupTerrainLayers () {
       this.terrainProviderViewModels = []
@@ -33,29 +40,20 @@ let baseLayersMixin = {
         })
         this.terrainProviderViewModels.push(new Cesium.ProviderViewModel(options))
       })
-      console.log(this.terrainProviderViewModels)
+      if (this.terrainProviderViewModels.length > 0) {
+        if (this.options.baseLayerPicker) {
+          this.options.selectedTerrainProviderViewModel = this.terrainProviderViewModels[0]
+          this.options.terrainProviderViewModels = this.terrainProviderViewModels
+        } else {
+          this.options.terrainProvider = this.terrainProviderViewModels[0].creationCommand()
+        }
+      }
     }
   },
   created () {
     // This is the right place to declare private members because Vue has already processed observed data
     this.setupBaseLayers()
     this.setupTerrainLayers()
-    if (this.imageryProviderViewModels.length > 0) {
-      if (this.options.baseLayerPicker) {
-        this.options.selectedImageryProviderViewModel = this.imageryProviderViewModels[0]
-        this.options.imageryProviderViewModels = this.imageryProviderViewModels
-      } else {
-        this.options.imageryProvider = this.imageryProviderViewModels[0].creationCommand()
-      }
-    }
-    if (this.terrainProviderViewModels.length > 0) {
-      if (this.options.baseLayerPicker) {
-        this.options.selectedTerrainProviderViewModel = this.terrainProviderViewModels[0]
-        this.options.terrainProviderViewModels = this.terrainProviderViewModels
-      } else {
-        this.options.terrainProvider = this.terrainProviderViewModels[0].creationCommand()
-      }
-    }
   },
   mounted () {
   }
