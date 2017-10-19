@@ -10,13 +10,13 @@ let baseGlobeMixin = {
   methods: {
   },
   beforeCreate () {
-    this.options = Object.assign({}, this.$store.get('config.globe.options'))
+    this.options = Object.assign({}, this.$store.get('config.globe'))
   },
   created () {
   },
   mounted () {
     // Initialize the globe now the DOM is ready
-    this.viewer = new Cesium.Viewer('globe', this.options)
+    this.viewer = new Cesium.Viewer('globe', this.options.viewer)
     this.$on('globeReady', _ => {
       // TODO
     })

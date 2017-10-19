@@ -31,7 +31,7 @@ let geojsonLayersMixin = {
     getGeoJsonOptions () {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {
-          const featureStyle = this.configuration.featureStyle
+          const featureStyle = this.options.featureStyle
           // Custom defined function in component ?
           if (typeof this.getFeaturePopup === 'function') {
             layer.bindPopup(this.getFeaturePopup(feature, layer))
@@ -81,7 +81,7 @@ let geojsonLayersMixin = {
             return this.getFeatureStyle(feature)
           } else {
             // Configured or default style
-            return this.configuration.featureStyle || {
+            return this.options.featureStyle || {
               opacity: 1,
               radius: 6,
               color: 'red',
@@ -96,7 +96,7 @@ let geojsonLayersMixin = {
             return this.getPointMarker(feature, latlng)
           } else {
             // Configured or default style
-            return this.createMarkerFromStyle(latlng, this.configuration.pointStyle)
+            return this.createMarkerFromStyle(latlng, this.options.pointStyle)
           }
         }
       }

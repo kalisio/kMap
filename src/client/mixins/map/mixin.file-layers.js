@@ -16,7 +16,7 @@ let fileLayersMixin = {
       // Add to map after loading (default: true) ?
       addToMap: false,
       // File size limit in kb (default: 1024) ?
-      fileSizeLimit: this.configuration.fileSizeLimit || 1024 * 1024,
+      fileSizeLimit: this.options.fileSizeLimit || 1024 * 1024,
       // Restrict accepted file formats (default: .geojson, .kml, and .gpx) ?
       formats: [
         '.geojson',

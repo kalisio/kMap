@@ -20,11 +20,11 @@ let baseLayersMixin = {
         this.imageryProviderViewModels.push(new Cesium.ProviderViewModel(options))
       })
       if (this.imageryProviderViewModels.length > 0) {
-        if (this.options.baseLayerPicker) {
-          this.options.selectedImageryProviderViewModel = this.imageryProviderViewModels[0]
-          this.options.imageryProviderViewModels = this.imageryProviderViewModels
+        if (this.options.viewer.baseLayerPicker) {
+          this.options.viewer.selectedImageryProviderViewModel = this.imageryProviderViewModels[0]
+          this.options.viewer.imageryProviderViewModels = this.imageryProviderViewModels
         } else {
-          this.options.imageryProvider = this.imageryProviderViewModels[0].creationCommand()
+          this.options.viewer.imageryProvider = this.imageryProviderViewModels[0].creationCommand()
         }
       }
     },
@@ -41,11 +41,11 @@ let baseLayersMixin = {
         this.terrainProviderViewModels.push(new Cesium.ProviderViewModel(options))
       })
       if (this.terrainProviderViewModels.length > 0) {
-        if (this.options.baseLayerPicker) {
-          this.options.selectedTerrainProviderViewModel = this.terrainProviderViewModels[0]
-          this.options.terrainProviderViewModels = this.terrainProviderViewModels
+        if (this.options.viewer.baseLayerPicker) {
+          this.options.viewer.selectedTerrainProviderViewModel = this.terrainProviderViewModels[0]
+          this.options.viewer.terrainProviderViewModels = this.terrainProviderViewModels
         } else {
-          this.options.terrainProvider = this.terrainProviderViewModels[0].creationCommand()
+          this.options.viewer.terrainProvider = this.terrainProviderViewModels[0].creationCommand()
         }
       }
     }

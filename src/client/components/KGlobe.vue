@@ -7,9 +7,15 @@ import * as mixins from '../mixins'
 
 export default {
   name: 'k-globe',
-  mixins: [mixins.globe.baseGlobe, mixins.globe.baseLayers],
+  mixins: [mixins.globe.baseGlobe, mixins.globe.baseLayers, mixins.globe.geojsonLayers, mixins.globe.fileLayers],
   mounted () {
     this.$emit('globeReady')
+    /* TESTS
+    this.addGeoJsonCluster('./statics/airports.json', 'Airports', this.convertFromSimpleStyleSpec({
+      markerSymbol: 'airport',
+      markerColor: '#57D824'
+    }))
+    */
   }
 }
 </script>

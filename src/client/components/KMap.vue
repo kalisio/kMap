@@ -7,9 +7,15 @@ import * as mixins from '../mixins'
 
 export default {
   name: 'k-map',
-  mixins: [mixins.map.baseMap, mixins.map.baseLayers, mixins.map.fullscreen, mixins.map.scalebar, mixins.map.measure],
+  // FIXME: mixins.map.fileLayers,  is broken for now
+  mixins: [mixins.map.baseMap, mixins.map.baseLayers, mixins.map.geojsonLayers, mixins.map.fullscreen, mixins.map.scalebar, mixins.map.measure],
   mounted () {
     this.$emit('mapReady')
+    /* TESTS
+    window.fetch('./statics/airports.json')
+    .then(response => response.json())
+    .then(geojson => this.addGeoJsonCluster(geojson, 'Airports'))
+    */
   }
 }
 </script>
