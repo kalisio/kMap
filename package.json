@@ -74,7 +74,7 @@
     "leaflet-measure": "^2.1.7",
     "leaflet.markercluster": "^1.0.5",
     "lodash": "^4.17.4",
-    "loglevel": "^1.4.1",
+    "loglevel": "^1.6.0",
     "quasar-extras": "^0.0.7",
     "quasar-framework": "0.14.5",
     "togeojson": "^0.16.0",
