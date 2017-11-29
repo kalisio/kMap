@@ -1,5 +1,10 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+// This ensure we have all required plugins
+import 'leaflet.markercluster'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
 import { Store } from 'kCore/client'
 // Fix to make Leaflet assets be correctly inserted by webpack
 delete L.Icon.Default.prototype._getIconUrl

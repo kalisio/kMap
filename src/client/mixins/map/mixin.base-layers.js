@@ -12,11 +12,15 @@ let baseLayersMixin = {
   methods: {
     setupBaseLayers () {
       this.$store.get('config.map.baseLayers').forEach(baseLayer => {
-        // Transform from string to actual object
-        let argument = lodash.find(baseLayer.arguments, argument => typeof argument.crs === 'string')
-        if (argument) {
-          argument.crs = L.CRS[argument.crs]
-        }
+        // Transform from string to actual objects when required in some of the layer options
+        ['crs', 'rendererFactory'].forEach(option => {
+          // Find the right argument holding the option
+          let options = lodash.find(baseLayer.arguments, argument => typeof lodash.get(argument, option) === 'string')
+          if (options) {
+            // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
+            lodash.set(options, option, lodash.get(L, lodash.get(options, option)))
+          }
+        })
         this.baseLayers.push(lodash.get(L, baseLayer.type)(...baseLayer.arguments))
       })
     }
