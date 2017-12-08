@@ -4,6 +4,8 @@
 [![Code Climate](https://codeclimate.com/github/kalisio/kMap/badges/gpa.svg)](https://codeclimate.com/github/kalisio/kMap)
 [![Test Coverage](https://codeclimate.com/github/kalisio/kMap/badges/coverage.svg)](https://codeclimate.com/github/kalisio/kMap/coverage)
 [![Dependency Status](https://img.shields.io/david/kalisio/kMap.svg?style=flat-square)](https://david-dm.org/kalisio/kMap)
+[![Documentation](https://img.shields.io/badge/documentation-available-brightgreen.svg)](https://kalisio.gitbooks.io/kalisio/api)
+[![Known Vulnerabilities](https://snyk.io/test/github/kalisio/kMap/badge.svg)](https://snyk.io/test/github/kalisio/kMap)
 
 > Basic utils to provide mapping capabilities for Kalisio applications and services
 
