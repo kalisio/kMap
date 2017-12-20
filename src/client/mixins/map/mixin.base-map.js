@@ -58,7 +58,7 @@ let baseMapMixin = {
     }
   },
   beforeCreate () {
-    this.options = Object.assign({}, this.$store.get('config.map'))
+    this.options = Object.assign({}, this.$config('map'))
   },
   created () {
     // This is the right place to declare private members because Vue has already processed observed data

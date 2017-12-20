@@ -10,7 +10,7 @@ let baseGlobeMixin = {
   methods: {
   },
   beforeCreate () {
-    this.options = Object.assign({}, this.$store.get('config.globe'))
+    this.options = Object.assign({}, this.$config('globe'))
   },
   created () {
   },

@@ -11,7 +11,7 @@ let baseLayersMixin = {
   },
   methods: {
     setupBaseLayers () {
-      this.$store.get('config.map.baseLayers').forEach(baseLayer => {
+      this.$config('map.baseLayers').forEach(baseLayer => {
         // Transform from string to actual objects when required in some of the layer options
         ['crs', 'rendererFactory'].forEach(option => {
           // Find the right argument holding the option

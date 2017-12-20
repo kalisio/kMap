@@ -9,7 +9,7 @@ let baseLayersMixin = {
   methods: {
     setupBaseLayers () {
       this.imageryProviderViewModels = []
-      this.$store.get('config.globe.baseLayers').forEach(baseLayer => {
+      this.$config('globe.baseLayers').forEach(baseLayer => {
         // Transform from string to actual object
         if (typeof baseLayer.iconUrl === 'string') {
           baseLayer.iconUrl = Cesium.buildModuleUrl(baseLayer.iconUrl)
@@ -30,7 +30,7 @@ let baseLayersMixin = {
     },
     setupTerrainLayers () {
       this.terrainProviderViewModels = []
-      this.$store.get('config.globe.terrainLayers').forEach(terrainLayer => {
+      this.$config('globe.terrainLayers').forEach(terrainLayer => {
         // Transform from string to actual object
         if (typeof terrainLayer.iconUrl === 'string') {
           terrainLayer.iconUrl = Cesium.buildModuleUrl(terrainLayer.iconUrl)
