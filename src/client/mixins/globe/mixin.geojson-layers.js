@@ -18,7 +18,7 @@ let geojsonLayersMixin = {
     },
     addGeoJsonCluster (geojson, name, geojsonOptions) {
       const options = geojsonOptions || this.getGeoJsonOptions()
-      
+
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
         let clusteringOptions = {
@@ -58,7 +58,7 @@ let geojsonLayersMixin = {
         logger.error(error)
       })
     },
-    convertFromSimpleStyleSpec(options) {
+    convertFromSimpleStyleSpec (options) {
       _.forOwn(options, (value, key) => {
         // Convert to camelCase as required by cesium
         const camelKey = _.camelCase(key)
@@ -76,7 +76,7 @@ let geojsonLayersMixin = {
     },
     getGeoJsonOptions () {
       let geojsonOptions = this.options.featureStyle || {}
-      
+
       return convertFromSimpleStyleSpec(geojsonOptions)
     }
   }

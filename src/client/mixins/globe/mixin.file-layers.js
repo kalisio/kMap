@@ -6,7 +6,7 @@ let fileLayersMixin = {
   mounted () {
     this.$on('globeReady', _ => {
       this.viewer.extend(Cesium.viewerDragDropMixin, this.options.fileLayers)
-      this.viewer.dropError.addEventListener( (viewerArg, source, error) => {
+      this.viewer.dropError.addEventListener((viewerArg, source, error) => {
         logger.error(error)
       })
     })
