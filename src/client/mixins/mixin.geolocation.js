@@ -1,5 +1,6 @@
+import logger from 'loglevel'
 import { Events } from 'quasar'
-import { utils } from 'kCore/client'
+import { Store, utils } from 'kCore/client'
 
 let geolocationMixin = {
   methods: {
@@ -16,19 +17,34 @@ let geolocationMixin = {
             let latitude  = position.coords.latitude
             let longitude = position.coords.longitude
             resolve({ latitude, longitude })
-          }, (error) => reject(error), { timeout: 10000, enableHighAccuracy: true })
+          }, (error) => reject(error), { timeout: 20000, enableHighAccuracy: true })
         }))
       }
       return this.geolocation
+    },
+    updatePosition () {
+      // Get the position
+      this.refreshPosition()
+      .then(position => {
+        const user = Store.get('user')
+        if (user) {
+          Store.set('user.position', position)
+        }
+        logger.debug('New user position: ', position)
+      })
+      .catch(error => {
+        Events.$emit('error', error)
+        throw error
+      })
     }
   },
   created () {
-    // Get the position
-    this.refreshPosition()
-    .catch(error => {
-      Events.$emit('error', error)
-      throw error
-    })
+    this.updatePosition()
+    // Whenever the user is updated, update position as well
+    Events.$on('user-changed', this.updatePosition)
+  },
+  beforeDestroy() {
+    Events.$off('user-changed', this.updatePosition)
   }
 }
 
