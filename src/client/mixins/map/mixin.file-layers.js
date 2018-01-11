@@ -1,6 +1,5 @@
 import L from 'leaflet'
 import 'leaflet-filelayer'
-import { Store } from 'kCore/client'
 
 let fileLayersMixin = {
   mounted () {
@@ -35,7 +34,5 @@ let fileLayersMixin = {
     })
   }
 }
-
-Store.set('mixins.map.fileLayers', fileLayersMixin)
 
 export default fileLayersMixin

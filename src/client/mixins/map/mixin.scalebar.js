@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import { Store } from 'kCore/client'
 
 let scalebarMixin = {
   mounted () {
@@ -7,7 +6,5 @@ let scalebarMixin = {
     this.controls.push(scalebarControl)
   }
 }
-
-Store.set('mixins.map.scalebar', scalebarMixin)
 
 export default scalebarMixin

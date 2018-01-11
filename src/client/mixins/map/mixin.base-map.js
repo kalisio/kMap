@@ -5,7 +5,7 @@ import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
-import { Store } from 'kCore/client'
+
 // Fix to make Leaflet assets be correctly inserted by webpack
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -79,7 +79,5 @@ let baseMapMixin = {
     this.map.remove()
   }
 }
-
-Store.set('mixins.map.baseMap', baseMapMixin)
 
 export default baseMapMixin

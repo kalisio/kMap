@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import { Store } from 'kCore/client'
 
 let geojsonLayersMixin = {
   methods: {
@@ -102,7 +101,5 @@ let geojsonLayersMixin = {
     }
   }
 }
-
-Store.set('mixins.map.geojsonLayers', geojsonLayersMixin)
 
 export default geojsonLayersMixin

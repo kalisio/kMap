@@ -2,7 +2,6 @@ import lodash from 'lodash'
 import L from 'leaflet'
 import 'leaflet-basemaps/L.Control.Basemaps.js'
 import 'leaflet-basemaps/L.Control.Basemaps.css'
-import { Store } from 'kCore/client'
 
 let baseLayersMixin = {
   data () {
@@ -41,7 +40,5 @@ let baseLayersMixin = {
     this.controls.push(baseLayersControl)
   }
 }
-
-Store.set('mixins.map.baseLayers', baseLayersMixin)
 
 export default baseLayersMixin
