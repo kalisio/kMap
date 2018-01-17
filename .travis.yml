@@ -10,5 +10,6 @@ notifications:
   email: false
 before_script:
   - npm install -g codeclimate-test-reporter
+  - git clone https://github.com/kalisio/kCore.git && cd kCore && yarn install && yarn link && cd .. && yarn link kCore
 after_script:
   - codeclimate-test-reporter < coverage/lcov.info
