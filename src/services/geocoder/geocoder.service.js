@@ -9,7 +9,7 @@ export default function (name, app, options) {
   debug('geocoder created with config ', options)
   const geocoder = NodeGeocoder(options)
   return {
-    async create (data, params) {
+    create (data, params) {
       debug('geocoder service called for create', data)
       return geocoder.geocode(data.address)
     }
