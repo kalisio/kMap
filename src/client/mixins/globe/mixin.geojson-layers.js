@@ -38,7 +38,8 @@ let geojsonLayersMixin = {
           if (typeof this.getFeatureStyle === 'function') {
             const style = this.getFeatureStyle(cluster, entities)
             // Loop over possible styles
-            ['billboard', 'label', 'point'].forEach(type => {
+            let featureTypes = ['billboard', 'label', 'point']
+            featureTypes.forEach(type => {
               if (_.has(cluster, type)) {
                 _.assign(cluster[type], style[type])
               }
@@ -77,7 +78,7 @@ let geojsonLayersMixin = {
     getGeoJsonOptions () {
       let geojsonOptions = this.options.featureStyle || {}
 
-      return convertFromSimpleStyleSpec(geojsonOptions)
+      return this.convertFromSimpleStyleSpec(geojsonOptions)
     }
   }
 }

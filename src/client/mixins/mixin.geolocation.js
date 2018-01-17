@@ -8,13 +8,13 @@ let geolocationMixin = {
       // If we are not waiting for or first time
       if (!this.geolocation || !this.geolocation.isPending) {
         // We need to load the position now
-        this.geolocation = utils.createQuerablePromise(new Promise(( resolve, reject ) => {
+        this.geolocation = utils.createQuerablePromise(new Promise((resolve, reject) => {
           if (!window.navigator.geolocation) {
             reject(new Error('Geolocation does not seem to be supported on your device or browser'))
             return
           }
           window.navigator.geolocation.getCurrentPosition((position) => {
-            let latitude  = position.coords.latitude
+            let latitude = position.coords.latitude
             let longitude = position.coords.longitude
             resolve({ latitude, longitude })
           }, (error) => reject(error), { timeout: 20000, enableHighAccuracy: true })
@@ -43,7 +43,7 @@ let geolocationMixin = {
     // Whenever the user is updated, update position as well
     Events.$on('user-changed', this.updatePosition)
   },
-  beforeDestroy() {
+  beforeDestroy () {
     Events.$off('user-changed', this.updatePosition)
   }
 }
