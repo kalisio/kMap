@@ -12,6 +12,6 @@ export default function init () {
   const app = this
 
   debug('Initializing kalisio map')
-  
+
   app.configure(services)
 }
