@@ -10,7 +10,7 @@ export default {
   // FIXME: mixins.map.fileLayers,  is broken for now
   mixins: [mixins.map.baseMap, mixins.map.baseLayers, mixins.map.geojsonLayers, mixins.map.fullscreen, mixins.map.scalebar, mixins.map.measure],
   mounted () {
-    this.$emit('mapReady')
+    this.setupMap()
     /* TESTS
     window.fetch('./statics/airports.json')
     .then(response => response.json())

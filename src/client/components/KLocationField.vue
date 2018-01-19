@@ -9,15 +9,16 @@
       :error="hasError"
     >
       <q-search ref="search" v-model="pattern" :after="buttons()">
-        <q-autocomplete :debounce="1000" @search="onSearch" @selected="onSelected" />
+        <q-autocomplete :min-characters="5" :debounce="1000" @search="onSearch" @selected="onSelected" />
       </q-search>
     </q-field>
+    <k-location-map :location="model" ref="map" />
   </div>
 </template>
 
 <script>
 import { QField, QSearch, QAutocomplete } from 'quasar'
-import KMap from './KMap.vue'
+import KLocationMap from './KLocationMap.vue'
 import { mixins as kCoreMixins } from 'kCore/client'
 
 export default {
@@ -25,12 +26,14 @@ export default {
   components: {
     QField,
     QSearch,
-    QAutocomplete
+    QAutocomplete,
+    KLocationMap
   },
   mixins: [kCoreMixins.baseField],
   data () {
     return {
-      pattern: ''
+      pattern: '',
+      map: false
     }
   },
   methods: {
@@ -47,39 +50,40 @@ export default {
         {
           icon: 'place',
           content: true,
-          handler: () => this.onView()
+          handler: () => this.onMapClicked()
         }
       ]
     },
     onSearch (pattern, done) {
-      if (pattern.length > 4) {
-        const geocoderService = this.$api.getService('geocoder')
-        if (! geocoderService) throw Error('Cannot find geocoder service')
-        geocoderService.create({ address: pattern })
-        .then(response => {
-          let places = []
-          response.forEach(element => {
-            let label = ''
-            if (element.streetNumber) label += (element.streetNumber + ' ')
-            if (element.streetName) label += (element.streetName + ' ')
-            if (element.city) label += (element.city + ' ')
-            if (element.zipcode) label += (' (' + element.zipcode + ')')          
-            let place = {
-              value: element,
-              label: label
-            }
-            places.push(place)
-          })
-          done(places)
+      // Define a default result
+      this.model = { name: pattern }
+      // Build the list of responses
+      const geocoderService = this.$api.getService('geocoder')
+      if (! geocoderService) throw Error('Cannot find geocoder service')
+      geocoderService.create({ address: pattern })
+      .then(response => {
+        let places = []
+        response.forEach(element => {
+          let label = ''
+          if (element.streetNumber) label += (element.streetNumber + ' ')
+          if (element.streetName) label += (element.streetName + ' ')
+          if (element.city) label += (element.city + ' ')
+          if (element.zipcode) label += (' (' + element.zipcode + ')')          
+          let place = {
+            value: Object.assign(element, { name: label }),
+            label: label
+          }
+          places.push(place)
         })
-      }
+        done(places)
+      })
     },
     onSelected (result) {
       this.pattern = result.label
-      this.model = result.element
+      this.model = result.value
     },
-    onView () {
-      // TODO
+    onMapClicked () {
+      this.$refs.map.open()
     }
   }
 }

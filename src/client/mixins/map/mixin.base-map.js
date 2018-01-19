@@ -16,6 +16,15 @@ L.Icon.Default.mergeOptions({
 
 let baseMapMixin = {
   methods: {
+    setupMap () {
+      // Initialize the map
+      this.map = L.map('map').setView([46, 1.5], 5)
+      // Add empty basic overlays control
+      this.overlayLayersControl = L.control.layers({}, {})
+      this.controls.push(this.overlayLayersControl)
+      this.setupControls()
+      this.checkOverlayLayersControlVisibility()
+    },
     setupControls () {
       this.controls.forEach(control => control.addTo(this.map))
       this.$emit('controlsReady')
@@ -63,17 +72,6 @@ let baseMapMixin = {
   created () {
     // This is the right place to declare private members because Vue has already processed observed data
     this.controls = []
-  },
-  mounted () {
-    // Initialize the map now the DOM is ready
-    this.map = L.map('map').setView([46, 1.5], 5)
-    // Add empty basic overlays control
-    this.overlayLayersControl = L.control.layers({}, {})
-    this.controls.push(this.overlayLayersControl)
-    this.$on('mapReady', _ => {
-      this.setupControls()
-      this.checkOverlayLayersControlVisibility()
-    })
   },
   beforeDestroy () {
     this.map.remove()
