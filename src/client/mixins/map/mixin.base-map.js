@@ -16,6 +16,9 @@ L.Icon.Default.mergeOptions({
 
 let baseMapMixin = {
   methods: {
+    refreshMap () {
+      this.map.invalidateSize()
+    },
     setupMap () {
       // Initialize the map
       this.map = L.map('map').setView([46, 1.5], 5)

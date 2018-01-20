@@ -1,5 +1,5 @@
 <template>
-  <k-modal ref="modal" :title="title" :toolbar="toolbar" :options="modalStyle()">
+  <k-modal ref="modal" :title="title" :toolbar="toolbar" :options="modalStyle()" @opened="refreshMap()">
     <div slot="modal-content" class="row justify-center">
       <div ref="map" id="map" :style="mapStyle()"></div>  
     </div>
@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import _ from 'lodash'
 import * as mixins from '../mixins'
 import { mixins as kCoreMixins } from 'kCore/client'
 
@@ -19,10 +20,6 @@ export default {
     mixins.map.geojsonLayers
   ],
   props: {
-    location: {
-      type: Object,
-      required: true
-    },
     marker: {
       type: Object,
       default: () => { 
@@ -36,22 +33,22 @@ export default {
       }
     }
   },
-  computed: {
-    title () {
-      if (this.location) return this.location.name
-      return ''
-    }
-  },
   data () {
     return {
-       toolbar: [
+      title: '',
+      toolbar: [
         { name: 'Close', icon: 'close', handler: () => this.doClose() }
       ]
     }
   },
   methods: {
-    open () {
+    open (location) {
+      if (_.isNil(location.longitude)) throw Error('Invalid location: undefined longitude property')
+      if (_.isNil(location.latitude)) throw Error('Invalid location: undefined latitude property')
+      if (_.isNil(location.name)) throw Error('Invalid location: undefined name property')
       this.$refs.modal.open()
+      this.title = location.name
+      this.center(location.longitude, location.latitude, 14)
     },
     doClose () {
       this.$refs.modal.close()
@@ -63,7 +60,13 @@ export default {
       return { minWidth: modalWidth + 'px', minHeight: modalHeight + 'px' }
     },
     mapStyle () {
-      return { width: this.layout.width + 'px', height: this.layout.height + 'px', fontWeight: 'normal', zIndex: 0, position: 'absolute' }
+      return { 
+        width: this.layout.width + 'px', 
+        height: this.layout.height + 'px', 
+        fontWeight: 'normal', 
+        zIndex: 0, 
+        position: 'absolute' 
+      }
     }
   },
   created () {

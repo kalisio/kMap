@@ -8,15 +8,16 @@
       :label-width="labelWidth"
       :error="hasError"
     >
-      <q-search ref="search" v-model="pattern" :after="buttons()">
+      <q-search ref="search" v-model="pattern" :after="actions" @change="onChanged">
         <q-autocomplete :min-characters="5" :debounce="1000" @search="onSearch" @selected="onSelected" />
       </q-search>
     </q-field>
-    <k-location-map :location="model" ref="map" />
+    <k-location-map ref="map" />
   </div>
 </template>
 
 <script>
+import _ from 'lodash'
 import { QField, QSearch, QAutocomplete } from 'quasar'
 import KLocationMap from './KLocationMap.vue'
 import { mixins as kCoreMixins } from 'kCore/client'
@@ -30,6 +31,25 @@ export default {
     KLocationMap
   },
   mixins: [kCoreMixins.baseField],
+  computed: {
+    actions () {
+      let buttons = [
+         {
+          icon: 'cancel',
+          content: true,
+          handler: () => { this.$refs.search.clear() }
+        }
+      ]
+      if (! _.isNil(this.model.longitude) && ! _.isNil(this.model.latitude)) {
+        buttons.push({
+          icon: 'place',
+          content: true,
+          handler: () => this.onMapClicked()
+        })
+      }
+      return buttons
+    }
+  },
   data () {
     return {
       pattern: '',
@@ -40,23 +60,14 @@ export default {
     emptyModel () {
       return {}
     },
-    buttons () {
-      return [
-        {
-          icon: 'cancel',
-          content: true,
-          handler: () => { this.$refs.search.clear() }
-        },
-        {
-          icon: 'place',
-          content: true,
-          handler: () => this.onMapClicked()
-        }
-      ]
+    onChanged (pattern) {
+      if (typeof pattern === 'string') this.model = { name: pattern }
+      else {
+        this.model = pattern
+        this.pattern = this.model.name
+      }
     },
     onSearch (pattern, done) {
-      // Define a default result
-      this.model = { name: pattern }
       // Build the list of responses
       const geocoderService = this.$api.getService('geocoder')
       if (! geocoderService) throw Error('Cannot find geocoder service')
@@ -79,11 +90,10 @@ export default {
       })
     },
     onSelected (result) {
-      this.pattern = result.label
       this.model = result.value
     },
     onMapClicked () {
-      this.$refs.map.open()
+      this.$refs.map.open(this.model)
     }
   }
 }
