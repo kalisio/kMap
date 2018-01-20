@@ -20,12 +20,6 @@ export default {
     mixins.map.geojsonLayers
   ],
   props: {
-    marker: {
-      type: Object,
-      default: () => { 
-        return { icon: 'place', color: 'red' }
-      }
-    },
     layout: {
       type: Object,
       default: () => { 
@@ -49,6 +43,7 @@ export default {
       this.$refs.modal.open()
       this.title = location.name
       this.center(location.longitude, location.latitude, 14)
+      L.marker([location.latitude, location.longitude]).addTo(this.map)
     },
     doClose () {
       this.$refs.modal.close()
