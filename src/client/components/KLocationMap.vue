@@ -43,7 +43,12 @@ export default {
       this.$refs.modal.open()
       this.title = location.name
       this.center(location.longitude, location.latitude, 14)
-      L.marker([location.latitude, location.longitude]).addTo(this.map)
+      if (! this.marker) {
+        this.marker = L.marker([location.latitude, location.longitude])
+        this.marker.addTo(this.map)
+      } else {
+        this.marker.setLatLng([location.latitude, location.longitude]);
+      }
     },
     doClose () {
       this.$refs.modal.close()
