@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
@@ -35,18 +36,17 @@ let baseMapMixin = {
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
     },
-    removeLayer (layer) {
-      if (!layer) return
-
-      this.overlayLayersControl.removeLayer(layer)
-      // If it was visible remove it from map
-      if (this.map.hasLayer(layer)) {
-        this.map.removeLayer(layer)
-      }
-      this.checkOverlayLayersControlVisibility()
+    hasLayer (name) {
+      return _.has(this.layers, name)
+    },
+    getLayerByName (name) {
+      if (! this.hasLayer(name)) return null
+      return this.layers[name]
     },
     addLayer (layer, name) {
       if (layer && !this.map.hasLayer(layer)) {
+        // Store the layer
+        this.layers[name] = TileLayer
         // Check if layer is visible by default
         let visible = true
         if (layer.options.hasOwnProperty('visible')) {
@@ -59,6 +59,18 @@ let baseMapMixin = {
         this.checkOverlayLayersControlVisibility()
       }
       return layer
+    },
+    removeLayer (layer) {
+      if (!layer) return
+
+      this.overlayLayersControl.removeLayer(layer)
+      // If it was visible remove it from map
+      if (this.map.hasLayer(layer)) {
+        this.map.removeLayer(layer)
+      }
+      this.checkOverlayLayersControlVisibility()
+      // Remove the layer
+      delete this.layers[name]
     },
     checkOverlayLayersControlVisibility () {
       // Hidden while nothing has been loaded, default state
