@@ -2,10 +2,10 @@ import L from 'leaflet'
 
 let geojsonLayersMixin = {
   methods: {
-    addGeoJsonLayer (geojson, name, geojsonOptions) {
+    addGeoJsonLayer (name, geojson, geojsonOptions) {
       return this.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()), name)
     },
-    addGeoJsonClusterLayer (geojson, name, geojsonOptions) {
+    addGeoJsonClusterLayer (name, geojson, geojsonOptions) {
       let cluster = L.markerClusterGroup()
       cluster.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
       return this.addLayer(cluster, name)

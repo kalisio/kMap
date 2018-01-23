@@ -13,7 +13,13 @@ let servicesLayersMixin = {
       })
       .subscribe(response => {
         // Add the layer to the map
-        this.addGeoJsonLayer(response.data, name, geojsonOptions)
+        console.log(response)
+         // Declare the output GeoJson collection
+        let collection = {
+          type: 'FeatureCollection',
+          features: response.data
+        }
+        this.addGeoJsonLayer(name, collection, geojsonOptions)
       })
     },
     removeServiceLayer (name) {
