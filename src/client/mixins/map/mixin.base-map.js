@@ -43,7 +43,7 @@ let baseMapMixin = {
       if (!this.hasLayer(name)) return null
       return this.layers[name]
     },
-    addLayer (layer, name) {
+    addLayer (name, layer) {
       if (layer && !this.map.hasLayer(layer)) {
         // Store the layer
         this.layers[name] = layer
@@ -60,7 +60,8 @@ let baseMapMixin = {
       }
       return layer
     },
-    removeLayer (layer) {
+    removeLayer (name) {
+      const layer = this.getLayerByName(name)
       if (!layer) return
 
       this.overlayLayersControl.removeLayer(layer)

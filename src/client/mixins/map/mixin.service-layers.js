@@ -1,6 +1,3 @@
-import _ from 'lodash'
-import L from 'leaflet'
-
 let servicesLayersMixin = {
   methods: {
     addServiceLayer (name, service, query, geojsonOptions) {
@@ -12,13 +9,12 @@ let servicesLayersMixin = {
         query: query
       })
       .subscribe(response => {
-        // Add the layer to the map
-        console.log(response)
          // Declare the output GeoJson collection
         let collection = {
           type: 'FeatureCollection',
           features: response.data
         }
+        // Add the layer to the map
         this.addGeoJsonLayer(name, collection, geojsonOptions)
       })
     },
@@ -27,7 +23,7 @@ let servicesLayersMixin = {
         this.serviceListeners[name].unsubscribe()
         delete this.serviceListeners[name]
         // Remove the layer from the map
-       this.removeGeoJsonLayer(name)
+        this.removeGeoJsonLayer(name)
       }
     }
   },
