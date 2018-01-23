@@ -2,13 +2,17 @@ import L from 'leaflet'
 
 let geojsonLayersMixin = {
   methods: {
-    addGeoJson (geojson, name, geojsonOptions) {
+    addGeoJsonLayer (geojson, name, geojsonOptions) {
       return this.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()), name)
     },
-    addGeoJsonCluster (geojson, name, geojsonOptions) {
+    addGeoJsonClusterLayer (geojson, name, geojsonOptions) {
       let cluster = L.markerClusterGroup()
       cluster.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
       return this.addLayer(cluster, name)
+    },
+    removeGeoJsonLayer (name) {
+      const layer = this.getLayerByName(name)
+      if (layer) this.removeGeoJsonLayer(layer)
     },
     createMarkerFromStyle (latlng, markerStyle) {
       if (markerStyle) {

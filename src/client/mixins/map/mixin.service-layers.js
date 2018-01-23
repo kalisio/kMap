@@ -1,38 +1,33 @@
+import _ from 'lodash'
 import L from 'leaflet'
 
 let servicesLayersMixin = {
-  props: {
-    services: {
-      type: Array,
-      required: true
-    }
-  },
   methods: {
-    refreshLayers () {
-      // Perform to all registered services
-      const requests = this.services.map(layer => this.subscribeLayer(layer))
-    },
-    subscribeLayer (layer) {
-      // Remove previous listener if any
-      this.unsubscribeLayer(layer)
-      let groupsService = this.$api.getService(layer.service)
-      this.layerListeners[layer.name] = groupsService.find({
-        rx: { listStrategy: 'always' }
+    addServiceLayer (name, service, query, geojsonOptions) {
+      // Remove previous if any
+      const layerService = this.$api.getService(service)
+      // Subscribe to the service
+      this.serviceListeners[name] = layerService.find({
+        rx: { listStrategy: 'always' },
+        query: query
       })
       .subscribe(response => {
         // Add the layer to the map
-        this.addGeoJson(response.data, layer.name, layer.options)
+        this.addGeoJsonLayer(response.data, name, geojsonOptions)
       })
     },
-    unsubscribeLayer (layer) {
-      if (this.layerListeners[layer.name]) {
-        this.layerListeners[layer.name].unsubscribe()
-        delete this.layerListeners[layer.name]
+    removeServiceLayer (name) {
+      if (this.serviceListeners[name]) {
+        this.serviceListeners[name].unsubscribe()
+        delete this.serviceListeners[name]
         // Remove the layer from the map
-        this.removeLayer(this.getLayerByName(layer.name))
+       this.removeGeoJsonLayer(name)
       }
     }
-  }  
+  },
+  created () {
+    this.serviceListeners = {}
+  }
 }
 
 export default servicesLayersMixin

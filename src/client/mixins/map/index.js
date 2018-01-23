@@ -5,6 +5,7 @@ import fileLayers from './mixin.file-layers'
 import fullscreen from './mixin.fullscreen'
 import measure from './mixin.measure'
 import scalebar from './mixin.scalebar'
+import serviceLayers from './mixin.service-layers'
 
 export default {
   baseMap,
@@ -13,5 +14,6 @@ export default {
   fileLayers,
   fullscreen,
   measure,
-  scalebar
+  scalebar,
+  serviceLayers
 }

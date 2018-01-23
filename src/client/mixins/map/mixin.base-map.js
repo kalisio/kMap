@@ -40,13 +40,13 @@ let baseMapMixin = {
       return _.has(this.layers, name)
     },
     getLayerByName (name) {
-      if (! this.hasLayer(name)) return null
+      if (!this.hasLayer(name)) return null
       return this.layers[name]
     },
     addLayer (layer, name) {
       if (layer && !this.map.hasLayer(layer)) {
         // Store the layer
-        this.layers[name] = TileLayer
+        this.layers[name] = layer
         // Check if layer is visible by default
         let visible = true
         if (layer.options.hasOwnProperty('visible')) {
@@ -87,6 +87,7 @@ let baseMapMixin = {
   created () {
     // This is the right place to declare private members because Vue has already processed observed data
     this.controls = []
+    this.layers = {}
   },
   beforeDestroy () {
     this.map.remove()
