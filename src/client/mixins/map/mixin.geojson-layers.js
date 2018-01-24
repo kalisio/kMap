@@ -2,6 +2,9 @@ import L from 'leaflet'
 
 let geojsonLayersMixin = {
   methods: {
+    addGeoJsonLayer (name) {
+      return this.addLayer(name, L.geoJson())
+    },
     addGeoJsonLayer (name, geojson, geojsonOptions) {
       return this.addLayer(name, L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
     },
@@ -12,6 +15,9 @@ let geojsonLayersMixin = {
     },
     removeGeoJsonLayer (name) {
       this.removeLayer(name)
+    },
+    addGeoJsonToLayer (layer, geojson, geojsonOptions) {
+      if (layer) L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()).addTo(layer)
     },
     createMarkerFromStyle (latlng, markerStyle) {
       if (markerStyle) {
