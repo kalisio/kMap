@@ -12,7 +12,7 @@
         <q-autocomplete :min-characters="5" :debounce="1000" @search="onSearch" @selected="onSelected" />
       </q-search>
     </q-field>
-    <k-location-map ref="map" />
+    <k-location-map ref="map" v-bind="properties.field.locationMap" />
   </div>
 </template>
 
@@ -52,8 +52,7 @@ export default {
   },
   data () {
     return {
-      pattern: '',
-      map: false
+      pattern: ''
     }
   },
   methods: {
