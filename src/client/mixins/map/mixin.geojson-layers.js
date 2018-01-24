@@ -2,9 +2,6 @@ import L from 'leaflet'
 
 let geojsonLayersMixin = {
   methods: {
-    addGeoJsonLayer (name) {
-      return this.addLayer(name, L.geoJson())
-    },
     addGeoJsonLayer (name, geojson, geojsonOptions) {
       return this.addLayer(name, L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
     },
