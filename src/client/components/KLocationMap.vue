@@ -11,7 +11,7 @@ import _ from 'lodash'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
 import * as mixins from '../mixins'
-import { mixins as kCoreMixins, Colors } from 'kCore/client'
+import { mixins as kCoreMixins, utils as kCoreUtils } from 'kCore/client'
 
 export default {
   name: 'k-location-map',
@@ -36,11 +36,9 @@ export default {
       type: Object,
       default: () => {
         return {
-			    iconClasses: 'fa fa-map-marker',
-			    markerColor: '#027be3',
-          iconColor: '#FFF',
-          iconXOffset: 2, 
-		      iconYOffset: 0,
+			    iconClasses: 'fa fa-circle',
+			    markerColor: kCoreUtils.Colors['blue'],
+          iconColor: '#FFF'
 		    }
       }
     }
