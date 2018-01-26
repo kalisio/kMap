@@ -23,6 +23,8 @@ let servicesLayersMixin = {
       layer.clearLayers()
     },
     addServiceLayer (name, service, query, geojsonOptions) {
+      // Use a cluster by default ?
+      // this.addGeoJsonClusterLayer(name)
       this.addGeoJsonLayer(name)
       this.subscribeService(name, service, query, geojsonOptions)
     },

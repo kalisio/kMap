@@ -1,4 +1,6 @@
 import L from 'leaflet'
+import lodash from 'lodash'
+import { LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -21,10 +23,10 @@ let geojsonLayersMixin = {
         let icon = markerStyle.icon
         // Parse icon options to get icon object if any
         if (icon) {
-          icon = L[icon.type](icon.options)
-          return L[markerStyle.type](latlng, { icon })
+          icon = lodash.get(L, icon.type)(icon.options)
+          return lodash.get(L, markerStyle.type || 'marker')(latlng, { icon })
         } else {
-          return L[markerStyle.type](latlng, markerStyle.options)
+          return lodash.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options)
         }
       } else {
         return L.marker(latlng)
@@ -34,9 +36,10 @@ let geojsonLayersMixin = {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {
           const featureStyle = this.options.featureStyle
-          // Custom defined function in component ?
+          // Custom defined function in component for popup ?
           if (typeof this.getFeaturePopup === 'function') {
-            layer.bindPopup(this.getFeaturePopup(feature, layer))
+            let popup = this.getFeaturePopup(feature, layer)
+            if (popup) layer.bindPopup(popup)
           } else if (feature.properties) {
             // Default content
             const borderStyle = ' style="border: 1px solid black; border-collapse: collapse;"'
@@ -67,15 +70,19 @@ let geojsonLayersMixin = {
               })
             }
           }
-          // Custom defined function in component ?
+          if (layer.getPopup()) bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this)
+
+          // Custom defined function in component for tooltip ?
           if (typeof this.getFeatureTooltip === 'function') {
-            layer.bindTooltip(this.getFeatureTooltip(feature, layer))
+            let tooltip = this.getFeatureTooltip(feature, layer)
+            if (tooltip) layer.bindTooltip(tooltip)
           } else if (featureStyle && featureStyle.tooltip && featureStyle.tooltip.property && feature.properties) {
             let tooltip = feature.properties[featureStyle.tooltip.property]
             if (tooltip) {
               layer.bindTooltip(tooltip, featureStyle.tooltip.options || { permanent: true })
             }
           }
+          if (layer.getTooltip()) bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this)
         },
         style: (feature) => {
           // Custom defined function in component ?

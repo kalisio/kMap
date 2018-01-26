@@ -8,8 +8,6 @@
 
 <script>
 import _ from 'lodash'
-import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
-import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
 import * as mixins from '../mixins'
 import { mixins as kCoreMixins, utils as kCoreUtils } from 'kCore/client'
 

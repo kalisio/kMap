@@ -2,6 +2,8 @@ import _ from 'lodash'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
+import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
+import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
@@ -14,6 +16,8 @@ L.Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 })
+
+import { LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
 
 let baseMapMixin = {
   methods: {
@@ -47,6 +51,7 @@ let baseMapMixin = {
       if (layer && !this.map.hasLayer(layer)) {
         // Store the layer
         this.layers[name] = layer
+        bindLeafletEvents(layer, LeafletEvents.Layer, this)
         // Check if layer is visible by default
         let visible = true
         if (layer.options.hasOwnProperty('visible')) {
@@ -64,6 +69,7 @@ let baseMapMixin = {
       const layer = this.getLayerByName(name)
       if (!layer) return
 
+      unbindLeafletEvents(layer)
       this.overlayLayersControl.removeLayer(layer)
       // If it was visible remove it from map
       if (this.map.hasLayer(layer)) {
