@@ -1,6 +1,6 @@
 import L from 'leaflet'
 import lodash from 'lodash'
-import { LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
+import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {

@@ -12,7 +12,7 @@ export function unbindLeafletEvents (object) {
 }
 
 export const LeafletEvents = {
-	Popup: ['add', 'remove'],
-	Tooltip: ['add', 'remove'],
-	Layer: ['add', 'remove', 'popupopen', 'popupclose', 'tooltipopen', 'tooltipclose']
+  Popup: ['add', 'remove'],
+  Tooltip: ['add', 'remove'],
+  Layer: ['add', 'remove', 'popupopen', 'popupclose', 'tooltipopen', 'tooltipclose']
 }
