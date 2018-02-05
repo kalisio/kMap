@@ -10,6 +10,7 @@ let servicesLayersMixin = {
       })
       .subscribe(response => {
         let layer = this.getLayerByName(name)
+        layer.clearLayers()
         // Declare the output GeoJson collection
         response.data.forEach(feature => {
           this.addGeoJsonToLayer(layer, feature, geojsonOptions)
@@ -24,8 +25,7 @@ let servicesLayersMixin = {
     },
     addServiceLayer (name, service, query, geojsonOptions) {
       // Use a cluster by default ?
-      // this.addGeoJsonClusterLayer(name)
-      this.addGeoJsonLayer(name)
+      this.addGeoJsonClusterLayer(name)
       this.subscribeService(name, service, query, geojsonOptions)
     },
     removeServiceLayer (name) {
