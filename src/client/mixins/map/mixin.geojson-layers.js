@@ -7,8 +7,8 @@ let geojsonLayersMixin = {
     addGeoJsonLayer (name, geojson, geojsonOptions) {
       return this.addLayer(name, L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
     },
-    addGeoJsonClusterLayer (name, geojson, geojsonOptions) {
-      let cluster = L.markerClusterGroup()
+    addGeoJsonClusterLayer (name, clusterOptions, geojson, geojsonOptions) {
+      let cluster = L.markerClusterGroup(clusterOptions)
       cluster.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
       return this.addLayer(name, cluster)
     },
