@@ -57,7 +57,7 @@ export default {
       this.$refs.modal.open()
       this.title = location.name
       this.center(location.longitude, location.latitude, this.zoom)
-      if (! this.place) {
+      if (!this.place) {
         this.marker = L.marker([location.latitude, location.longitude], { icon: L.icon.fontAwesome(this.markerStyle) })
         this.marker.addTo(this.map)
       } else {
