@@ -1,8 +1,11 @@
+import _ from 'lodash'
+
 let collectionLayerMixin = {
   methods: {
     refreshLayer () {
       this.collectionLayer.clearLayers()
-      this.items.forEach(item => this.addGeoJsonToLayer(this.collectionLayer, item))
+      let filteredItems = _.filter(this.items, (item) => this.filterItem(item))
+      filteredItems.forEach(item => this.addGeoJsonToLayer(this.collectionLayer, item))
     },
     addCollectionLayer (name, clusterOptions, geojsonOptions) {
       this.geojsonOptions = geojsonOptions
