@@ -1,7 +1,7 @@
 import NodeGeocoder from 'node-geocoder'
 import makeDebug from 'debug'
 
-const debug = makeDebug('kalisio:kMap:geocoder')
+const debug = makeDebug('kalisio:kMap:geocoder:service')
 
 export default function (name, app, options) {
     // Keep track of config
