@@ -100,13 +100,16 @@ let geojsonLayersMixin = {
           }
         },
         pointToLayer: (feature, latlng) => {
+          let marker = null
           // Custom defined function in component ?
           if (typeof this.getPointMarker === 'function') {
-            return this.getPointMarker(feature, latlng)
+            marker = this.getPointMarker(feature, latlng)
           } else {
             // Configured or default style
-            return this.createMarkerFromStyle(latlng, this.options.pointStyle)
+            marker = this.createMarkerFromStyle(latlng, this.options.pointStyle)
           }
+          if (marker) bindLeafletEvents(marker, LeafletEvents.Marker, this)
+          return marker
         }
       }
 
