@@ -88,7 +88,7 @@ export default {
   },
   mounted () {
     this.loadRefs()
-    .then(_ => this.setupMap())
+    .then(() => this.setupMap())
   }
 }
 </script>

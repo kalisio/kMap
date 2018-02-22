@@ -1,4 +1,4 @@
-import lodash from 'lodash'
+import _ from 'lodash'
 import L from 'leaflet'
 import 'leaflet-basemaps/L.Control.Basemaps.js'
 import 'leaflet-basemaps/L.Control.Basemaps.css'
@@ -14,13 +14,13 @@ let baseLayersMixin = {
         // Transform from string to actual objects when required in some of the layer options
         ['crs', 'rendererFactory'].forEach(option => {
           // Find the right argument holding the option
-          let options = lodash.find(baseLayer.arguments, argument => typeof lodash.get(argument, option) === 'string')
+          let options = _.find(baseLayer.arguments, argument => typeof _.get(argument, option) === 'string')
           if (options) {
             // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
-            lodash.set(options, option, lodash.get(L, lodash.get(options, option)))
+            _.set(options, option, _.get(L, _.get(options, option)))
           }
         })
-        this.baseLayers.push(lodash.get(L, baseLayer.type)(...baseLayer.arguments))
+        this.baseLayers.push(_.get(L, baseLayer.type)(...baseLayer.arguments))
       })
     }
   },

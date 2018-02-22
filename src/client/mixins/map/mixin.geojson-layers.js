@@ -1,5 +1,5 @@
 import L from 'leaflet'
-import lodash from 'lodash'
+import _ from 'lodash'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
@@ -23,10 +23,10 @@ let geojsonLayersMixin = {
         let icon = markerStyle.icon
         // Parse icon options to get icon object if any
         if (icon) {
-          icon = lodash.get(L, icon.type)(icon.options)
-          return lodash.get(L, markerStyle.type || 'marker')(latlng, { icon })
+          icon = _.get(L, icon.type)(icon.options)
+          return _.get(L, markerStyle.type || 'marker')(latlng, { icon })
         } else {
-          return lodash.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options)
+          return _.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options)
         }
       } else {
         return L.marker(latlng)
