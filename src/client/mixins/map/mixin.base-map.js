@@ -28,10 +28,10 @@ let baseMapMixin = {
       // Initialize the map
       this.map = L.map('map').setView([46, 1.5], 5)
       // Add empty basic overlays control
-      this.overlayLayersControl = L.control.layers({}, {})
-      this.controls.push(this.overlayLayersControl)
+     // this.overlayLayersControl = L.control.layers({}, {})
+     // this.controls.push(this.overlayLayersControl)
       this.setupControls()
-      this.checkOverlayLayersControlVisibility()
+     // this.checkOverlayLayersControlVisibility()
     },
     setupControls () {
       this.controls.forEach(control => control.addTo(this.map))
@@ -60,32 +60,19 @@ let baseMapMixin = {
         if (visible) {
           this.map.addLayer(layer)
         }
-        this.overlayLayersControl.addOverlay(layer, name)
-        this.checkOverlayLayersControlVisibility()
       }
       return layer
     },
     removeLayer (name) {
       const layer = this.getLayerByName(name)
       if (!layer) return
-
       unbindLeafletEvents(layer)
-      this.overlayLayersControl.removeLayer(layer)
       // If it was visible remove it from map
       if (this.map.hasLayer(layer)) {
         this.map.removeLayer(layer)
       }
-      this.checkOverlayLayersControlVisibility()
       // Remove the layer
       delete this.layers[name]
-    },
-    checkOverlayLayersControlVisibility () {
-      // Hidden while nothing has been loaded, default state
-      this.overlayLayersControl.getContainer().style.visibility = 'hidden'
-      this.overlayLayersControl._layers.forEach(_ => {
-        // We know there is at least one layer to display
-        this.overlayLayersControl.getContainer().style.visibility = 'visible'
-      })
     }
   },
   beforeCreate () {
