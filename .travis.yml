@@ -1,15 +1,21 @@
 language: node_js
 node_js:
-  - '7'
+- '7'
 services:
-  - mongodb
+- mongodb
 addons:
   code_climate:
-    repo_token: '0db95b8c4464ebab56f540ae3e692445003bc441b44a117bda5f9c5646683b62'
+    repo_token: 0db95b8c4464ebab56f540ae3e692445003bc441b44a117bda5f9c5646683b62
 notifications:
   email: false
+  slack:
+    rooms:
+      secure: mPeMRkU0Dnbn4kV1+3ntcOJjDbUdudVoWqb547OKoMJWhVkiHd7Z6QwDyRdMTCQFuc90XBsSxt9TJfmbOxpCfcAQ5B8XZgUBlkeIJZMQfguYFwmGQd6cpE9oQKdxn/kztCJ/TicsUBHDg+P2gJn9sBhfnZOuPjrg1kpd7yZwjlY6RvV7tvaAJq4Y/lxwhntFhk9VaQ9ppQrZchcLmMVkxwotm4fBIW/SzVYeTfHnfOKIsr0t0NCU2jycw0Q80rUV/w49/jafJsgmhxD+dWOjTzehuAUo+O4A2zI0k9Zx3OnQD54yAzJBJEicn3T1rocQGjy2jRMvairtgn4/laOxv9wcwPkd1TE9cO7I97OTnBL2YbOoFOyBkSR+WpjczUD6enBe7msNeKJCl6D9AEvKTbk3COm0rACaV4osb4l9NDukw4K5zwshrB5pub0AV9OgfFbDaM3qXo2e8cyOmgpHYSObm650+SiRjGlHIVPE72PEG/GCDaI4gtnmHL0uomKRT75rQyntBmUcJmyCxkxNrKjdsU4MUSu6IjLNSych3dNfaIczNdo5QV+fctKq4leT4ru/WzyfFGpcZgBsSy+EippEa097IUaJOKBG2lXnJirAeyeHUzPzxqgwGmNBpHaZa+NWaE7pdba/TIOtcfVb729vt9ZlvnWUBkLAIMlzOEA=
+    on_success: always
+    on_failure: always
 before_script:
-  - npm install -g codeclimate-test-reporter
-  - git clone https://github.com/kalisio/kCore.git && cd kCore && yarn install && yarn link && cd .. && yarn link kCore
+- npm install -g codeclimate-test-reporter
+- git clone https://github.com/kalisio/kCore.git && cd kCore && yarn install && yarn
+  link && cd .. && yarn link kCore
 after_script:
-  - codeclimate-test-reporter < coverage/lcov.info
+- codeclimate-test-reporter < coverage/lcov.info
