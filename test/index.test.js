@@ -45,6 +45,8 @@ describe('kMap', () => {
       expect(users.data.length > 0).beTrue()
     })
   })
+  // Let enough time to process
+  .timeout(5000)
 
   it('geocode an address', () => {
     let address = '80 chemin des tournesols, 11400 Castelnaudary'
