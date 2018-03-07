@@ -11,16 +11,7 @@ let baseLayersMixin = {
   methods: {
     setupBaseLayers () {
       this.$config('map.baseLayers').forEach(baseLayer => {
-        // Transform from string to actual objects when required in some of the layer options
-        ['crs', 'rendererFactory'].forEach(option => {
-          // Find the right argument holding the option
-          let options = _.find(baseLayer.arguments, argument => typeof _.get(argument, option) === 'string')
-          if (options) {
-            // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
-            _.set(options, option, _.get(L, _.get(options, option)))
-          }
-        })
-        this.baseLayers.push(_.get(L, baseLayer.type)(...baseLayer.arguments))
+        this.baseLayers.push(this.createLayer(baseLayer))
       })
     }
   },

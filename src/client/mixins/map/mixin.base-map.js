@@ -27,15 +27,25 @@ let baseMapMixin = {
     setupMap () {
       // Initialize the map
       this.map = L.map('map').setView([46, 1.5], 5)
-      // Add empty basic overlays control
-     // this.overlayLayersControl = L.control.layers({}, {})
-     // this.controls.push(this.overlayLayersControl)
       this.setupControls()
-     // this.checkOverlayLayersControlVisibility()
     },
     setupControls () {
       this.controls.forEach(control => control.addTo(this.map))
       this.$emit('controlsReady')
+    },
+    createLayer (layerConfiguration) {
+      // Transform from string to actual objects when required in some of the layer options
+      ['crs', 'rendererFactory'].forEach(option => {
+        // Find the right argument holding the option
+        let options = _.find(layerConfiguration.arguments, argument => typeof _.get(argument, option) === 'string')
+        if (options) {
+          // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
+          _.set(options, option, _.get(L, _.get(options, option)))
+        }
+      })
+      let type = layerConfiguration.type
+      let layer = _.get(L, type)(...layerConfiguration.arguments)
+      return layer
     },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
