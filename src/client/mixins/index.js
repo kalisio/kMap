@@ -1,4 +1,5 @@
 import geolocation from './mixin.geolocation'
+import navigator from './mixin.navigator'
 import * as map from './map'
 // FIXME: for now avoid using Cesium to create a light package
 // import * as globe from './globe'
@@ -6,5 +7,6 @@ import * as map from './map'
 export default {
   map,
   // globe,
-  geolocation
+  geolocation,
+  navigator
 }
