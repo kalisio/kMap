@@ -1,1 +1,14 @@
-{}
+{
+  "mixins": {
+    "geolocation": {
+      "ERROR_MESSAGE": "Il nous est impossible de détermine votr position",
+      "PERMISSION_DENIED_MESSAGE": "Il semble que vous n'ayez pas donner les permissions pour vous géolocaliser.",
+      "POSITION_UNAVAILABLE_MESSAGE": "Il semble que le mobile a retourné une erreur interne.",
+      "TIMEOUT_MESSAGE": "Il semble que le temps aloué pour acquérir l'information a expiré.",
+      "DIALOG_MESSAGE": "Cela peut affecter certaines fonctionnalités de l'application. Voulez vous essayer encore ?"
+    },
+    "navigator": {
+      "ACTION_SHEET_TITLE": "Selectionnez une application"
+    }
+  }
+}
