@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import L from 'leaflet'
 import 'leaflet-basemaps/L.Control.Basemaps.js'
 import 'leaflet-basemaps/L.Control.Basemaps.css'

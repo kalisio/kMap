@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import L from 'leaflet'
 
 let overlayLayersMixin = {
