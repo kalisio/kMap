@@ -35,20 +35,23 @@ let geolocationMixin = {
       })
       .catch(error => {
         const code = error.code
-        let message = 'We were unable to retrieve your position.'
+        let message = this.$t('mixins.geolocation.ERROR_MESSAGE')
         if (code === error.PERMISSION_DENIED) {
-          message += ' It seems you did not give permission to locate you.'
+          message += '<br>'
+          message += this.$t('mixins.geolocation.PERMISSION_DENIED_MESSAGE')
         } else if (code === error.POSITION_UNAVAILABLE) {
-          message += ' It seems the internal source of position returned an internal error.'
+          message += '<br>'
+          message += this.$t('mixins.geolocation.POSITION_UNAVAILABLE_MESSAGE')
         } else if (code === error.TIMEOUT) {
-          message += ' It seems the time allowed to acquire it was reached before the information was obtained.'
+          message += '<br>'
+          message += this.$t('mixins.geolocation.POSITION_TIMEOUT_MESSAGE')
         }
         // It seems there is no message when a code is present, however we cannot alter the original error
         // with the new message because it is a read-only property so we clone it
         error = new errors.KPositionError(message)
         Dialog.create({
-          title: 'Unable to retrieve your position',
-          message: 'This might affect some features of the application. Would you like to try again ?',
+          title: this.$t('mixins.geolocation.ERROR_MESSAGE'),
+          message: this.$t('mixins.geolocation.DIALOG_MESSAGE'),
           buttons: [
             {
               label: 'Dismiss',
