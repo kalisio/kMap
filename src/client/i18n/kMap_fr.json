@@ -1,7 +1,7 @@
 {
   "mixins": {
     "geolocation": {
-      "ERROR_MESSAGE": "Il nous est impossible de détermine votr position",
+      "ERROR_MESSAGE": "Il nous est impossible de détermine votre position",
       "PERMISSION_DENIED_MESSAGE": "Il semble que vous n'ayez pas donner les permissions pour vous géolocaliser.",
       "POSITION_UNAVAILABLE_MESSAGE": "Il semble que le mobile a retourné une erreur interne.",
       "TIMEOUT_MESSAGE": "Il semble que le temps aloué pour acquérir l'information a expiré.",
