@@ -1,5 +1,5 @@
 <template>
-  <k-modal ref="modal" :title="title" :toolbar="toolbar" :options="modalStyle()" @opened="refreshMap()">
+  <k-modal ref="modal" :title="title" :toolbar="toolbar()" :options="modalStyle()" @opened="refreshMap()">
     <div slot="modal-content" class="row justify-center">
       <div ref="map" id="map" :style="mapStyle()"></div>  
     </div>
@@ -43,13 +43,15 @@ export default {
   },
   data () {
     return {
-      title: '',
-      toolbar: [
-        { name: 'Close', icon: 'close', handler: () => this.doClose() }
-      ]
+      title: ''
     }
   },
   methods: {
+    toolbar () {
+      return [
+        { name: 'close-action', label: this.$t('KLocationMap.CLOSE_ACTION'), icon: 'close', handler: () => this.doClose() }
+      ]
+    },
     open (location) {
       if (_.isNil(location.longitude)) throw Error('Invalid location: undefined longitude property')
       if (_.isNil(location.latitude)) throw Error('Invalid location: undefined latitude property')
