@@ -5,7 +5,7 @@
       "ERROR_MESSAGE": "Il nous est impossible de déterminer votre position",
       "PERMISSION_DENIED_MESSAGE": "Il semble que vous n'ayez pas donné les permissions pour vous géolocaliser.",
       "POSITION_UNAVAILABLE_MESSAGE": "Il semble que le mobile a retourné une erreur interne.",
-      "TIMEOUT_MESSAGE": "Il semble que le temps aloué pour acquérir l'information a expiré.",
+      "TIMEOUT_MESSAGE": "Il semble que le temps alloué pour acquérir l'information a expiré.",
       "DIALOG_MESSAGE": "Cela peut affecter certaines fonctionnalités de l'application. Voulez vous essayer encore ?"
     },
     "navigator": {
