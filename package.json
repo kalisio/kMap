@@ -78,7 +78,7 @@
     "lodash": "^4.17.4",
     "loglevel": "^1.6.0",
     "node-geocoder": "^3.21.1",
-    "quasar-extras": "1.0.0",
+    "quasar-extras": "0.0.8",
     "quasar-framework": "0.14.7",
     "togeojson": "^0.16.0",
     "vue": "2.5.15",
