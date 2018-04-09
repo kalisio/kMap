@@ -54,7 +54,7 @@ let geolocationMixin = {
           message: this.$t('mixins.geolocation.DIALOG_MESSAGE'),
           buttons: [
             {
-              label: 'Dismiss',
+              label: this.$t('mixins.geolocation.DIALOG_DISMISS_BUTTON'),
               handler: () => {
                 // This will dispatch/display the error message
                 Events.$emit('error', error)
@@ -62,7 +62,7 @@ let geolocationMixin = {
               }
             },
             {
-              label: 'Retry',
+              label: this.$t('mixins.geolocation.DIALOG_RETRY_BUTTON'),
               handler: () => this.updatePosition()
             }
           ]

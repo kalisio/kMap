@@ -6,7 +6,9 @@
       "PERMISSION_DENIED_MESSAGE": "It seems you did not give permission to locate you.",
       "POSITION_UNAVAILABLE_MESSAGE": "It seems the internal source of position returned an internal error.",
       "TIMEOUT_MESSAGE": "It seems the time allowed to acquire it was reached before the information was obtained.",
-      "DIALOG_MESSAGE": "This might affect some features of the application. Would you like to try again ?"
+      "DIALOG_MESSAGE": "This might affect some features of the application. Would you like to try again ?",
+      "DIALOG_DISMISS_BUTTON": "Dismiss",
+      "DIALOG_RETRY_BUTTON": "Retry"
     },
     "navigator": {
       "ACTION_SHEET_TITLE": "Select an application"
