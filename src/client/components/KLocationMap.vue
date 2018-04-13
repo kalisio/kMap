@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import L from 'leaflet'
 import _ from 'lodash'
 import * as mixins from '../mixins'
 import { mixins as kCoreMixins, utils as kCoreUtils } from 'kCore/client'
@@ -22,7 +23,7 @@ export default {
   props: {
     layout: {
       type: Object,
-      default: () => { 
+      default: () => {
         return { width: 480, height: 480 }
       }
     },
@@ -34,10 +35,10 @@ export default {
       type: Object,
       default: () => {
         return {
-			    iconClasses: 'fa fa-circle',
-			    markerColor: kCoreUtils.Colors['blue'],
+          iconClasses: 'fa fa-circle',
+          markerColor: kCoreUtils.Colors['blue'],
           iconColor: '#FFF'
-		    }
+        }
       }
     }
   },
@@ -63,7 +64,7 @@ export default {
         this.marker = L.marker([location.latitude, location.longitude], { icon: L.icon.fontAwesome(this.markerStyle) })
         this.marker.addTo(this.map)
       } else {
-        this.marker.setLatLng([location.latitude, location.longitude]);
+        this.marker.setLatLng([location.latitude, location.longitude])
       }
     },
     doClose () {
@@ -76,12 +77,12 @@ export default {
       return { minWidth: modalWidth + 'px', minHeight: modalHeight + 'px' }
     },
     mapStyle () {
-      return { 
-        width: this.layout.width + 'px', 
-        height: this.layout.height + 'px', 
-        fontWeight: 'normal', 
-        zIndex: 0, 
-        position: 'absolute' 
+      return {
+        width: this.layout.width + 'px',
+        height: this.layout.height + 'px',
+        fontWeight: 'normal',
+        zIndex: 0,
+        position: 'absolute'
       }
     }
   },

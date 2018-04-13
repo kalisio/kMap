@@ -34,13 +34,13 @@ export default {
   computed: {
     actions () {
       let buttons = [
-         {
+        {
           icon: 'cancel',
           content: true,
           handler: () => { this.$refs.search.clear() }
         }
       ]
-      if (! _.isNil(this.model.longitude) && ! _.isNil(this.model.latitude)) {
+      if (!_.isNil(this.model.longitude) && !_.isNil(this.model.latitude)) {
         buttons.push({
           icon: 'place',
           content: true,
@@ -69,7 +69,7 @@ export default {
     onSearch (pattern, done) {
       // Build the list of responses
       const geocoderService = this.$api.getService('geocoder')
-      if (! geocoderService) throw Error('Cannot find geocoder service')
+      if (!geocoderService) throw Error('Cannot find geocoder service')
       geocoderService.create({ address: pattern })
       .then(response => {
         let places = []
@@ -78,7 +78,7 @@ export default {
           if (element.streetNumber) label += (element.streetNumber + ' ')
           if (element.streetName) label += (element.streetName + ' ')
           if (element.city) label += (element.city + ' ')
-          if (element.zipcode) label += (' (' + element.zipcode + ')')          
+          if (element.zipcode) label += (' (' + element.zipcode + ')')
           let place = {
             value: Object.assign(element, { name: label }),
             label: label
