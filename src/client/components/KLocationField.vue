@@ -59,6 +59,10 @@ export default {
     emptyModel () {
       return {}
     },
+    fill (value) {
+      this.model = value
+      this.pattern = value.name
+    },
     onChanged (pattern) {
       if (typeof pattern === 'string') this.model = { name: pattern }
       else {
