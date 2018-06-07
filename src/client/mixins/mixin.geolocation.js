@@ -34,6 +34,9 @@ let geolocationMixin = {
         logger.debug('New user position: ', position)
       })
       .catch(error => {
+        // Error already raised, waiting for user input
+        if (Store.get('geolocation.errorDialog', null)) return
+
         const code = error.code
         let message = this.$t('mixins.geolocation.ERROR_MESSAGE')
         if (code === error.PERMISSION_DENIED) {
@@ -49,13 +52,19 @@ let geolocationMixin = {
         // It seems there is no message when a code is present, however we cannot alter the original error
         // with the new message because it is a read-only property so we clone it
         error = new errors.KPositionError(message)
-        Dialog.create({
+        Store.set('geolocation.errorDialog', Dialog.create({
           title: this.$t('mixins.geolocation.ERROR_MESSAGE'),
           message: this.$t('mixins.geolocation.DIALOG_MESSAGE'),
+          noBackdropDismiss: true,
+          noEscDismiss: true,
           buttons: [
             {
               label: this.$t('mixins.geolocation.DIALOG_DISMISS_BUTTON'),
               handler: () => {
+                // This ensure we will not display the error dialog again for X minutes
+                setTimeout(() => {
+                  Store.set('geolocation.errorDialog', null)
+                }, 1000 * 60 * 15)
                 // This will dispatch/display the error message
                 Events.$emit('error', error)
                 throw error
@@ -63,10 +72,13 @@ let geolocationMixin = {
             },
             {
               label: this.$t('mixins.geolocation.DIALOG_RETRY_BUTTON'),
-              handler: () => this.updatePosition()
+              handler: () => {
+                Store.set('geolocation.errorDialog', null)
+                this.updatePosition()
+              }
             }
           ]
-        })
+        }))
       })
     }
   },
