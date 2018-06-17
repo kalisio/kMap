@@ -1,6 +1,5 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
-import { Store } from 'kCore/client'
 
 let fileLayersMixin = {
   mounted () {
@@ -12,7 +11,5 @@ let fileLayersMixin = {
     })
   }
 }
-
-Store.set('mixins.globe.fileLayers', fileLayersMixin)
 
 export default fileLayersMixin

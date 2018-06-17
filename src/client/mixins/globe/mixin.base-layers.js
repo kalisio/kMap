@@ -1,5 +1,4 @@
 import Cesium from 'cesium/Source/Cesium.js'
-import { Store } from 'kCore/client'
 
 let baseLayersMixin = {
   data () {
@@ -58,7 +57,5 @@ let baseLayersMixin = {
   mounted () {
   }
 }
-
-Store.set('mixins.globe.baseLayers', baseLayersMixin)
 
 export default baseLayersMixin

@@ -1,4 +1,3 @@
-import { Store } from 'kCore/client'
 import Cesium from 'cesium/Source/Cesium.js'
 import 'cesium/Source/Widgets/widgets.css'
 import BuildModuleUrl from 'cesium/Source/Core/buildModuleUrl'
@@ -8,6 +7,12 @@ BuildModuleUrl.setBaseUrl('./statics/Cesium/')
 
 let baseGlobeMixin = {
   methods: {
+    refreshGlobe () {
+    },
+    setupGlobe () {
+      // Initialize the globe
+      this.viewer = new Cesium.Viewer('globe', this.options.viewer)
+    }
   },
   beforeCreate () {
     this.options = Object.assign({}, this.$config('globe'))
@@ -15,17 +20,10 @@ let baseGlobeMixin = {
   created () {
   },
   mounted () {
-    // Initialize the globe now the DOM is ready
-    this.viewer = new Cesium.Viewer('globe', this.options.viewer)
-    this.$on('globeReady', _ => {
-      // TODO
-    })
   },
   beforeDestroy () {
     this.viewer.destroy()
   }
 }
-
-Store.set('mixins.globe.baseGlobe', baseGlobeMixin)
 
 export default baseGlobeMixin

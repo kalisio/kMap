@@ -1,7 +1,6 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { Store } from 'kCore/client'
 
 let geojsonLayersMixin = {
   methods: {
@@ -82,7 +81,5 @@ let geojsonLayersMixin = {
     }
   }
 }
-
-Store.set('mixins.globe.geojsonLayers', geojsonLayersMixin)
 
 export default geojsonLayersMixin
