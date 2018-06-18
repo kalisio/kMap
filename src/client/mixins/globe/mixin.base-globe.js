@@ -12,6 +12,10 @@ let baseGlobeMixin = {
     setupGlobe () {
       // Initialize the globe
       this.viewer = new Cesium.Viewer('globe', this.options.viewer)
+      this.setupControls()
+    },
+    setupControls () {
+      this.$emit('controlsReady')
     }
   },
   beforeCreate () {

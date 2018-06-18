@@ -32,6 +32,21 @@ let geojsonLayersMixin = {
         return L.marker(latlng)
       }
     },
+    convertFromSimpleStyleSpec (style) {
+      const mappings = {
+        'stroke': 'color',
+        'stroke-opacity': 'opacity',
+        'stroke-width': 'weight',
+        'fill-opacity': 'fillOpacity',
+        'fill-color': 'fillColor',
+      }
+      _.forOwn(style, (value, key) => {
+        const mapping = _.get(mappings, key)
+        if (mapping) _.set(style, mapping, value)
+      })
+
+      return style
+    },
     getGeoJsonOptions () {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {

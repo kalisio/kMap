@@ -4,9 +4,10 @@ import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
 import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
-import 'leaflet.markercluster'
+import 'leaflet-realtime'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import 'leaflet.markercluster'
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
 
 import { LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
@@ -44,6 +45,12 @@ let baseMapMixin = {
         }
       })
       let type = layerConfiguration.type
+      if ((type === 'realtime') && (layerConfiguration.arguments.length > 1)) {
+        let options = layerConfiguration.arguments[1]
+        const id = _.get(options, 'id')
+        if (id) _.set(options, 'getFeatureId', (feature) => _.get(feature, id))
+        if (this.getGeoJsonOptions && options) _.assign(options, this.getGeoJsonOptions())
+      }
       let layer = _.get(L, type)(...layerConfiguration.arguments)
       return layer
     },
