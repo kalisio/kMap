@@ -28,11 +28,12 @@ let baseMapMixin = {
     setupMap () {
       // Initialize the map
       this.map = L.map('map').setView([46, 1.5], 5)
+      this.$emit('map-ready')
       this.setupControls()
     },
     setupControls () {
       this.controls.forEach(control => control.addTo(this.map))
-      this.$emit('controlsReady')
+      this.$emit('controls-ready')
     },
     createLayer (layerConfiguration) {
       // Transform from string to actual objects when required in some of the layer options
@@ -45,13 +46,21 @@ let baseMapMixin = {
         }
       })
       let type = layerConfiguration.type
+      let container
       if ((type === 'realtime') && (layerConfiguration.arguments.length > 1)) {
         let options = layerConfiguration.arguments[1]
         const id = _.get(options, 'id')
         if (id) _.set(options, 'getFeatureId', (feature) => _.get(feature, id))
+        let container = _.get(options, 'container')
+        if (container) {
+          options.container = container = _.get(L, container)()
+        }
         if (this.getGeoJsonOptions && options) _.assign(options, this.getGeoJsonOptions())
       }
       let layer = _.get(L, type)(...layerConfiguration.arguments)
+      if (container) {
+        layer.once('add', () => container.addTo(this.map))
+      }
       return layer
     },
     center (longitude, latitude, zoomLevel) {
