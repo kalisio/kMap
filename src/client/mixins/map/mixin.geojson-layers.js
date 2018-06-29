@@ -12,6 +12,9 @@ let geojsonLayersMixin = {
       cluster.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
       return this.addLayer(name, cluster)
     },
+    addTimedGeoJson (geojson, name, timeOptions, geojsonOptions) {
+      return this.addLayer(L.timeDimension.layer.geoJson(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()), timeOptions), name)
+    },
     removeGeoJsonLayer (name) {
       this.removeLayer(name)
     },

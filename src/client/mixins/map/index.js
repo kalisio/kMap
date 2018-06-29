@@ -4,6 +4,7 @@ import overlayLayers from './mixin.overlay-layers'
 import geojsonLayers from './mixin.geojson-layers'
 import fileLayers from './mixin.file-layers'
 import fullscreen from './mixin.fullscreen'
+import timedimension from './mixin.timedimension'
 import measure from './mixin.measure'
 import scalebar from './mixin.scalebar'
 import serviceLayers from './mixin.service-layers'
@@ -16,6 +17,7 @@ export default {
   geojsonLayers,
   fileLayers,
   fullscreen,
+  timedimension,
   measure,
   scalebar,
   serviceLayers,

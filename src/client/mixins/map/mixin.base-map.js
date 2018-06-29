@@ -1,10 +1,13 @@
 import _ from 'lodash'
+import moment from 'moment'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
 import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
 import 'leaflet-realtime'
+import 'leaflet-timedimension/dist/leaflet.timedimension.src.js'
+import 'leaflet-timedimension/dist/leaflet.timedimension.control.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
@@ -47,6 +50,7 @@ let baseMapMixin = {
       })
       let type = layerConfiguration.type
       let container
+      // Specific case of realtime layer where we first need to create an underlying container or setup Id function
       if ((type === 'realtime') && (layerConfiguration.arguments.length > 1)) {
         let options = layerConfiguration.arguments[1]
         const id = _.get(options, 'id')
@@ -57,11 +61,21 @@ let baseMapMixin = {
         }
         if (this.getGeoJsonOptions && options) _.assign(options, this.getGeoJsonOptions())
       }
+      // Specific case of timedimension layer where we first need to create an underlying WMS layer
+      if (type === 'timeDimension.layer.wms') {
+        type = 'tileLayer.wms'
+      }
       let layer = _.get(L, type)(...layerConfiguration.arguments)
+      // Specific case of realtime layer where we the underlying container also need to be added to map
       if (container) {
         layer.once('add', () => container.addTo(this.map))
       }
-      return layer
+      // Specific case of timedimension layer where we embed the underlying WMS layer
+      if (layerConfiguration.type === 'timeDimension.layer.wms') {
+        return L.timeDimension.layer.wms(layer)
+      } else {
+        return layer
+      }
     },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
@@ -99,6 +113,19 @@ let baseMapMixin = {
       }
       // Remove the layer
       delete this.layers[name]
+    },
+    setCurrentTime (datetime) {
+      // String or milliseconds
+      if (typeof datetime === 'string' || Number.isInteger(datetime)) {
+        this.currentTime = moment.utc(datetime)
+      } else {
+        this.currentTime = datetime
+      }
+      this.$emit('current-time-changed', this.currentTime)
+      // Synchronize UI when the time has been set programmatically
+      if (this.map.timeDimension.getCurrentTime() !== this.currentTime.valueOf()) {
+        this.map.timeDimension.setCurrentTime(this.currentTime.valueOf())
+      }
     }
   },
   beforeCreate () {
