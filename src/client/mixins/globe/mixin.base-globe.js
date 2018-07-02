@@ -17,6 +17,17 @@ let baseGlobeMixin = {
     },
     setupControls () {
       this.$emit('controls-ready')
+    },
+    createLayer (layerConfiguration) {
+      let type = layerConfiguration.type
+      let options = (layerConfiguration.arguments.length > 0 ? layerConfiguration.arguments[1] : {})
+      if (type === 'geoJson') {
+        if (options.clustering) {
+          this.addGeoJsonCluster(layerConfiguration.name, ...layerConfiguration.arguments)
+        } else {
+          this.addGeoJson(layerConfiguration.name, ...layerConfiguration.arguments)
+        }
+      }
     }
   },
   beforeCreate () {

@@ -4,18 +4,26 @@ import _ from 'lodash'
 
 let geojsonLayersMixin = {
   methods: {
-    addGeoJson (geojson, name, geojsonOptions) {
+    addGeoJson (name, geojson, geojsonOptions) {
       const options = geojsonOptions || this.getGeoJsonOptions()
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
+        // Custom defined function in component ?
+        if (typeof this.getEntityStyle === 'function') {
+          for (let i = 0; i < dataSource.entities.values.length; i++) {
+            let entity = dataSource.entities.values[i]
+            const style = this.getEntityStyle(entity)
+            _.assign(entity, style)
+          }
+        }
         return this.viewer.dataSources.add(dataSource)
       })
       .otherwise(error => {
         logger.error(error)
       })
     },
-    addGeoJsonCluster (geojson, name, geojsonOptions) {
+    addGeoJsonCluster (name, geojson, geojsonOptions) {
       const options = geojsonOptions || this.getGeoJsonOptions()
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
@@ -34,8 +42,8 @@ let geojsonLayersMixin = {
         _.assign(dataSource.clustering, clusteringOptions)
         dataSource.clustering.clusterEvent.addEventListener((entities, cluster) => {
           // Custom defined function in component ?
-          if (typeof this.getFeatureStyle === 'function') {
-            const style = this.getFeatureStyle(cluster, entities)
+          if (typeof this.getClusterStyle === 'function') {
+            const style = this.getClusterStyle(cluster, entities)
             // Loop over possible styles
             let featureTypes = ['billboard', 'label', 'point']
             featureTypes.forEach(type => {
