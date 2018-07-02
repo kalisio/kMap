@@ -5,7 +5,7 @@ import _ from 'lodash'
 let geojsonLayersMixin = {
   methods: {
     addGeoJson (name, geojson, geojsonOptions) {
-      const options = geojsonOptions || this.getGeoJsonOptions()
+      const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
@@ -24,7 +24,7 @@ let geojsonLayersMixin = {
       })
     },
     addGeoJsonCluster (name, geojson, geojsonOptions) {
-      const options = geojsonOptions || this.getGeoJsonOptions()
+      const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
@@ -75,8 +75,8 @@ let geojsonLayersMixin = {
           delete options[key]
         }
         // Convert from string to color object as required by cesium
-        if (['markerColor', 'fill', 'stroke'].includes(key)) {
-          options[key] = Cesium.Color.fromCssColorString(value)
+        if (['markerColor', 'fill', 'stroke'].includes(camelKey)) {
+          options[camelKey] = Cesium.Color.fromCssColorString(value)
         }
       })
 
