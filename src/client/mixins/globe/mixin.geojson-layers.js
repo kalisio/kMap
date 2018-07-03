@@ -4,19 +4,49 @@ import _ from 'lodash'
 
 let geojsonLayersMixin = {
   methods: {
+    applyStyle(entities) {
+      // Custom defined function in component ?
+      if (typeof this.getEntityStyle === 'function') {
+        for (let i = 0; i < entities.values.length; i++) {
+          let entity = entities.values[i]
+          const style = this.getEntityStyle(entity)
+          // Loop over possible types
+          let entityTypes = ['billboard', 'label', 'point']
+          entityTypes.forEach(type => {
+            if (entity[type]) {
+              _.assign(entity[type], style[type])
+            }
+          })
+        }
+      }
+    },
+    applyClusterStyle(entities, cluster) {
+      // Custom defined function in component ?
+      if (typeof this.getClusterStyle === 'function') {
+        const style = this.getClusterStyle(entities, cluster)
+        // Loop over possible styles
+        let featureTypes = ['billboard', 'label', 'point']
+        featureTypes.forEach(type => {
+          if (_.has(cluster, type)) {
+            _.assign(cluster[type], style[type])
+          }
+        })
+      } else {
+        // Loop over possible styles
+        let featureTypes = ['billboard', 'label', 'point']
+        featureTypes.forEach(type => {
+          if (_.has(cluster, type)) {
+            _.assign(cluster[type], { show: true })
+          }
+        })
+      }
+    },
     addGeoJson (name, geojson, geojsonOptions) {
       const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
-        // Custom defined function in component ?
-        if (typeof this.getEntityStyle === 'function') {
-          for (let i = 0; i < dataSource.entities.values.length; i++) {
-            let entity = dataSource.entities.values[i]
-            const style = this.getEntityStyle(entity)
-            _.assign(entity, style)
-          }
-        }
+        this.applyStyle(dataSource.entities)
         return this.viewer.dataSources.add(dataSource)
       })
       .otherwise(error => {
@@ -28,6 +58,7 @@ let geojsonLayersMixin = {
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
+        this.applyStyle(dataSource.entities)
         let clusteringOptions = {
           enabled: true,
           pixelRange: 100,
@@ -40,26 +71,7 @@ let geojsonLayersMixin = {
           _.assign(clusteringOptions, _.omit(options.clustering, ['enabled']))
         }
         _.assign(dataSource.clustering, clusteringOptions)
-        dataSource.clustering.clusterEvent.addEventListener((entities, cluster) => {
-          // Custom defined function in component ?
-          if (typeof this.getClusterStyle === 'function') {
-            const style = this.getClusterStyle(cluster, entities)
-            // Loop over possible styles
-            let featureTypes = ['billboard', 'label', 'point']
-            featureTypes.forEach(type => {
-              if (_.has(cluster, type)) {
-                _.assign(cluster[type], style[type])
-              }
-            })
-          } else {
-            // Loop over possible styles
-            ['billboard', 'label', 'point'].forEach(type => {
-              if (_.has(cluster, type)) {
-                _.assign(cluster[type], { show: true })
-              }
-            })
-          }
-        })
+        dataSource.clustering.clusterEvent.addEventListener(this.applyClusterStyle)
         return this.viewer.dataSources.add(dataSource)
       })
       .otherwise(error => {
