@@ -14,7 +14,7 @@ describe('kMap', () => {
     // Default rules for all users
     permissions.defineAbilities.registerHook(permissions.defineUserAbilities)
     // Then rules for maps
-    permissions.defineAbilities.registerHook(mapPermissions.defineMapAbilities)
+    permissions.defineAbilities.registerHook(mapPermissions.defineUserAbilities)
     
     app = kalisio()
     port = app.get('port')
