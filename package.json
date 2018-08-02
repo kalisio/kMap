@@ -87,7 +87,7 @@
     "quasar-extras": "0.0.8",
     "quasar-framework": "0.14.7",
     "togeojson": "^0.16.0",
-    "vue": "2.5.15",
+    "vue": "2.5.17",
     "winston": "^2.3.1"
   },
   "devDependencies": {
