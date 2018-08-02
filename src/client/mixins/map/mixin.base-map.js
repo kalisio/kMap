@@ -38,9 +38,15 @@ let baseMapMixin = {
       this.controls.forEach(control => control.addTo(this.map))
       this.$emit('controls-ready')
     },
-    createLayer (layerConfiguration) {
+    removeControls () {
+      this.controls.forEach(control => control.remove())
+    },
+    createLayer (options) {
+      // Because we update objects in place
+      const layerConfiguration = _.cloneDeep(options)
+      const objectOptions = ['crs', 'rendererFactory']
       // Transform from string to actual objects when required in some of the layer options
-      ['crs', 'rendererFactory'].forEach(option => {
+      objectOptions.forEach(option => {
         // Find the right argument holding the option
         let options = _.find(layerConfiguration.arguments, argument => typeof _.get(argument, option) === 'string')
         if (options) {
@@ -137,6 +143,8 @@ let baseMapMixin = {
     this.layers = {}
   },
   beforeDestroy () {
+    this.removeControls()
+    Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))
     this.map.remove()
   }
 }
