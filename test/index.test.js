@@ -1,6 +1,6 @@
 import chai, { util, expect } from 'chai'
 import chailint from 'chai-lint'
-import core, { kalisio, hooks, permissions } from 'kCore'
+import core, { kalisio, permissions } from 'kCore'
 import map, { permissions as mapPermissions } from '../src'
 
 describe('kMap', () => {
@@ -15,7 +15,7 @@ describe('kMap', () => {
     permissions.defineAbilities.registerHook(permissions.defineUserAbilities)
     // Then rules for maps
     permissions.defineAbilities.registerHook(mapPermissions.defineUserAbilities)
-    
+
     app = kalisio()
     port = app.get('port')
     // baseUrl = `http://localhost:${port}${app.get('apiPath')}`

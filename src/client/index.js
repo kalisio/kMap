@@ -4,7 +4,6 @@ export * as mixins from './mixins'
 export * as utils from './utils'
 export * from '../common'
 
-
 export default function init () {
   const api = this
 
