@@ -4,10 +4,8 @@ let servicesLayersMixin = {
       this.unsubscribeService(name)
       const layerService = this.$api.getService(service)
       // Subscribe to the service
-      this.serviceListeners[name] = layerService.find({
-        rx: { listStrategy: 'always' },
-        query: query
-      })
+      this.serviceListeners[name] = layerService.watch({ listStrategy: 'always' })
+      .find({ query })
       .subscribe(response => {
         let layer = this.getLayerByName(name)
         layer.clearLayers()
