@@ -72,7 +72,7 @@ let baseMapMixin = {
         type = 'tileLayer.wms'
       }
       let layer = _.get(L, type)(...layerConfiguration.arguments)
-      // Specific case of realtime layer where we the underlying container also need to be added to map
+      // Specific case of realtime layer where the underlying container also need to be added to map
       if (container) {
         layer.once('add', () => container.addTo(this.map))
       }
@@ -106,6 +106,7 @@ let baseMapMixin = {
         if (visible) {
           this.map.addLayer(layer)
         }
+        if (this.overlayLayersControl) this.overlayLayersControl.addOverlay(layer, name)
       }
       return layer
     },

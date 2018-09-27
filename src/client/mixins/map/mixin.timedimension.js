@@ -15,6 +15,7 @@ let timedimensionMixin = {
     // Make time dimension available
     this.$on('map-ready', _ => {
       this.map.timeDimension = timeDimension
+      timeDimension.on('timeload', data => this.setCurrentTime(data.time))
     })
   }
 }
