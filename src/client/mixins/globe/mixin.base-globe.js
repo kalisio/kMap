@@ -1,4 +1,4 @@
-import { Store } from 'kCore/client'
+import { Store } from '@kalisio/kCore/client'
 import Cesium from 'cesium/Source/Cesium.js'
 import 'cesium/Source/Widgets/widgets.css'
 import BuildModuleUrl from 'cesium/Source/Core/buildModuleUrl'

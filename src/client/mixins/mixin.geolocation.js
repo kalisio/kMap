@@ -1,6 +1,6 @@
 import logger from 'loglevel'
 import { Events, Dialog } from 'quasar'
-import { Store, utils } from 'kCore/client'
+import { Store, utils } from '@kalisio/kCore/client'
 import { errors } from '../../common'
 
 let geolocationMixin = {

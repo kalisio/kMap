@@ -1,5 +1,5 @@
 {
-  "name": "kMap",
+  "name": "@kalisio/kMap",
   "description": "Basic utils to provide mapping capabiities for Kalisio applications and services",
   "version": "0.1.0",
   "homepage": "https://github.com/kalisio/kMap",
@@ -34,7 +34,7 @@
     "release:patch": "npm version patch && npm publish",
     "release:minor": "npm version minor && npm publish",
     "release:major": "npm version major && npm publish",
-    "changelog": "github_changelog_generator && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
+    "changelog": "github_changelog_generator -u kalisio -p kMap && git add CHANGELOG.md && git commit -am \"Updating changelog\"",
     "compile": "shx rm -rf lib/ && babel -d lib/ src/ -s --copy-files",
     "watch:js": "babel --watch -d lib/ src/ --copy-files",
     "watch:vue": "cpx src/**/*.vue lib/ --watch",

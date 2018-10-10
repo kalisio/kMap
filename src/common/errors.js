@@ -1,3 +1,3 @@
-import { errors } from 'kCore/common'
+import { errors } from '@kalisio/kCore/common'
 
 export class KPositionError extends errors.KError {}
