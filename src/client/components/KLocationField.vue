@@ -20,7 +20,7 @@
 import _ from 'lodash'
 import { QField, QSearch, QAutocomplete } from 'quasar'
 import KLocationMap from './KLocationMap.vue'
-import { mixins as kCoreMixins } from '@kalisio/kCore/client'
+import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-location-field',

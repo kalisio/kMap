@@ -1,6 +1,6 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
-import { Store } from '@kalisio/kCore/client'
+import { Store } from '@kalisio/kdk-core/client'
 
 let fileLayersMixin = {
   mounted () {

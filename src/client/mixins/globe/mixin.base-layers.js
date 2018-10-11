@@ -1,5 +1,5 @@
 import Cesium from 'cesium/Source/Cesium.js'
-import { Store } from '@kalisio/kCore/client'
+import { Store } from '@kalisio/kdk-core/client'
 
 let baseLayersMixin = {
   data () {

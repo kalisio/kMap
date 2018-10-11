@@ -1,6 +1,6 @@
 import chai, { util, expect } from 'chai'
 import chailint from 'chai-lint'
-import core, { kalisio, permissions } from '@kalisio/kCore'
+import core, { kalisio, permissions } from '@kalisio/kdk-core'
 import map, { permissions as mapPermissions } from '../src'
 
 describe('kMap', () => {

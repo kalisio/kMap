@@ -10,7 +10,7 @@
 import L from 'leaflet'
 import _ from 'lodash'
 import * as mixins from '../mixins'
-import { mixins as kCoreMixins, utils as kCoreUtils } from '@kalisio/kCore/client'
+import { mixins as kCoreMixins, utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-location-map',
