@@ -12,9 +12,9 @@
 ## Installation
 
 ```
-npm install kMap --save
+npm install @kalisio/kdk-map --save
 // Or with Yarn
-yarn add kMap
+yarn add @kalisio/kdk-map
 ```
 
 ## Documentation
