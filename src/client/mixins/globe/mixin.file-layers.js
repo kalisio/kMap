@@ -1,6 +1,6 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
-import { Store } from 'kCore/client'
+
 let fileLayersMixin = {
   mounted () {
     this.$on('controls-ready', _ => {

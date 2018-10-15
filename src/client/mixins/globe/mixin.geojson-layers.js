@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { Store } from 'kCore/client'
+
 let geojsonLayersMixin = {
   methods: {
     applyStyle(entities) {
