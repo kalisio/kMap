@@ -23,13 +23,13 @@ let fileLayersMixin = {
       ]
     })
     this.controls.push(fileControl)
-    this.$on('controlsReady', _ => {
+    this.$on('controls-ready', _ => {
       fileControl.loader.on('data:loaded', event => {
         // Remove any previous layer
         this.removeLayer(this.fileLayer)
         // Keep track of layer
         this.fileLayer = this.addLayer(event.layer, event.filename)
-        this.$emit('fileLayerLoaded', this.fileLayer, event.filename)
+        this.$emit('file-layer-loaded', this.fileLayer, event.filename)
       })
     })
   }

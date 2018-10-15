@@ -12,6 +12,9 @@ let geojsonLayersMixin = {
       cluster.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
       return this.addLayer(name, cluster)
     },
+    addTimedGeoJson (geojson, name, timeOptions, geojsonOptions) {
+      return this.addLayer(L.timeDimension.layer.geoJson(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()), timeOptions), name)
+    },
     removeGeoJsonLayer (name) {
       this.removeLayer(name)
     },
@@ -31,6 +34,21 @@ let geojsonLayersMixin = {
       } else {
         return L.marker(latlng)
       }
+    },
+    convertFromSimpleStyleSpec (style) {
+      const mappings = {
+        'stroke': 'color',
+        'stroke-opacity': 'opacity',
+        'stroke-width': 'weight',
+        'fill-opacity': 'fillOpacity',
+        'fill-color': 'fillColor',
+      }
+      _.forOwn(style, (value, key) => {
+        const mapping = _.get(mappings, key)
+        if (mapping) _.set(style, mapping, value)
+      })
+
+      return style
     },
     getGeoJsonOptions () {
       let geojsonOptions = {

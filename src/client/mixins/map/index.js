@@ -4,10 +4,12 @@ import overlayLayers from './mixin.overlay-layers'
 import geojsonLayers from './mixin.geojson-layers'
 import fileLayers from './mixin.file-layers'
 import fullscreen from './mixin.fullscreen'
+import timedimension from './mixin.timedimension'
 import measure from './mixin.measure'
 import scalebar from './mixin.scalebar'
 import serviceLayers from './mixin.service-layers'
 import collectionLayer from './mixin.collection-layer'
+import forecastLayers from './mixin.forecast-layers'
 
 export default {
   baseMap,
@@ -16,8 +18,10 @@ export default {
   geojsonLayers,
   fileLayers,
   fullscreen,
+  timedimension,
   measure,
   scalebar,
   serviceLayers,
-  collectionLayer
+  collectionLayer,
+  forecastLayers
 }

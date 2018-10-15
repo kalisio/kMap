@@ -1,6 +1,5 @@
 import Cesium from 'cesium/Source/Cesium.js'
-import { Store } from '@kalisio/kdk-core/client'
-
+import { Store } from 'kCore/client'
 let baseLayersMixin = {
   data () {
     return {
@@ -15,7 +14,12 @@ let baseLayersMixin = {
           baseLayer.iconUrl = Cesium.buildModuleUrl(baseLayer.iconUrl)
         }
         let options = Object.assign({}, baseLayer, {
-          creationFunction () { return new Cesium[baseLayer.type + 'ImageryProvider'](baseLayer) }
+          creationFunction () {
+            const provider = baseLayer.type + 'ImageryProvider'
+            // Handle specific case of built-in creation functions
+            const createFunction = 'create' + provider
+            return (Cesium[createFunction] ? Cesium[createFunction](baseLayer) : new Cesium[provider](baseLayer))
+          }
         })
         this.imageryProviderViewModels.push(new Cesium.ProviderViewModel(options))
       })
@@ -36,7 +40,12 @@ let baseLayersMixin = {
           terrainLayer.iconUrl = Cesium.buildModuleUrl(terrainLayer.iconUrl)
         }
         let options = Object.assign({}, terrainLayer, {
-          creationFunction () { return new Cesium[terrainLayer.type + 'TerrainProvider'](terrainLayer) }
+          creationFunction () {
+            const provider = terrainLayer.type + 'TerrainProvider'
+            // Handle specific case of built-in creation functions
+            const createFunction = 'create' + provider
+            return (Cesium[createFunction] ? Cesium[createFunction](terrainLayer) : new Cesium[provider](terrainLayer))
+          }
         })
         this.terrainProviderViewModels.push(new Cesium.ProviderViewModel(options))
       })
@@ -58,7 +67,5 @@ let baseLayersMixin = {
   mounted () {
   }
 }
-
-Store.set('mixins.globe.baseLayers', baseLayersMixin)
 
 export default baseLayersMixin

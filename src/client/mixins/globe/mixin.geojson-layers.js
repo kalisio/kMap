@@ -1,26 +1,64 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { Store } from '@kalisio/kdk-core/client'
-
+import { Store } from 'kCore/client'
 let geojsonLayersMixin = {
   methods: {
-    addGeoJson (geojson, name, geojsonOptions) {
-      const options = geojsonOptions || this.getGeoJsonOptions()
+    applyStyle(entities) {
+      // Custom defined function in component ?
+      if (typeof this.getEntityStyle === 'function') {
+        for (let i = 0; i < entities.values.length; i++) {
+          let entity = entities.values[i]
+          const style = this.getEntityStyle(entity)
+          // Loop over possible types
+          let entityTypes = ['billboard', 'label', 'point']
+          entityTypes.forEach(type => {
+            if (entity[type]) {
+              _.assign(entity[type], style[type])
+            }
+          })
+        }
+      }
+    },
+    applyClusterStyle(entities, cluster) {
+      // Custom defined function in component ?
+      if (typeof this.getClusterStyle === 'function') {
+        const style = this.getClusterStyle(entities, cluster)
+        // Loop over possible styles
+        let featureTypes = ['billboard', 'label', 'point']
+        featureTypes.forEach(type => {
+          if (_.has(cluster, type)) {
+            _.assign(cluster[type], style[type])
+          }
+        })
+      } else {
+        // Loop over possible styles
+        let featureTypes = ['billboard', 'label', 'point']
+        featureTypes.forEach(type => {
+          if (_.has(cluster, type)) {
+            _.assign(cluster[type], { show: true })
+          }
+        })
+      }
+    },
+    addGeoJson (name, geojson, geojsonOptions) {
+      const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
+        this.applyStyle(dataSource.entities)
         return this.viewer.dataSources.add(dataSource)
       })
       .otherwise(error => {
         logger.error(error)
       })
     },
-    addGeoJsonCluster (geojson, name, geojsonOptions) {
-      const options = geojsonOptions || this.getGeoJsonOptions()
+    addGeoJsonCluster (name, geojson, geojsonOptions) {
+      const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
 
       return Cesium.GeoJsonDataSource.load(geojson, options)
       .then(dataSource => {
+        this.applyStyle(dataSource.entities)
         let clusteringOptions = {
           enabled: true,
           pixelRange: 100,
@@ -33,26 +71,7 @@ let geojsonLayersMixin = {
           _.assign(clusteringOptions, _.omit(options.clustering, ['enabled']))
         }
         _.assign(dataSource.clustering, clusteringOptions)
-        dataSource.clustering.clusterEvent.addEventListener((entities, cluster) => {
-          // Custom defined function in component ?
-          if (typeof this.getFeatureStyle === 'function') {
-            const style = this.getFeatureStyle(cluster, entities)
-            // Loop over possible styles
-            let featureTypes = ['billboard', 'label', 'point']
-            featureTypes.forEach(type => {
-              if (_.has(cluster, type)) {
-                _.assign(cluster[type], style[type])
-              }
-            })
-          } else {
-            // Loop over possible styles
-            ['billboard', 'label', 'point'].forEach(type => {
-              if (_.has(cluster, type)) {
-                _.assign(cluster[type], { show: true })
-              }
-            })
-          }
-        })
+        dataSource.clustering.clusterEvent.addEventListener(this.applyClusterStyle)
         return this.viewer.dataSources.add(dataSource)
       })
       .otherwise(error => {
@@ -68,8 +87,8 @@ let geojsonLayersMixin = {
           delete options[key]
         }
         // Convert from string to color object as required by cesium
-        if (['markerColor', 'fill', 'stroke'].includes(key)) {
-          options[key] = Cesium.Color.fromCssColorString(value)
+        if (['markerColor', 'fill', 'stroke'].includes(camelKey)) {
+          options[camelKey] = Cesium.Color.fromCssColorString(value)
         }
       })
 
@@ -82,7 +101,5 @@ let geojsonLayersMixin = {
     }
   }
 }
-
-Store.set('mixins.globe.geojsonLayers', geojsonLayersMixin)
 
 export default geojsonLayersMixin
