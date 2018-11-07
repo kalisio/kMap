@@ -22,6 +22,9 @@ module.exports = {
     path: API_PREFIX + '/authentication',
     service: API_PREFIX + '/users'
   },
+  geocoder: {
+    provider: 'opendatafrance'
+  },
   logs: {
     Console: {
       colorize: true,
@@ -35,10 +38,5 @@ module.exports = {
   db: {
     adapter: 'mongodb',
     url: (containerized ? 'mongodb://mongodb:27017/kalisio-test' : 'mongodb://127.0.0.1:27017/kalisio-test')
-  },
-  storage: {
-    accessKeyId: process.env.S3_ACCESS_KEY,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-    bucket: process.env.S3_BUCKET
   }
 }
