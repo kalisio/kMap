@@ -4,7 +4,7 @@ import _ from 'lodash'
 
 let geojsonLayersMixin = {
   methods: {
-    applyStyle(entities) {
+    applyStyle (entities) {
       // Custom defined function in component ?
       if (typeof this.getEntityStyle === 'function') {
         for (let i = 0; i < entities.values.length; i++) {
@@ -20,7 +20,7 @@ let geojsonLayersMixin = {
         }
       }
     },
-    applyClusterStyle(entities, cluster) {
+    applyClusterStyle (entities, cluster) {
       // Custom defined function in component ?
       if (typeof this.getClusterStyle === 'function') {
         const style = this.getClusterStyle(entities, cluster)

@@ -1,5 +1,3 @@
-import Cesium from 'cesium/Source/Cesium.js'
-
 let overlayLayersMixin = {
   data () {
     return {

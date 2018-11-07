@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import moment from 'moment'
 import 'iso8601-js-period/iso8601.js'
 
 let forecastLayersMixin = {
@@ -25,7 +24,7 @@ let forecastLayersMixin = {
     setupForecastLayers () {
       // Not yet ready
       if (!this.forecastModel || !this.map || !this.map.timeDimension) return
-      
+
       this.$config('map.forecastLayers').forEach(layerConfig => {
         let layer = new L.Weacast[layerConfig.type](this.weacastApi, layerConfig.options)
         this.addLayer(layerConfig.name, layer)

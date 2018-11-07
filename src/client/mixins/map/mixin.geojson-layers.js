@@ -41,7 +41,7 @@ let geojsonLayersMixin = {
         'stroke-opacity': 'opacity',
         'stroke-width': 'weight',
         'fill-opacity': 'fillOpacity',
-        'fill-color': 'fillColor',
+        'fill-color': 'fillColor'
       }
       _.forOwn(style, (value, key) => {
         const mapping = _.get(mappings, key)
