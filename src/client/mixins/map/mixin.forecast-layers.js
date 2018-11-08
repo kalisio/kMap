@@ -9,15 +9,7 @@ let forecastLayersMixin = {
   },
   methods: {
     async setupForecastModels () {
-      const response = await this.weacastApi.service('forecasts').find()
-      response.data.forEach(forecast => {
-        forecast.elements.forEach(element => {
-          // Declare element service
-          let elementService = this.weacastApi.service(forecast.name + '/' + element.name)
-          // These services do some computations that might be long
-          elementService.timeout = 30000
-        })
-      })
+      const response = await this.weacastApi.getService('forecasts').find()
       // Select first one
       this.forecastModel = response.data.length > 0 ? response.data[0] : null
     },
