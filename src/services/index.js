@@ -5,7 +5,7 @@ const servicesPath = path.join(__dirname, '..', 'services')
 
 const debug = makeDebug('kalisio:kMap:services')
 
-export function createlayerService (context, db) {
+export function createLayersService (context, db) {
   const app = this
 
   debug('layers service created for context ', context)
@@ -17,11 +17,11 @@ export function createlayerService (context, db) {
   })
 }
 
-export function removeLayerService (context) {
+export function removeLayersService (context) {
   // TODO
 }
 
-module.exports = async function () {
+export default async function () {
   const app = this
 
   debug('geocoder service created')
