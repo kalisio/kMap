@@ -9,7 +9,8 @@ let timedimensionMixin = {
       timeDimension,
       position: 'bottomright',
       speedSlider: false,
-      playButton: false
+      playButton: false,
+      playerOptions: { minBufferReady: -1 } // This avoid preloading of next times
     })
     this.controls.push(timeDimensionControl)
     // Make time dimension available
