@@ -1,11 +1,11 @@
 <template>
   <q-list>
-    <template v-for="category in categories">
-      <q-collapsible :key="category.name" :icon="category.icon" :label="category.label">
+    <template v-for="type in types">
+      <q-collapsible :key="type.name" :icon="type.icon" :label="type.label">
         <div class="row">
-          <template v-for="layer in getLayersOfClass(category.name)">
+          <template v-for="layer in getLayersOfType(type.name)">
             <q-btn :id ="layer.name" :key="layer.name" flat>
-              <q-icon :name="layer.icon" />
+              <q-icon name="map" />
             </q-btn>
           </template>
         </div>
@@ -16,27 +16,29 @@
 
 <script>
 import _ from 'lodash'
-import { QList, QCollapsible, QBtn } from 'quasar'
+import { QList, QCollapsible, QBtn, QIcon } from 'quasar'
 
 export default {
   name: 'k-map-panel',
   components: {
     QList,
-    QCollapsible
+    QCollapsible,
+    QBtn,
+    QIcon
   },
   props: {
     layers: {
       type: Array,
       default: () => []
     },
-    categories: {
+    types: {
       type: Array,
       default: () => []
     }
   },
   methods: {
-    getLayersOfClass (category) {
-      return _.find(this.layers, { category: category })
+    getLayersOfType (type) {
+      return _.filter(this.layers, { type: type })
     }
   }
 }
