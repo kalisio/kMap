@@ -5,7 +5,7 @@
         <div class="row">
           <template v-for="layer in getLayersOfType(type.name)">
             <q-btn :id ="layer.name" :key="layer.name" flat round>
-              <img src="https://s3.eu-central-1.amazonaws.com/kalisioscope/collections/sjjb/accommodation_chalet2.n.24.png" />
+              <img src="layer.iconUrl" />
               <q-tooltip>
                 {{layer.name}}
               </q-tooltip>
@@ -22,7 +22,7 @@ import _ from 'lodash'
 import { QList, QCollapsible, QBtn, QIcon, QTooltip } from 'quasar'
 
 export default {
-  name: 'k-layers-control',
+  name: 'k-layers-panel',
   components: {
     QList,
     QCollapsible,
