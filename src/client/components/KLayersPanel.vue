@@ -4,8 +4,11 @@
       <q-collapsible :key="type.name" :icon="type.icon" :label="type.label">
         <div class="row">
           <template v-for="layer in getLayersOfType(type.name)">
-            <q-btn :id ="layer.name" :key="layer.name" flat>
-              <q-icon name="map" />
+            <q-btn :id ="layer.name" :key="layer.name" flat round>
+              <img src="https://s3.eu-central-1.amazonaws.com/kalisioscope/collections/sjjb/accommodation_chalet2.n.24.png" />
+              <q-tooltip>
+                {{layer.name}}
+              </q-tooltip>
             </q-btn>
           </template>
         </div>
@@ -16,15 +19,16 @@
 
 <script>
 import _ from 'lodash'
-import { QList, QCollapsible, QBtn, QIcon } from 'quasar'
+import { QList, QCollapsible, QBtn, QIcon, QTooltip } from 'quasar'
 
 export default {
-  name: 'k-map-panel',
+  name: 'k-layers-control',
   components: {
     QList,
     QCollapsible,
     QBtn,
-    QIcon
+    QIcon,
+    QTooltip
   },
   props: {
     layers: {
