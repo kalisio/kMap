@@ -129,10 +129,6 @@ let baseMapMixin = {
         this.currentTime = datetime
       }
       this.$emit('current-time-changed', this.currentTime)
-      // Synchronize UI when the time has been set programmatically
-      if (this.map.timeDimension.getCurrentTime() !== this.currentTime.valueOf()) {
-        this.map.timeDimension.setCurrentTime(this.currentTime.valueOf())
-      }
     }
   },
   beforeCreate () {
