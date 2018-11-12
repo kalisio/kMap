@@ -31,7 +31,7 @@ let baseMapMixin = {
     },
     setupMap () {
       // Initialize the map
-      this.map = L.map('map').setView([46, 1.5], 5)
+      this.map = L.map('map', { zoomControl: false }).setView([46, 1.5], 5)
       this.$emit('map-ready')
       this.setupControls()
     },
