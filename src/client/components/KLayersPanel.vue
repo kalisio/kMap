@@ -20,8 +20,8 @@ export default {
   },
   props: {
     layers: {
-      type: Array,
-      default: () => []
+      type: Object,
+      default: () => {}
     },
     types: {
       type: Array,

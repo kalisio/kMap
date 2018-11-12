@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import moment from 'moment'
+import moment, { relativeTimeRounding } from 'moment'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
@@ -24,6 +24,11 @@ L.Icon.Default.mergeOptions({
 })
 
 let baseMapMixin = {
+  data () {
+    return {
+      layers: {}
+    }
+  },  
   methods: {
     refreshMap () {
       this.map.invalidateSize()
@@ -32,14 +37,6 @@ let baseMapMixin = {
       // Initialize the map
       this.map = L.map('map').setView([46, 1.5], 5)
       this.$emit('map-ready')
-      this.setupControls()
-    },
-    setupControls () {
-      this.controls.forEach(control => control.addTo(this.map))
-      this.$emit('controls-ready')
-    },
-    removeControls () {
-      this.controls.forEach(control => control.remove())
     },
     createLayer (options) {
       // Because we update objects in place
@@ -93,39 +90,46 @@ let baseMapMixin = {
       if (!this.hasLayer(name)) return null
       return this.layers[name]
     },
-    setBaseLayer (layer) {
-      if (this.baseLayer) {
-        this.map.removeLayer(this.baseLayer)
-      }
-      this.map.addLayer(layer)
-      this.baseLayer = layer
+    showLayer (name) {
+      // Retieve the layer
+      let layer = this.getLayerByName(name)
+      if (!layer) return
+      // Check the visibility state
+      if (layer.isVisible === true) return
+      layer.isVisible = true
+      // Create the leaflet layer
+      let leafetLayer = this.createLayer(layer.leaflet)
+      this.leafletLayers[name] = leafetLayer
+      this.map.addLayer(leafetLayer)
     },
-    addLayer (name, layer) {
-      if (layer && !this.map.hasLayer(layer)) {
+    hideLayer (name) {
+      // retrieve the layer
+      let layer = this.getLayerByName(name)
+      if (!layer) return
+      // Check the visibility state
+      if (layer.isVisible === false) return
+      layer.isVisible = false
+      // Delete the leaflet layer
+      let leafletLayer = this.leafletLayers[name]
+      this.map.removeLayer(leafletLayer)
+      delete this.leafletLayers[name]
+    },
+    addLayer (layer) {
+      if (layer && !this.hasLayer(layer.name)) {
         // Store the layer
-        this.layers[name] = layer
-        bindLeafletEvents(layer, LeafletEvents.Layer, this)
-        // Check if layer is visible by default
-        let visible = true
-        if (layer.options.hasOwnProperty('visible')) {
-          visible = layer.options.visible
-        }
-        if (visible) {
-          this.map.addLayer(layer)
-        }
-        if (this.overlayLayersControl) this.overlayLayersControl.addOverlay(layer, name)
+        this.layers[layer.name] = layer
+        // Handle the visibility state
+        layer['isVisible'] = false
+        if (_.get(layer, 'leaflet.arguments[1].isVisible', false)) this.showLayer(layer.name)
       }
       return layer
     },
     removeLayer (name) {
       const layer = this.getLayerByName(name)
       if (!layer) return
-      unbindLeafletEvents(layer)
       // If it was visible remove it from map
-      if (this.map.hasLayer(layer)) {
-        this.map.removeLayer(layer)
-      }
-      // Remove the layer
+      if (layer.isVisible === false) this.hideLayer(name)
+      // Delete the layer
       delete this.layers[name]
     },
     setCurrentTime (datetime) {
@@ -142,12 +146,10 @@ let baseMapMixin = {
     this.options = Object.assign({}, this.$config('map'))
   },
   created () {
-    // This is the right place to declare private members because Vue has already processed observed data
-    this.controls = []
-    this.layers = {}
+    this.baseLayer = null
+    this.leafletLayers = {}
   },
   beforeDestroy () {
-    this.removeControls()
     Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))
     this.map.remove()
   }

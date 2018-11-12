@@ -1,7 +1,13 @@
 <template>
   <div class="row justify-around">
     <template v-for="selector in selectors">
-      <q-btn :id ="selector.layer.name" :key="selector.layer.name" round :flat="! selector.toggled" :outline="selector.toggled" @click="onSelectorClicked(selector)">
+      <q-btn 
+        :id ="selector.layer.name" 
+        :key="selector.layer.name" 
+        round 
+        :flat="!selector.layer.isVisible" 
+        :outline="selector.layer.isVisible" 
+        @click="onSelectorClicked(selector)">
         <img :src="selector.layer.iconUrl" width="32" height="32" />
         <q-tooltip>
           {{selector.layer.name}}
@@ -45,27 +51,19 @@ export default {
   methods: {
     refreshSelectors () {
       _.forEach(this.layers, (layer) => {
-        let toggled = false
-        if (layer.default === true) {
-          toggled = true
-          layer.handler()
-        }
         let selector = {
-          toggled: toggled,
           layer: layer
         }
         this.selectors.push(selector)
       })
     },
     onSelectorClicked (selector) {
-      if (selector.toggled) return
-      if (this.exclusive) {
-        _.forEach(this.selectors, (selector) => { 
-          if (selector.toggled) selector.toggled = false
-        })
+      if (this.exclusive) { 
+        if (selector.layer.isVisible) return
+        let selectedLayer = _.find(this.layers, { isVisible: true })
+        selectedLayer.handler({ isVisible: false })
       }
-      selector.toggled = true
-      selector.layer.handler()
+      selector.layer.handler({ isVisible: !selector.layer.isVisible })
     }
   },
   created () {
