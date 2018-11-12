@@ -1,7 +1,7 @@
 <template>
   <q-list>
     <template v-for="type in types">
-      <q-collapsible :key="type.name" :icon="type.icon" :label="type.label">
+      <q-collapsible :key="type.name" :icon="type.icon" :label="$t(type.label)">
         <k-layers-selector :layers="getLayersOfType(type.name)" :exclusive="type.exclusive" />
       </q-collapsible>
     </template>

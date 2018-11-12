@@ -45,8 +45,13 @@ export default {
   methods: {
     refreshSelectors () {
       _.forEach(this.layers, (layer) => {
+        let toggled = false
+        if (layer.default === true) {
+          toggled = true
+          layer.handler()
+        }
         let selector = {
-          toggled: false,
+          toggled: toggled,
           layer: layer
         }
         this.selectors.push(selector)
