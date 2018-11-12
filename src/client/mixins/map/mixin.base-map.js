@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
 import 'leaflet-realtime'
+import 'leaflet-fullscreen'
 import 'leaflet-timedimension/dist/leaflet.timedimension.src.js'
 import 'leaflet-timedimension/dist/leaflet.timedimension.control.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
@@ -35,7 +36,7 @@ let baseMapMixin = {
     },
     setupMap () {
       // Initialize the map
-      this.map = L.map('map').setView([46, 1.5], 5)
+      this.map = L.map('map', { zoomControl: false }).setView([46, 1.5], 5)
       this.$emit('map-ready')
     },
     createLayer (options) {
