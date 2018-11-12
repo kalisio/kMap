@@ -28,9 +28,12 @@ let baseMapMixin = {
     refreshMap () {
       this.map.invalidateSize()
     },
-    setupMap () {
+    setupMap (baseLayer) {
+      console.log(baseLayer)
       // Initialize the map
       this.map = L.map('map').setView([46, 1.5], 5)
+      this.map.addLayer(baseLayer)
+      this.baseLayer = baseLayer
       this.$emit('map-ready')
       this.setupControls()
     },
@@ -92,6 +95,13 @@ let baseMapMixin = {
     getLayerByName (name) {
       if (!this.hasLayer(name)) return null
       return this.layers[name]
+    },
+    setBaseLayer (layer) {
+      if (this.baseLayer) {
+        this.map.removeLayer(this.baseLayer)
+      }
+      this.map.addLayer(layer)
+      this.baseLayer = layer
     },
     addLayer (name, layer) {
       if (layer && !this.map.hasLayer(layer)) {
