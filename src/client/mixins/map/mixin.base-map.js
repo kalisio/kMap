@@ -7,8 +7,6 @@ import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
 import 'leaflet-realtime'
 import 'leaflet-fullscreen'
-import 'leaflet-timedimension/dist/leaflet.timedimension.src.js'
-import 'leaflet-timedimension/dist/leaflet.timedimension.control.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
@@ -39,47 +37,37 @@ let baseMapMixin = {
       this.map = L.map('map', { zoomControl: false }).setView([46, 1.5], 5)
       this.$emit('map-ready')
     },
-    createLayer (options) {
+    processLeafletLayerOptions (options) {
       // Because we update objects in place
-      const layerConfiguration = _.cloneDeep(options)
-      const objectOptions = ['crs', 'rendererFactory']
+      let processedOptions = _.cloneDeep(options)
       // Transform from string to actual objects when required in some of the layer options
-      objectOptions.forEach(option => {
+      this.leafletObjectOptions.forEach(option => {
         // Find the right argument holding the option
-        let options = _.find(layerConfiguration.arguments, argument => typeof _.get(argument, option) === 'string')
+        let options = _.find(processedOptions.arguments, argument => typeof _.get(argument, option) === 'string')
         if (options) {
           // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
           _.set(options, option, _.get(L, _.get(options, option)))
         }
       })
-      let type = layerConfiguration.type
-      let container
-      // Specific case of realtime layer where we first need to create an underlying container or setup Id function
-      if ((type === 'realtime') && (layerConfiguration.arguments.length > 1)) {
-        let options = layerConfiguration.arguments[1]
-        const id = _.get(options, 'id')
-        if (id) _.set(options, 'getFeatureId', (feature) => _.get(feature, id))
-        let container = _.get(options, 'container')
-        if (container) {
-          options.container = container = _.get(L, container)()
-        }
-        if (this.getGeoJsonOptions && options) _.assign(options, this.getGeoJsonOptions())
+      return processedOptions
+    },
+    createLeafletLayer (options) {
+      return _.get(L, options.type)(...options.arguments)
+    },
+    registerLeafletConstructor (constructor) {
+      this.leafletFactory.push(constructor)
+    },
+    createLayer (options) {
+      let processedOptions = this.processLeafletLayerOptions(options)
+      let layer
+      // Iterate over all registered constructors until we find one
+      for (let i = 0; i < this.leafletFactory.length; i++) {
+        const constructor = this.leafletFactory[i]
+        layer = constructor(processedOptions)
+        if (layer) break
       }
-      // Specific case of timedimension layer where we first need to create an underlying WMS layer
-      if (type === 'timeDimension.layer.wms') {
-        type = 'tileLayer.wms'
-      }
-      let layer = _.get(L, type)(...layerConfiguration.arguments)
-      // Specific case of realtime layer where the underlying container also need to be added to map
-      if (container) {
-        layer.once('add', () => container.addTo(this.map))
-      }
-      // Specific case of timedimension layer where we embed the underlying WMS layer
-      if (layerConfiguration.type === 'timeDimension.layer.wms') {
-        return L.timeDimension.layer.wms(layer)
-      } else {
-        return layer
-      }
+      // Use default Leaflet layer constructor if none found
+      return (layer ? layer : this.createLeafletLayer(options))
     },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
@@ -149,6 +137,9 @@ let baseMapMixin = {
   created () {
     this.baseLayer = null
     this.leafletLayers = {}
+    this.leafletFactory = []
+    // Default Leaflet layer options requiring conversion from string to actual Leaflet objects
+    this.leafletObjectOptions = ['crs', 'rendererFactory']
   },
   beforeDestroy () {
     Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))

@@ -33,27 +33,21 @@ let forecastLayersMixin = {
         this.forecastModel = this.forecastModels.length > 0 ? this.forecastModels[0] : null
       })
     },
-    setupForecastLayers () {
-      // Not yet ready
-      if (!this.forecastModel || !this.map) return
-
-      /* FIXME: this.$config('map.forecastLayers').forEach(layerConfig => {
-        let layer = this.getLayerByName(layerConfig.name)
-        // Need to be created first
-        if (!layer) {
-          layer = new L.Weacast[layerConfig.type](this.weacastApi, layerConfig.options)
-          this.addLayer(layerConfig.name, layer)
-          this.forecastLayers.push(layer)
-        }
-        // For visualization we might decimate the data resolution for performance reasons
-        layer.setForecastModel(this.getVisualModel(layerConfig))
-      })
-      */
+    createLeafletForecastLayer (options) {
+      // Check for valid types
+      if (!options.type.startsWith('weacast')) return
+      // We need to add Weacast API object as argument before creating the layer
+      options.arguments = [this.weacastApi].concat(options.arguments)
+      // Copy some generic options from model as well
+      if (options.arguments.length > 0) options.arguments[0].attribution = this.forecastModel.attribution
+      let layer = this.createLeafletLayer(options)
+      // For visualization we might decimate the data resolution for performance reasons
+      layer.setForecastModel(this.getVisualModel(options))
+      return layer
     }
   },
   created () {
-    // This is the right place to declare private members because Vue has already processed observed data
-    this.forecastLayers = []
+    this.registerLeafletConstructor(this.createLeafletForecastLayer)
   },
   mounted () {
   }

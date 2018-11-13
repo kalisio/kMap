@@ -4,22 +4,45 @@ import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
-    addGeoJsonLayer (name, geojson, geojsonOptions) {
-      return this.addLayer(name, L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
-    },
-    addGeoJsonClusterLayer (name, clusterOptions, geojson, geojsonOptions) {
-      let cluster = L.markerClusterGroup(clusterOptions)
-      cluster.addLayer(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()))
-      return this.addLayer(name, cluster)
-    },
-    addTimedGeoJson (geojson, name, timeOptions, geojsonOptions) {
-      return this.addLayer(L.timeDimension.layer.geoJson(L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()), timeOptions), name)
-    },
-    removeGeoJsonLayer (name) {
-      this.removeLayer(name)
-    },
-    addGeoJsonToLayer (layer, geojson, geojsonOptions) {
-      if (layer) L.geoJson(geojson, geojsonOptions || this.getGeoJsonOptions()).addTo(layer)
+    createLeafletGeoJsonLayer (options) {
+      // Check for valid type
+      if (options.type !== 'geoJson') return
+      let layerOptions = _.get(options, 'arguments[1]', {})
+      let container
+      // Specific case of realtime layer where we first need to create an underlying container or setup Id function
+      if (layerOptions.realtime) {
+        // Alter type as required by the plugin
+        options.type = 'realtime'
+        const id = _.get(layerOptions, 'id')
+        if (id) _.set(layerOptions, 'getFeatureId', (feature) => _.get(feature, id))
+        container = _.get(layerOptions, 'container')
+        if (container) {
+          layerOptions.container = container = this.createLeafletLayer({ type: container, arguments: [] })
+        }
+      }
+      // Specific case of clustered layer where we first need to create an underlying group
+      if (layerOptions.cluster) {
+        container = this.createLeafletLayer({ type: 'markerClusterGroup', arguments: [ layerOptions.cluster ] })
+      }
+      // Generic GeoJson options
+      if (this.getGeoJsonOptions && layerOptions) {
+        _.assign(layerOptions, this.getGeoJsonOptions())
+      }
+      let layer = this.createLeafletLayer(options)
+      // Specific case of realtime layer where the underlying container also need to be added to map
+      if (layerOptions.realtime && container) {
+        layer.once('add', () => container.addTo(this.map))
+      }
+      // Specific case of clustered layer where the group is added instead of the geojson layer
+      if (layerOptions.cluster && container) {
+        container.addLayer(layer)
+        layer = container
+      }
+      // Specific case of time dimension layer where we embed the underlying geojson layer
+      if (layerOptions.timeDimension) {
+        layer = this.createLeafletLayer({ type: 'timeDimension.layer.geoJson', arguments: [ layer, layerOptions.timeDimension ] })
+      }
+      return layer
     },
     createMarkerFromStyle (latlng, markerStyle) {
       if (markerStyle) {
@@ -133,6 +156,9 @@ let geojsonLayersMixin = {
 
       return geojsonOptions
     }
+  },
+  created () {
+    this.registerLeafletConstructor(this.createLeafletGeoJsonLayer)
   }
 }
 
