@@ -5,7 +5,8 @@ let forecastLayersMixin = {
   data () {
     return {
       currentTime: null,
-      forecastModel: null
+      forecastModel: null,
+      forecastModels: []
     }
   },
   methods: {
@@ -36,7 +37,7 @@ let forecastLayersMixin = {
       // Not yet ready
       if (!this.forecastModel || !this.map) return
 
-      this.$config('map.forecastLayers').forEach(layerConfig => {
+      /* FIXME: this.$config('map.forecastLayers').forEach(layerConfig => {
         let layer = this.getLayerByName(layerConfig.name)
         // Need to be created first
         if (!layer) {
@@ -47,6 +48,7 @@ let forecastLayersMixin = {
         // For visualization we might decimate the data resolution for performance reasons
         layer.setForecastModel(this.getVisualModel(layerConfig))
       })
+      */
     }
   },
   created () {
