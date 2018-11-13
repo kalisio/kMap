@@ -113,7 +113,7 @@ let baseMapMixin = {
         this.layers[layer.name] = layer
         // Handle the visibility state
         layer['isVisible'] = false
-        if (_.get(layer, 'leaflet.arguments[1].isVisible', false)) this.showLayer(layer.name)
+        if (_.get(layer, 'leaflet.isVisible', false)) this.showLayer(layer.name)
       }
       return layer
     },
