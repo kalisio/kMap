@@ -1,34 +1,42 @@
 let servicesLayersMixin = {
   methods: {
-    subscribeService (name, service, query, geojsonOptions) {
+    subscribeService (name, service, query) {
       this.unsubscribeService(name)
       const layerService = this.$api.getService(service)
       // Subscribe to the service
       this.serviceListeners[name] = layerService.watch({ listStrategy: 'always' })
       .find({ query })
       .subscribe(response => {
-        let layer = this.getLayerByName(name)
-        layer.clearLayers()
+        this.serviceLayer.clearLayers()
         // Declare the output GeoJson collection
-        response.data.forEach(feature => {
-          this.addGeoJsonToLayer(layer, feature, geojsonOptions)
-        })
+        let features = this.createLeafletLayer({ type: 'geoJson', arguments: [ { type: 'FeatureCollection', features: response.data } ] })
+        features.addTo(this.serviceLayer)
       })
     },
     unsubscribeService (name) {
       if (this.serviceListeners[name]) this.serviceListeners[name].unsubscribe()
       delete this.serviceListeners[name]
-      let layer = this.getLayerByName(name)
+      let layer = this.getLeafletLayerByName(name)
       layer.clearLayers()
     },
-    addServiceLayer (name, service, query, geojsonOptions, clusterOptions) {
-      // Use a cluster by default ?
-      this.addGeoJsonClusterLayer(name, clusterOptions)
-      this.subscribeService(name, service, query, geojsonOptions)
+    addServiceLayer (name, service, query, clusterOptions) {
+      // Create an empty layer used as a container
+      this.addLayer({
+        name,
+        type: 'OverlayLayer',
+        leaflet: {
+          type: 'geoJson',
+          arguments: [ {}, {
+            cluster: clusterOptions
+          }]
+        }
+      })
+      this.serviceLayer = this.getLeafletLayerByName(name)
+      this.subscribeService(name, service, query)
     },
     removeServiceLayer (name) {
       this.unsubscribeService(name)
-      this.removeGeoJsonLayer(name)
+      this.removeLayer(name)
     }
   },
   created () {

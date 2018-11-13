@@ -36,10 +36,10 @@ let forecastLayersMixin = {
     createLeafletForecastLayer (options) {
       // Check for valid types
       if (!options.type.startsWith('weacast')) return
-      // We need to add Weacast API object as argument before creating the layer
-      options.arguments = [this.weacastApi].concat(options.arguments)
       // Copy some generic options from model as well
       if (options.arguments.length > 0) options.arguments[0].attribution = this.forecastModel.attribution
+      // We need to add Weacast API object as argument before creating the layer
+      options.arguments = [this.weacastApi].concat(options.arguments)
       let layer = this.createLeafletLayer(options)
       // For visualization we might decimate the data resolution for performance reasons
       layer.setForecastModel(this.getVisualModel(options))

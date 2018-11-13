@@ -79,6 +79,10 @@ let baseMapMixin = {
       if (!this.hasLayer(name)) return null
       return this.layers[name]
     },
+    getLeafletLayerByName (name) {
+      if (!this.hasLayer(name)) return null
+      return this.leafletLayers[name]
+    },
     showLayer (name) {
       // Retieve the layer
       let layer = this.getLayerByName(name)
