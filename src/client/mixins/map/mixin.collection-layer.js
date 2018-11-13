@@ -15,6 +15,7 @@ let collectionLayerMixin = {
         type: 'OverlayLayer',
         leaflet: {
           type: 'geoJson',
+          isVisible: true,
           arguments: [ {}, {
             cluster: clusterOptions
           }]
