@@ -9,11 +9,14 @@ export function createLayersService (context, db) {
   const app = this
 
   debug('layers service created for context ', context)
+  let paginate = app.get('layers.paginate')
+  if (!paginate) paginate = { default: 100, max: 100 }
   app.createService('layers', {
     servicesPath,
     modelsPath,
     context,
-    db
+    db,
+    paginate
   })
 }
 
