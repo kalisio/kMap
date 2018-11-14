@@ -129,6 +129,18 @@ let baseGlobeMixin = {
       if (layer.isVisible === false) this.hideLayer(name)
       // Delete the layer
       delete this.layers[name]
+    },
+    center (longitude, latitude, altitude = 0, heading = 0, pitch = -90, roll = 0) {
+      const target = {
+        destination : Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+        orientation : {
+          heading : Cesium.Math.toRadians(heading),
+          pitch : Cesium.Math.toRadians(pitch),
+          roll : Cesium.Math.toRadians(roll)
+        }
+      }
+      if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
+      else this.viewer.camera.setView(target)
     }
   },
   beforeCreate () {

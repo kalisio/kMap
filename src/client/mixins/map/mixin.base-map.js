@@ -69,9 +69,6 @@ let baseMapMixin = {
       // Use default Leaflet layer constructor if none found
       return (layer ? layer : this.createLeafletLayer(processedOptions))
     },
-    center (longitude, latitude, zoomLevel) {
-      this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
-    },
     hasLayer (name) {
       return _.has(this.layers, name)
     },
@@ -124,6 +121,9 @@ let baseMapMixin = {
       if (layer.isVisible === false) this.hideLayer(name)
       // Delete the layer
       delete this.layers[name]
+    },
+    center (longitude, latitude, zoomLevel) {
+      this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
     },
     setCurrentTime (datetime) {
       // String or milliseconds
