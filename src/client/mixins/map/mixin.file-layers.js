@@ -1,35 +1,52 @@
 import L from 'leaflet'
-import 'leaflet-filelayer'
+import logger from 'loglevel'
+import togeojson from 'togeojson'
+import fileLayer from 'leaflet-filelayer'
+
+fileLayer(null, L, togeojson)
 
 let fileLayersMixin = {
   mounted () {
-    L.Control.FileLayerLoad.LABEL = '<i class="material-icons">file_upload</i>'
-    let fileControl = L.Control.fileLayerLoad({
-      // Allows you to use a customized version of L.geoJson.
-      // For example if you are using the Proj4Leaflet leaflet plugin,
-      // you can pass L.Proj.geoJson and load the files into the
-      // L.Proj.GeoJson instead of the L.geoJson.
-      layer: L.geoJson,
-      // See http://leafletjs.com/reference.html#geojson-options
-      layerOptions: this.getGeoJsonOptions(),
-      // Add to map after loading (default: true) ?
-      addToMap: false,
-      // File size limit in kb (default: 1024) ?
-      fileSizeLimit: this.options.fileSizeLimit || 1024 * 1024,
-      // Restrict accepted file formats (default: .geojson, .kml, and .gpx) ?
-      formats: [
-        '.geojson',
-        '.kml'
-      ]
-    })
-    this.controls.push(fileControl)
-    this.$on('controls-ready', _ => {
-      fileControl.loader.on('data:loaded', event => {
-        // Remove any previous layer
-        this.removeLayer(this.fileLayer)
-        // Keep track of layer
-        this.fileLayer = this.addLayer(event.layer, event.filename)
-        this.$emit('file-layer-loaded', this.fileLayer, event.filename)
+    this.$on('map-ready', _ => {
+      this.loader = L.FileLayer.fileLoader(this.map, Object.assign({
+        // Allows you to use a customized version of L.geoJson.
+        // For example if you are using the Proj4Leaflet leaflet plugin,
+        // you can pass L.Proj.geoJson and load the files into the
+        // L.Proj.GeoJson instead of the L.geoJson.
+        layer: L.geoJson,
+        // See http://leafletjs.com/reference.html#geojson-options
+        layerOptions: this.getGeoJsonOptions(),
+        // Add to map after loading
+        addToMap: false,
+        // File size limit in kb
+        fileSizeLimit: 1024 * 1024,
+        // Restrict accepted file formats (default: .geojson, .kml, and .gpx)
+        formats: [
+          '.geojson',
+          '.kml',
+          '.gpx'
+        ]
+      }, this.options.fileLayers))
+      // Required to support drag'n'drop because we do not use the built-in control
+      this.map._container.addEventListener('dragenter', () => this.map.scrollWheelZoom.disable(), false)
+      this.map._container.addEventListener('dragleave', () => this.map.scrollWheelZoom.enable(), false)
+      this.map._container.addEventListener('dragover', (event) => {
+        event.stopPropagation()
+        event.preventDefault()
+      }, false)
+      this.map._container.addEventListener('drop', (event) => {
+        event.stopPropagation()
+        event.preventDefault()
+
+        this.loader.loadMultiple(event.dataTransfer.files)
+        this.map.scrollWheelZoom.enable()
+      }, false)
+      
+      this.loader.on('data:loaded', event => {
+        this.map.addLayer(event.layer)
+      })
+      this.loader.on('data:error', event => {
+        logger.error(event.error)
       })
     })
   }
