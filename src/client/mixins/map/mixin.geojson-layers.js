@@ -7,7 +7,9 @@ let geojsonLayersMixin = {
     createLeafletGeoJsonLayer (options) {
       // Check for valid type
       if (options.type !== 'geoJson') return
-      let layerOptions = _.get(options, 'arguments[1]', {})
+      // Check for layer options object, create if required
+      if (!_.has(options, 'arguments[1]')) _.set(options, 'arguments[1]', {})
+      let layerOptions = _.get(options, 'arguments[1]')
       let container
       // Specific case of realtime layer where we first need to create an underlying container or setup Id function
       if (layerOptions.realtime) {
@@ -24,10 +26,13 @@ let geojsonLayersMixin = {
       if (layerOptions.cluster) {
         container = this.createLeafletLayer({ type: 'markerClusterGroup', arguments: [ layerOptions.cluster ] })
       }
-      // Generic GeoJson options
-      if (this.getGeoJsonOptions && layerOptions) {
-        _.assign(layerOptions, this.getGeoJsonOptions())
-      }
+      // Merge generic GeoJson options and layer options
+      let geoJsonOptions = this.getGeoJsonOptions()
+      Object.keys(geoJsonOptions).forEach(key => {
+        // If layer provided do not override
+        if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
+      })
+      
       let layer = this.createLeafletLayer(options)
       // Specific case of realtime layer where the underlying container also need to be added to map
       if (layerOptions.realtime && container) {

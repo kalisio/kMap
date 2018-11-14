@@ -4,6 +4,39 @@ import _ from 'lodash'
 
 let geojsonLayersMixin = {
   methods: {
+    async createCesiumGeoJsonLayer (options) {
+      // Check for valid type
+      if (options.type !== 'geoJson') return
+      let layerOptions = _.get(options, 'arguments[1]', {})
+      // Merge generic GeoJson options and layer options
+      let geoJsonOptions = this.getGeoJsonOptions()
+      Object.keys(geoJsonOptions).forEach(key => {
+        // If layer provided do not override
+        if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
+      })
+      this.convertFromSimpleStyleSpec(layerOptions)
+
+      try {
+        let dataSource = await return Cesium.GeoJsonDataSource.load(geojson, options)
+        this.applyStyle(dataSource.entities)
+        if (layerOptions.cluster) {
+          // Set default cluster options
+          _.assign(dataSource.clustering, {
+            enabled: true,
+            pixelRange: 100,
+            minimumClusterSize: 3,
+            clusterBillboards: true,
+            clusterLabels: true,
+            clusterPoints: true
+          }, layerOptions.cluster)
+          dataSource.clustering.clusterEvent.addEventListener(this.applyClusterStyle)
+        }
+        return dataSource
+      } catch (error) {
+        logger.error(error)
+        return null
+      }
+    },
     applyStyle (entities) {
       // Custom defined function in component ?
       if (typeof this.getEntityStyle === 'function') {
@@ -41,43 +74,6 @@ let geojsonLayersMixin = {
         })
       }
     },
-    addGeoJson (name, geojson, geojsonOptions) {
-      const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
-
-      return Cesium.GeoJsonDataSource.load(geojson, options)
-      .then(dataSource => {
-        this.applyStyle(dataSource.entities)
-        return this.viewer.dataSources.add(dataSource)
-      })
-      .otherwise(error => {
-        logger.error(error)
-      })
-    },
-    addGeoJsonCluster (name, geojson, geojsonOptions) {
-      const options = (geojsonOptions ? this.convertFromSimpleStyleSpec(geojsonOptions) : this.getGeoJsonOptions())
-
-      return Cesium.GeoJsonDataSource.load(geojson, options)
-      .then(dataSource => {
-        this.applyStyle(dataSource.entities)
-        let clusteringOptions = {
-          enabled: true,
-          pixelRange: 100,
-          minimumClusterSize: 3,
-          clusterBillboards: true,
-          clusterLabels: true,
-          clusterPoints: true
-        }
-        if (options.clustering) {
-          _.assign(clusteringOptions, _.omit(options.clustering, ['enabled']))
-        }
-        _.assign(dataSource.clustering, clusteringOptions)
-        dataSource.clustering.clusterEvent.addEventListener(this.applyClusterStyle)
-        return this.viewer.dataSources.add(dataSource)
-      })
-      .otherwise(error => {
-        logger.error(error)
-      })
-    },
     convertFromSimpleStyleSpec (options) {
       _.forOwn(options, (value, key) => {
         // Convert to camelCase as required by cesium
@@ -95,10 +91,11 @@ let geojsonLayersMixin = {
       return options
     },
     getGeoJsonOptions () {
-      let geojsonOptions = this.options.featureStyle || {}
-
-      return this.convertFromSimpleStyleSpec(geojsonOptions)
+      return this.options.featureStyle || {}
     }
+  },
+  created () {
+    this.registerCesiumConstructor(this.createCesiumGeoJsonLayer)
   }
 }
 

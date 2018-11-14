@@ -67,7 +67,7 @@ let baseMapMixin = {
         if (layer) break
       }
       // Use default Leaflet layer constructor if none found
-      return (layer ? layer : this.createLeafletLayer(options))
+      return (layer ? layer : this.createLeafletLayer(processedOptions))
     },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
