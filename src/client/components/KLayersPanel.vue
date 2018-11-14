@@ -1,8 +1,11 @@
 <template>
   <q-list>
-    <template v-for="type in types">
-      <q-collapsible :key="type.name" :icon="type.icon" :label="$t(type.label)">
-        <k-layers-selector :layers="getLayersOfType(type.name)" :exclusive="type.exclusive" />
+    <template v-for="category in categories">
+      <q-collapsible :key="category.name" :icon="category.icon" :label="$t(category.label)">
+        <k-layers-selector 
+          :layers="layers" 
+          :category="category.name" 
+          :exclusive="category.exclusive" />
       </q-collapsible>
     </template>
   </q-list>
@@ -23,14 +26,9 @@ export default {
       type: Object,
       default: () => {}
     },
-    types: {
+    categories: {
       type: Array,
       default: () => []
-    }
-  },
-  methods: {
-    getLayersOfType (type) {
-      return _.filter(this.layers, { type: type })
     }
   },
   created () {

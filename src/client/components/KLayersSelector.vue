@@ -1,16 +1,16 @@
 <template>
   <div class="row justify-around">
-    <template v-for="selector in selectors">
+    <template v-for="layer in selection">
       <q-btn 
-        :id ="selector.layer.name" 
-        :key="selector.layer.name" 
+        :id ="layer.name" 
+        :key="layer.name" 
         round 
-        :flat="!selector.layer.isVisible" 
-        :outline="selector.layer.isVisible" 
-        @click="onSelectorClicked(selector)">
-        <img :src="selector.layer.iconUrl" width="32" height="32" />
+        :flat="!layer.isVisible" 
+        :outline="layer.isVisible" 
+        @click="onLayerClicked(layer, selection)">
+        <img :src="layer.iconUrl" width="32" height="32" />
         <q-tooltip>
-          {{selector.layer.name}}
+          {{layer.name}}
         </q-tooltip>
       </q-btn>
     </template>
@@ -30,44 +30,38 @@ export default {
   },
   props: {
     layers: {
-      type: Array,
-      default: () => []
+      type: Object,
+      default: () => {}
+    },
+    category: {
+      type: String,
+      default: ''
     },
     exclusive: {
       type: Boolean,
       default: false
     }
   },
-  data () {
-    return {
-      selectors: []
-    }
-  },
-  watch: {
-    layers: function () {
-      this.refreshSelectors()
+  computed: {
+    selection () {
+      let selection = []
+      _.forEach(this.layers, (layer) => {
+        if (layer.type === this.category) {
+          selection.push(layer)
+        }
+      })
+      return selection
     }
   },
   methods: {
-    refreshSelectors () {
-      _.forEach(this.layers, (layer) => {
-        let selector = {
-          layer: layer
-        }
-        this.selectors.push(selector)
-      })
-    },
-    onSelectorClicked (selector) {
+    onLayerClicked (layer, selection) {
       if (this.exclusive) { 
-        if (selector.layer.isVisible) return
-        let selectedLayer = _.find(this.layers, { isVisible: true })
+        if (layer.isVisible) return
+        let selectedLayer = _.find(selection, { isVisible: true })
         selectedLayer.handler({ isVisible: false })
       }
-      selector.layer.handler({ isVisible: !selector.layer.isVisible })
+      layer.handler({ isVisible: !layer.isVisible })
     }
-  },
-  created () {
-    this.refreshSelectors()  
   }
 }
 </script>

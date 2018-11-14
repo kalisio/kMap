@@ -106,10 +106,10 @@ let baseMapMixin = {
     },
     addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
-        // Store the layer
-        this.layers[layer.name] = layer
-        // Handle the visibility state
         layer['isVisible'] = false
+        // Store the layer and make it reactive
+        this.$set(this.layers, layer.name, layer)
+        // Handle the visibility state
         if (_.get(layer, 'leaflet.isVisible', false)) this.showLayer(layer.name)
       }
       return layer
