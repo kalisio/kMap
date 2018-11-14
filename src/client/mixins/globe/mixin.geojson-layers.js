@@ -44,7 +44,7 @@ let geojsonLayersMixin = {
           let entity = entities.values[i]
           const style = this.getEntityStyle(entity)
           // Loop over possible types
-          let entityTypes = ['billboard', 'label', 'point']
+          let entityTypes = ['billboard', 'label', 'point', 'polyline', 'polygon']
           entityTypes.forEach(type => {
             if (entity[type]) {
               _.assign(entity[type], style[type])

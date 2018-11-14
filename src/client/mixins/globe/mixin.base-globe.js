@@ -40,7 +40,14 @@ let baseGlobeMixin = {
       return (options.type === 'Cesium') || (options.type === 'Ellipsoid')
     },
     createCesiumLayer (options) {
-      let provider = options.type + (this.isTerrainLayer(options) ? 'TerrainProvider' : 'ImageryProvider')
+      let provider
+      if (this.isTerrainLayer(options)) {
+        if (options.url || (options.type === 'Ellipsoid')) provider = options.type + 'TerrainProvider'
+        // If no url given will use default terrain creation function createWorldTerrain()
+        else provider = 'WorldTerrain'
+      } else {
+        provider = options.type + 'ImageryProvider'
+      }
       // Handle specific case of built-in creation functions
       const createFunction = 'create' + provider
       provider = (Cesium[createFunction] ? Cesium[createFunction](options) : new Cesium[provider](options))
