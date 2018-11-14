@@ -56,7 +56,7 @@ let baseGlobeMixin = {
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.cesiumFactory.length; i++) {
         const constructor = this.cesiumFactory[i]
-        layer = await constructor(processedOptions)
+        layer = await constructor(processedOptions.cesium)
         if (layer) break
       }
       // Use default Cesium layer constructor if none found
@@ -128,8 +128,6 @@ let baseGlobeMixin = {
     this.options = Object.assign({}, this.$config('globe'))
   },
   created () {
-    this.imageLayer = null
-    this.terrainLayer = null
     this.cesiumLayers = {}
     this.cesiumFactory = []
   },

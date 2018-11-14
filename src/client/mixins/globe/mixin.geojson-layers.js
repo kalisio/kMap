@@ -17,7 +17,7 @@ let geojsonLayersMixin = {
       this.convertFromSimpleStyleSpec(layerOptions)
 
       try {
-        let dataSource = await return Cesium.GeoJsonDataSource.load(geojson, options)
+        let dataSource = await Cesium.GeoJsonDataSource.load(_.get(options, 'arguments[0]'), layerOptions)
         this.applyStyle(dataSource.entities)
         if (layerOptions.cluster) {
           // Set default cluster options
