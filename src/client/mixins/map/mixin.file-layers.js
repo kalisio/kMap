@@ -43,7 +43,20 @@ let fileLayersMixin = {
       }, false)
       
       this.loader.on('data:loaded', event => {
-        this.map.addLayer(event.layer)
+        // Remove any previous layer
+        this.removeLayer(event.filename)
+        // Create an empty layer used as a container
+        this.addLayer({
+          name: event.filename,
+          type: 'OverlayLayer',
+          leaflet: {
+            type: 'geoJson',
+            isVisible: true,
+            arguments: [ { type: 'FeatureCollection', features: [] }, {} ]
+          }
+        })
+        this.fileLayer = this.getLeafletLayerByName(event.filename)
+        event.layer.addTo(this.fileLayer)
       })
       this.loader.on('data:error', event => {
         logger.error(event.error)

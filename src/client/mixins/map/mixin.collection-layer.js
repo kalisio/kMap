@@ -16,7 +16,7 @@ let collectionLayerMixin = {
         leaflet: {
           type: 'geoJson',
           isVisible: true,
-          arguments: [ {}, {
+          arguments: [ { type: 'FeatureCollection', features: [] }, {
             cluster: clusterOptions
           }]
         }
