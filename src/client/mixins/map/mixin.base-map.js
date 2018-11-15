@@ -38,15 +38,20 @@ let baseMapMixin = {
     processLeafletLayerOptions (options) {
       // Because we update objects in place
       let processedOptions = _.cloneDeep(options)
+      let leafletOptions = processedOptions.leaflet
       // Transform from string to actual objects when required in some of the layer options
       this.leafletObjectOptions.forEach(option => {
         // Find the right argument holding the option
-        let options = _.find(processedOptions.arguments, argument => typeof _.get(argument, option) === 'string')
+        let options = _.find(leafletOptions.arguments, argument => typeof _.get(argument, option) === 'string')
         if (options) {
           // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
           _.set(options, option, _.get(L, _.get(options, option)))
         }
       })
+      // Check for layer options object, create if required
+      if (!_.has(leafletOptions, 'arguments[1]')) _.set(leafletOptions, 'arguments[1]', {})
+      let layerOptions = _.get(leafletOptions, 'arguments[1]')
+      layerOptions.attribution = processedOptions.attribution
       return processedOptions
     },
     createLeafletLayer (options) {
@@ -61,14 +66,18 @@ let baseMapMixin = {
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.leafletFactory.length; i++) {
         const constructor = this.leafletFactory[i]
-        layer = constructor(processedOptions)
+        layer = constructor(processedOptions.leaflet)
         if (layer) break
       }
       // Use default Leaflet layer constructor if none found
-      return (layer || this.createLeafletLayer(processedOptions))
+      return (layer || this.createLeafletLayer(processedOptions.leaflet))
     },
     hasLayer (name) {
       return _.has(this.layers, name)
+    },
+    isLayerVisible (name) {
+      let leafetLayer = this.getLeafletLayerByName(name)
+      return leafetLayer && this.map.hasLayer(leafetLayer)
     },
     getLayerByName (name) {
       if (!this.hasLayer(name)) return null
@@ -83,10 +92,12 @@ let baseMapMixin = {
       let layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
-      if (layer.isVisible === true) return
+      if (this.isLayerVisible(name)) return
       layer.isVisible = true
-      // Create the leaflet layer
-      let leafetLayer = this.createLayer(layer.leaflet)
+      // Create the leaflet layer on first show
+      let leafetLayer = this.getLeafletLayerByName(name)
+      if (!leafetLayer) leafetLayer = this.createLayer(layer)
+      // Add the leaflet layer to the map
       this.leafletLayers[name] = leafetLayer
       this.map.addLayer(leafetLayer)
     },
@@ -95,16 +106,15 @@ let baseMapMixin = {
       let layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
-      if (layer.isVisible === false) return
+      if (!this.isLayerVisible(name)) return
       layer.isVisible = false
-      // Delete the leaflet layer
+      // Remove the leaflet layer from map
       let leafletLayer = this.leafletLayers[name]
       this.map.removeLayer(leafletLayer)
-      delete this.leafletLayers[name]
     },
     addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
-        layer['isVisible'] = false
+        layer.isVisible = false
         // Store the layer and make it reactive
         this.$set(this.layers, layer.name, layer)
         // Handle the visibility state
@@ -116,9 +126,10 @@ let baseMapMixin = {
       const layer = this.getLayerByName(name)
       if (!layer) return
       // If it was visible remove it from map
-      if (layer.isVisible === false) this.hideLayer(name)
+      if (layer.isVisible) this.hideLayer(name)
       // Delete the layer
       delete this.layers[name]
+      delete this.leafletLayers[name]
     },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)

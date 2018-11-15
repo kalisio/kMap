@@ -33,6 +33,10 @@ export default {
       type: Object,
       default: () => {}
     },
+    layerHandlers: {
+      type: Object,
+      default: () => {}
+    },
     category: {
       type: String,
       default: ''
@@ -54,13 +58,16 @@ export default {
     }
   },
   methods: {
+    callHandler(action, layer) {
+      if (this.layerHandlers[action]) this.layerHandlers[action](layer)
+    },
     onLayerClicked (layer, selection) {
       if (this.exclusive) {
         if (layer.isVisible) return
         let selectedLayer = _.find(selection, { isVisible: true })
-        selectedLayer.handler({ isVisible: false })
+        this.callHandler('toggle', selectedLayer)
       }
-      layer.handler({ isVisible: !layer.isVisible })
+      this.callHandler('toggle', layer)
     }
   }
 }

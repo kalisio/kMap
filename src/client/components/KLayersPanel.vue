@@ -3,7 +3,8 @@
     <template v-for="category in categories">
       <q-collapsible :key="category.name" :icon="category.icon" :label="$t(category.label)">
         <k-layers-selector 
-          :layers="layers" 
+          :layers="layers"
+          :layerHandlers="layerHandlers"
           :category="category.name" 
           :exclusive="category.exclusive" />
       </q-collapsible>
@@ -22,6 +23,10 @@ export default {
   },
   props: {
     layers: {
+      type: Object,
+      default: () => {}
+    },
+    layerHandlers: {
       type: Object,
       default: () => {}
     },

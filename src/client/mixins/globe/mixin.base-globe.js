@@ -73,19 +73,37 @@ let baseGlobeMixin = {
     hasLayer (name) {
       return _.has(this.layers, name)
     },
+    isLayerVisible (name) {
+      let layer = this.getLayerByName(name)
+      if (!layer) return false
+      let cesiumLayer = this.getCesiumLayerByName(name)
+      if (this.isTerrainLayer(layer.cesium)) {
+        return this.viewer.terrainProvider === cesiumLayer
+      } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
+        return this.viewer.scene.imageryLayers.contains(cesiumLayer)
+      } else {
+        return this.viewer.dataSources.contains(cesiumLayer)
+      }
+    },
     getLayerByName (name) {
       if (!this.hasLayer(name)) return null
       return this.layers[name]
+    },
+    getCesiumLayerByName (name) {
+      if (!this.hasLayer(name)) return null
+      return this.cesiumLayers[name]
     },
     async showLayer (name) {
       // Retieve the layer
       let layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
-      if (layer.isVisible === true) return
+      if (this.isLayerVisible(name)) return
       layer.isVisible = true
-      // Create the Cesium layer
-      let cesiumLayer = await this.createLayer(layer)
+      // Create the Cesium layer on first show
+      let cesiumLayer = this.getCesiumLayerByName(name)
+      if (!cesiumLayer) cesiumLayer = await this.createLayer(layer)
+      // Add the cesium layer to the globe
       this.cesiumLayers[name] = cesiumLayer
       if (this.isTerrainLayer(layer.cesium)) {
         this.viewer.terrainProvider = cesiumLayer
@@ -100,22 +118,21 @@ let baseGlobeMixin = {
       let layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
-      if (layer.isVisible === false) return
+      if (!this.isLayerVisible(name)) return
       layer.isVisible = false
-      // Delete the cesium layer
+      // Remove the cesium layer from globe
       let cesiumLayer = this.cesiumLayers[name]
       if (this.isTerrainLayer(layer.cesium)) {
         this.viewer.terrainProvider = null
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
-        this.viewer.scene.imageryLayers.remove(cesiumLayer)
+        this.viewer.scene.imageryLayers.remove(cesiumLayer, false)
       } else {
-        this.viewer.dataSources.remove(cesiumLayer)
+        this.viewer.dataSources.remove(cesiumLayer, false)
       }
-      delete this.cesiumLayers[name]
     },
     addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
-        layer['isVisible'] = false
+        layer.isVisible = false
         // Store the layer and make it reactive
         this.$set(this.layers, layer.name, layer)
         // Handle the visibility state
@@ -127,9 +144,10 @@ let baseGlobeMixin = {
       const layer = this.getLayerByName(name)
       if (!layer) return
       // If it was visible remove it from map
-      if (layer.isVisible === false) this.hideLayer(name)
+      if (layer.isVisible) this.hideLayer(name)
       // Delete the layer
       delete this.layers[name]
+      delete this.cesiumLayers[name]
     },
     center (longitude, latitude, altitude = 0, heading = 0, pitch = -90, roll = 0) {
       const target = {

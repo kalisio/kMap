@@ -17,7 +17,17 @@ let geojsonLayersMixin = {
       this.convertFromSimpleStyleSpec(layerOptions)
 
       try {
-        let dataSource = await Cesium.GeoJsonDataSource.load(_.get(options, 'arguments[0]'), layerOptions)
+        let dataSource = _.get(options, 'arguments[0]')
+        // Check if data source already added to the scene and we only want to
+        // create a layer on top of it or if we have to load it
+        for (let i = 0; i < this.viewer.dataSources.length; i++) {
+          if (this.viewer.dataSources.get(i).name === dataSource) {
+            dataSource = this.viewer.dataSources.get(i)
+            this.viewer.dataSources.remove(dataSource, false)
+            break
+          }
+        }
+        if (typeof dataSource === 'string') dataSource = await Cesium.GeoJsonDataSource.load(dataSource, layerOptions)
         this.applyStyle(dataSource.entities)
         if (layerOptions.cluster) {
           // Set default cluster options
