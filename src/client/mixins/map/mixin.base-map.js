@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import moment, { relativeTimeRounding } from 'moment'
+import moment from 'moment'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
@@ -11,8 +11,6 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
-
-import { LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
 
 // Fix to make Leaflet assets be correctly inserted by webpack
 delete L.Icon.Default.prototype._getIconUrl
@@ -27,7 +25,7 @@ let baseMapMixin = {
     return {
       layers: {}
     }
-  },  
+  },
   methods: {
     refreshMap () {
       this.map.invalidateSize()
@@ -67,7 +65,7 @@ let baseMapMixin = {
         if (layer) break
       }
       // Use default Leaflet layer constructor if none found
-      return (layer ? layer : this.createLeafletLayer(processedOptions))
+      return (layer || this.createLeafletLayer(processedOptions))
     },
     hasLayer (name) {
       return _.has(this.layers, name)

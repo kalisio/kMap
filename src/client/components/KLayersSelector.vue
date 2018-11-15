@@ -55,7 +55,7 @@ export default {
   },
   methods: {
     onLayerClicked (layer, selection) {
-      if (this.exclusive) { 
+      if (this.exclusive) {
         if (layer.isVisible) return
         let selectedLayer = _.find(selection, { isVisible: true })
         selectedLayer.handler({ isVisible: false })

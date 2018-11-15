@@ -1,4 +1,3 @@
-import L from 'leaflet'
 import 'iso8601-js-period/iso8601.js'
 
 let forecastLayersMixin = {
@@ -21,7 +20,7 @@ let forecastLayersMixin = {
         origin: this.forecastModel.origin,
         bounds: this.forecastModel.bounds,
         size: [Math.floor(this.forecastModel.size[0] / decimationFactor), Math.floor(this.forecastModel.size[1] / decimationFactor)],
-        resolution: [decimationFactor * this.forecastModel.resolution[0], decimationFactor * this.forecastModel.resolution[1]],
+        resolution: [decimationFactor * this.forecastModel.resolution[0], decimationFactor * this.forecastModel.resolution[1]]
       })
       return visualModel
     },

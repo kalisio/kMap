@@ -41,7 +41,7 @@ let fileLayersMixin = {
         this.loader.loadMultiple(event.dataTransfer.files)
         this.map.scrollWheelZoom.enable()
       }, false)
-      
+
       this.loader.on('data:loaded', event => {
         // Remove any previous layer
         this.removeLayer(event.filename)

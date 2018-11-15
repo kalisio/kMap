@@ -32,7 +32,7 @@ let geojsonLayersMixin = {
         // If layer provided do not override
         if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
       })
-      
+
       let layer = this.createLeafletLayer(options)
       // Specific case of realtime layer where the underlying container also need to be added to map
       if (layerOptions.realtime && container) {

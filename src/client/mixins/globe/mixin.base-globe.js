@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import Cesium from 'cesium/Source/Cesium.js'
 import 'cesium/Source/Widgets/widgets.css'
 import BuildModuleUrl from 'cesium/Source/Core/buildModuleUrl'
@@ -10,7 +11,7 @@ let baseGlobeMixin = {
     return {
       layers: {}
     }
-  },  
+  },
   methods: {
     refreshGlobe () {
     },
@@ -67,7 +68,7 @@ let baseGlobeMixin = {
         if (layer) break
       }
       // Use default Cesium layer constructor if none found
-      return (layer ? layer : this.createCesiumLayer(processedOptions.cesium))
+      return (layer || this.createCesiumLayer(processedOptions.cesium))
     },
     hasLayer (name) {
       return _.has(this.layers, name)
@@ -132,11 +133,11 @@ let baseGlobeMixin = {
     },
     center (longitude, latitude, altitude = 0, heading = 0, pitch = -90, roll = 0) {
       const target = {
-        destination : Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
-        orientation : {
-          heading : Cesium.Math.toRadians(heading),
-          pitch : Cesium.Math.toRadians(pitch),
-          roll : Cesium.Math.toRadians(roll)
+        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+        orientation: {
+          heading: Cesium.Math.toRadians(heading),
+          pitch: Cesium.Math.toRadians(pitch),
+          roll: Cesium.Math.toRadians(roll)
         }
       }
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)

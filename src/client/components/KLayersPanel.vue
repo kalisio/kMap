@@ -12,7 +12,6 @@
 </template>
 
 <script>
-import _ from 'lodash'
 import { QList, QCollapsible } from 'quasar'
 
 export default {
