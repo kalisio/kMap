@@ -47,6 +47,7 @@ let fileLayersMixin = {
         this.addLayer({
           name: event.filename,
           type: 'OverlayLayer',
+          icon: 'insert_drive_file',
           leaflet: {
             type: 'geoJson',
             isVisible: true,

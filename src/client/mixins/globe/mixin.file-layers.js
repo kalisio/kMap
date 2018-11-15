@@ -16,6 +16,7 @@ let fileLayersMixin = {
         this.addLayer({
           name: source.name,
           type: 'OverlayLayer',
+          icon: 'insert_drive_file',
           cesium: {
             type: 'geoJson',
             isVisible: true,
