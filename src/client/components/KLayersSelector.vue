@@ -4,11 +4,12 @@
       <q-btn 
         :id ="layer.name" 
         :key="layer.name" 
-        round 
+        round
+        :icon="layer.icon"
         :flat="!layer.isVisible" 
         :outline="layer.isVisible" 
         @click="onLayerClicked(layer, selection)">
-        <img :src="layer.iconUrl" width="32" height="32" />
+        <img v-if="!layer.icon" :src="layer.iconUrl" width="32" height="32" />
         <q-tooltip>
           {{layer.name}}
         </q-tooltip>
