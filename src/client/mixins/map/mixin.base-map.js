@@ -142,6 +142,12 @@ let baseMapMixin = {
         this.currentTime = datetime
       }
       this.$emit('current-time-changed', this.currentTime)
+    },
+    setMapCursor (className) {
+      L.DomUtil.addClass(this.map._container, className)
+    },
+    unsetMapCursor (className) {
+      L.DomUtil.removeClass(this.map._container, className)
     }
   },
   beforeCreate () {
