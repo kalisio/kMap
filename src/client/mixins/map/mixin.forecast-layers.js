@@ -127,7 +127,7 @@ let forecastLayersMixin = {
         barbHeight: 10,
         forceDir: true
       })
-      return L.marker(latlng, { icon })
+      return L.marker(latlng, { icon, draggable: 'true' })
     }
   },
   created () {
