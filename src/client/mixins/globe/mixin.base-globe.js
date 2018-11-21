@@ -135,6 +135,7 @@ let baseGlobeMixin = {
         layer.isVisible = false
         // Store the layer and make it reactive
         this.$set(this.layers, layer.name, layer)
+        this.$emit('layer-added', layer)
         // Handle the visibility state
         if (_.get(layer, 'cesium.isVisible', false)) this.showLayer(layer.name)
       }
@@ -148,6 +149,7 @@ let baseGlobeMixin = {
       // Delete the layer
       delete this.layers[name]
       delete this.cesiumLayers[name]
+      this.$emit('layer-removed', layer)
     },
     center (longitude, latitude, altitude = 0, heading = 0, pitch = -90, roll = 0) {
       const target = {

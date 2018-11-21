@@ -6,7 +6,7 @@
           :layers="layers"
           :layerHandlers="layerHandlers"
           :category="category.name" 
-          :exclusive="category.exclusive" />
+          :options="category.options || {}" />
       </q-collapsible>
     </template>
   </q-list>

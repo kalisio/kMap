@@ -30,9 +30,9 @@ let baseMapMixin = {
     refreshMap () {
       this.map.invalidateSize()
     },
-    setupMap () {
+    setupMap (options) {
       // Initialize the map
-      this.map = L.map('map', { zoomControl: false }).setView([46, 1.5], 5)
+      this.map = L.map('map', Object.assign({ zoomControl: false }, options)).setView([46, 1.5], 5)
       this.$emit('map-ready')
     },
     processLeafletLayerOptions (options) {
@@ -117,6 +117,7 @@ let baseMapMixin = {
         layer.isVisible = false
         // Store the layer and make it reactive
         this.$set(this.layers, layer.name, layer)
+        this.$emit('layer-added', layer)
         // Handle the visibility state
         if (_.get(layer, 'leaflet.isVisible', false)) this.showLayer(layer.name)
       }
@@ -130,6 +131,7 @@ let baseMapMixin = {
       // Delete the layer
       delete this.layers[name]
       delete this.leafletLayers[name]
+      this.$emit('layer-removed', layer)
     },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)

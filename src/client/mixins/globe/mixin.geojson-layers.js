@@ -7,7 +7,9 @@ let geojsonLayersMixin = {
     async createCesiumGeoJsonLayer (options) {
       // Check for valid type
       if (options.type !== 'geoJson') return
-      let layerOptions = _.get(options, 'arguments[1]', {})
+      // Check for layer options object, create if required
+      if (!_.has(options, 'arguments[1]')) _.set(options, 'arguments[1]', {})
+      let layerOptions = _.get(options, 'arguments[1]')
       // Merge generic GeoJson options and layer options
       let geoJsonOptions = this.getGeoJsonOptions()
       Object.keys(geoJsonOptions).forEach(key => {
