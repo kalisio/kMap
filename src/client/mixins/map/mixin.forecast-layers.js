@@ -1,3 +1,6 @@
+import _ from 'lodash'
+import L from 'leaflet'
+
 let forecastLayersMixin = {
   data () {
     return {
@@ -61,7 +64,7 @@ let forecastLayersMixin = {
           }
         }
       }
-      
+
       let response = await this.weacastApi.getService('probes')
       .create({
         forecast: this.forecastModel.name,
@@ -72,7 +75,7 @@ let forecastLayersMixin = {
     async probeStaticLocation (featureId, startTime, endTime) {
       // Check if probe is available
       if (!this.probe) return
-      
+
       let results = await this.weacastApi.getService('probe-results').find({
         query: {
           probeId: this.probe._id,
@@ -94,8 +97,8 @@ let forecastLayersMixin = {
         let index = times.findIndex(time => new Date(time).getTime() > currentTime)
         index = Math.max(index - 1, 0)
         return values[index]
-      } // Constant value
-      else {
+      } else {
+        // Constant value
         return values
       }
     },

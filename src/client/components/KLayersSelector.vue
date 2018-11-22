@@ -95,7 +95,7 @@ export default {
     key (layer, action) {
       return layer.name + '-' + action
     },
-    callHandler(action, layer) {
+    callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)
     },
     onLayerClicked (layer, selection) {
