@@ -1,3 +1,5 @@
+import moment from 'moment'
+
 let forecastLayersMixin = {
   data () {
     return {
@@ -91,9 +93,19 @@ let forecastLayersMixin = {
       // Check for the right value at time
       if (Array.isArray(times) && Array.isArray(values)) {
         const currentTime = this.currentTime.valueOf()
-        let index = times.findIndex(time => new Date(time).getTime() > currentTime)
-        index = Math.max(index - 1, 0)
-        return values[index]
+        // Look for the nearest time
+        let timeIndex = 0
+        let minDiff = Infinity
+        times.forEach((time, index) => {
+          let diff = Math.abs(this.currentTime.diff(moment.utc(time)))
+          if (diff < minDiff) {
+            minDiff = diff
+            timeIndex = index
+          }
+        })
+        // Check if we found a valid time within interval, otherwise the time is missing
+        if ((minDiff/1000) > (0.5 * this.forecastModel.interval)) return null
+        else return values[timeIndex]
       } // Constant value
       else {
         return values
@@ -112,7 +124,7 @@ let forecastLayersMixin = {
     },
     getProbedLocationMarker (feature, latlng) {
       const properties = feature.properties
-      if (!properties) return null
+      if (!properties || !properties.windDirection || !properties.windSpeed) return null
       // Use wind barbs on probed features
       let icon = new L.WindBarb.Icon({
         deg: properties.windDirection,
