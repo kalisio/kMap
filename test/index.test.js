@@ -3,14 +3,14 @@ import chailint from 'chai-lint'
 import path from 'path'
 import fs from 'fs-extra'
 import core, { kalisio, permissions } from '@kalisio/kdk-core'
-import map, { permissions as mapPermissions } from '../src'
+import map, { permissions as mapPermissions, createCollectionLayerService } from '../src'
 
 const modelsPath = path.join(__dirname, '..', 'src', 'models')
 const servicesPath = path.join(__dirname, '..', 'src', 'services')
 
 describe('kMap', () => {
   let app, server, port, // baseUrl,
-    userService, userObject, geocoderService, layersService, layersArray
+    userService, userObject, geocoderService, layersService, layersArray, collectionLayerService
 
   before(() => {
     chailint(chai, util)
@@ -60,6 +60,18 @@ describe('kMap', () => {
     expect(layers.length > 0)
     layersArray = await layersService.create(layers)
     expect(layersArray.length > 0)
+  })
+
+  it('create the collection layer services', async () => {
+    for (let i = 0; i < layersArray.length; ++i) {
+      const layer = layersArray[i]
+      if (layer.type === 'CollectionLayer') {
+        expect(layer.collection).toExist()
+        createCollectionLayerService.call(app, layer.collection)
+        collectionLayerService = app.getService(layer.collection)
+        expect(collectionLayerService).toExist()
+      }
+    }
   })
 
   it('geocode an address', async () => {

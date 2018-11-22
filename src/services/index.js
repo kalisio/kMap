@@ -5,6 +5,18 @@ const servicesPath = path.join(__dirname, '..', 'services')
 
 const debug = makeDebug('kalisio:kMap:services')
 
+export function createCollectionLayerService (collection) {
+  const app = this
+
+  debug('collection layer service created for collection ', collection)
+  app.createService(collection, {
+    fileName: 'collection-layer',
+    servicesPath,
+    modelsPath,
+    collection
+  })
+}
+
 export function createLayersService (context, db) {
   const app = this
 

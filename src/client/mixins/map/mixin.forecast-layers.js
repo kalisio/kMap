@@ -95,7 +95,6 @@ let forecastLayersMixin = {
     getValueAtCurrentTime (times, values) {
       // Check for the right value at time
       if (Array.isArray(times) && Array.isArray(values)) {
-        const currentTime = this.currentTime.valueOf()
         // Look for the nearest time
         let timeIndex = 0
         let minDiff = Infinity
@@ -107,7 +106,7 @@ let forecastLayersMixin = {
           }
         })
         // Check if we found a valid time within interval, otherwise the time is missing
-        if ((minDiff/1000) > (0.5 * this.forecastModel.interval)) return null
+        if ((minDiff / 1000) > (0.5 * this.forecastModel.interval)) return null
         else return values[timeIndex]
       } else {
         // Constant value
