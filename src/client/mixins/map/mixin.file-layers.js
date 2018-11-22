@@ -42,16 +42,16 @@ let fileLayersMixin = {
         this.map.scrollWheelZoom.enable()
       }, false)
 
-      this.loader.on('data:loaded', event => {
+      this.loader.on('data:loaded', async event => {
         // Create an empty layer used as a container
-        this.addLayer({
+        await this.addLayer({
           name: event.filename,
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
           leaflet: {
             type: 'geoJson',
             isVisible: true,
-            arguments: [ { type: 'FeatureCollection', features: [] }, {} ]
+            arguments: [ {}, {} ]
           }
         })
         let fileLayer = this.getLeafletLayerByName(event.filename)

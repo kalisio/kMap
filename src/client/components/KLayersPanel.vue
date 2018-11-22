@@ -5,7 +5,6 @@
         <k-layers-selector 
           :layers="layers"
           :layerHandlers="layerHandlers"
-          :category="category.name" 
           :options="category.options || {}" />
       </q-collapsible>
     </template>

@@ -27,7 +27,7 @@ let baseGlobeMixin = {
       this.$emit('globe-ready')
     },
     processCesiumLayerOptions (options) {
-      // Because we update objects in place
+      // Because we update objects in place and don't want cesium internal objects to be reactive
       let processedOptions = _.cloneDeep(options)
       // Transform from string to actual object
       processedOptions.cesium.iconUrl = Cesium.buildModuleUrl(processedOptions.iconUrl)
@@ -130,14 +130,14 @@ let baseGlobeMixin = {
         this.viewer.dataSources.remove(cesiumLayer, false)
       }
     },
-    addLayer (layer) {
+    async addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
         layer.isVisible = false
         // Store the layer and make it reactive
         this.$set(this.layers, layer.name, layer)
         this.$emit('layer-added', layer)
         // Handle the visibility state
-        if (_.get(layer, 'cesium.isVisible', false)) this.showLayer(layer.name)
+        if (_.get(layer, 'cesium.isVisible', false)) await this.showLayer(layer.name)
       }
       return layer
     },

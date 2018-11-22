@@ -36,7 +36,7 @@ let baseMapMixin = {
       this.$emit('map-ready')
     },
     processLeafletLayerOptions (options) {
-      // Because we update objects in place
+      // Because we update objects in place and don't want leaflet internal objects to be reactive
       let processedOptions = _.cloneDeep(options)
       let leafletOptions = processedOptions.leaflet
       // Transform from string to actual objects when required in some of the layer options
@@ -60,13 +60,13 @@ let baseMapMixin = {
     registerLeafletConstructor (constructor) {
       this.leafletFactory.push(constructor)
     },
-    createLayer (options) {
+    async createLayer (options) {
       let processedOptions = this.processLeafletLayerOptions(options)
       let layer
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.leafletFactory.length; i++) {
         const constructor = this.leafletFactory[i]
-        layer = constructor(processedOptions.leaflet)
+        layer = await constructor(processedOptions.leaflet)
         if (layer) break
       }
       // Use default Leaflet layer constructor if none found
@@ -87,7 +87,7 @@ let baseMapMixin = {
       if (!this.hasLayer(name)) return null
       return this.leafletLayers[name]
     },
-    showLayer (name) {
+    async showLayer (name) {
       // Retieve the layer
       let layer = this.getLayerByName(name)
       if (!layer) return
@@ -96,7 +96,7 @@ let baseMapMixin = {
       layer.isVisible = true
       // Create the leaflet layer on first show
       let leafetLayer = this.getLeafletLayerByName(name)
-      if (!leafetLayer) leafetLayer = this.createLayer(layer)
+      if (!leafetLayer) leafetLayer = await this.createLayer(layer)
       // Add the leaflet layer to the map
       this.leafletLayers[name] = leafetLayer
       this.map.addLayer(leafetLayer)
@@ -114,14 +114,14 @@ let baseMapMixin = {
       let leafletLayer = this.leafletLayers[name]
       this.map.removeLayer(leafletLayer)
     },
-    addLayer (layer) {
+    async addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
         layer.isVisible = false
         // Store the layer and make it reactive
         this.$set(this.layers, layer.name, layer)
         this.$emit('layer-added', layer)
         // Handle the visibility state
-        if (_.get(layer, 'leaflet.isVisible', false)) this.showLayer(layer.name)
+        if (_.get(layer, 'leaflet.isVisible', false)) await this.showLayer(layer.name)
       }
       return layer
     },

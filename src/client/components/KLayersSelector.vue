@@ -47,6 +47,7 @@
 
 <script>
 import _ from 'lodash'
+import sift from 'sift'
 import { QBtn, QIcon, QPopover, QList, QItem, QItemSide, QItemTile, QItemMain, QTooltip } from 'quasar'
 
 export default {
@@ -71,10 +72,6 @@ export default {
       type: Object,
       default: () => {}
     },
-    category: {
-      type: String,
-      default: ''
-    },
     options: {
       type: Object,
       default: () => {}
@@ -82,12 +79,7 @@ export default {
   },
   computed: {
     selection () {
-      let selection = []
-      _.forEach(this.layers, (layer) => {
-        if (layer.type === this.category) {
-          selection.push(layer)
-        }
-      })
+      let selection = sift(this.options.filter || {}, _.values(this.layers))
       return selection
     }
   },

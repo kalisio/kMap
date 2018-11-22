@@ -1,53 +1,72 @@
 import L from 'leaflet'
 import _ from 'lodash'
+import logger from 'loglevel'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
-    createLeafletGeoJsonLayer (options) {
+    async createLeafletGeoJsonLayer (options) {
       // Check for valid type
       if (options.type !== 'geoJson') return
       // Check for layer options object, create if required
       if (!_.has(options, 'arguments[1]')) _.set(options, 'arguments[1]', {})
       let layerOptions = _.get(options, 'arguments[1]')
-      let container
-      // Specific case of realtime layer where we first need to create an underlying container or setup Id function
-      if (layerOptions.realtime) {
-        // Alter type as required by the plugin
-        options.type = 'realtime'
-        const id = _.get(layerOptions, 'id')
-        if (id) _.set(layerOptions, 'getFeatureId', (feature) => _.get(feature, id))
-        container = _.get(layerOptions, 'container')
-        if (container) {
-          layerOptions.container = container = this.createLeafletLayer({ type: container, arguments: [] })
-        }
-      }
-      // Specific case of clustered layer where we first need to create an underlying group
-      if (layerOptions.cluster) {
-        container = this.createLeafletLayer({ type: 'markerClusterGroup', arguments: [ layerOptions.cluster ] })
-      }
-      // Merge generic GeoJson options and layer options
-      let geoJsonOptions = this.getGeoJsonOptions()
-      Object.keys(geoJsonOptions).forEach(key => {
-        // If layer provided do not override
-        if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
-      })
 
-      let layer = this.createLeafletLayer(options)
-      // Specific case of realtime layer where the underlying container also need to be added to map
-      if (layerOptions.realtime && container) {
-        layer.once('add', () => container.addTo(this.map))
+      try {
+        let container
+        // Specific case of realtime layer where we first need to create an underlying container or setup Id function
+        if (layerOptions.realtime) {
+          // Alter type as required by the plugin
+          options.type = 'realtime'
+          const id = _.get(layerOptions, 'id')
+          if (id) _.set(layerOptions, 'getFeatureId', (feature) => _.get(feature, id))
+          container = _.get(layerOptions, 'container')
+          if (container) {
+            layerOptions.container = container = this.createLeafletLayer({ type: container, arguments: [] })
+          }
+        }
+        // Specific case of clustered layer where we first need to create an underlying group
+        if (layerOptions.cluster) {
+          container = this.createLeafletLayer({ type: 'markerClusterGroup', arguments: [ layerOptions.cluster ] })
+        }
+        // Merge generic GeoJson options and layer options
+        let geoJsonOptions = this.getGeoJsonOptions()
+        Object.keys(geoJsonOptions).forEach(key => {
+          // If layer provided do not override
+          if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
+        })
+
+        let dataSource = _.get(options, 'arguments[0]')
+        if (_.isEmpty(dataSource)) {
+          // Empty valid GeoJson
+          _.set(options, 'arguments[0]', { type: 'FeatureCollection', features: [] })
+        } else if ((typeof dataSource === 'string') && (options.type !== 'realtime')) { // URL ? If so load data
+          let response = await fetch(dataSource)
+          if (response.status !== 200) {
+            throw new Error(`Impossible to fetch ${dataSopurce}: ` + response.status)
+          }
+          _.set(options, 'arguments[0]', await response.json())
+        }
+
+        let layer = this.createLeafletLayer(options)
+        // Specific case of realtime layer where the underlying container also need to be added to map
+        if (layerOptions.realtime && container) {
+          layer.once('add', () => container.addTo(this.map))
+        }
+        // Specific case of clustered layer where the group is added instead of the geojson layer
+        if (layerOptions.cluster && container) {
+          container.addLayer(layer)
+          layer = container
+        }
+        // Specific case of time dimension layer where we embed the underlying geojson layer
+        if (layerOptions.timeDimension) {
+          layer = this.createLeafletLayer({ type: 'timeDimension.layer.geoJson', arguments: [ layer, layerOptions.timeDimension ] })
+        }
+        return layer
+      } catch (error) {
+        logger.error(error)
+        return null
       }
-      // Specific case of clustered layer where the group is added instead of the geojson layer
-      if (layerOptions.cluster && container) {
-        container.addLayer(layer)
-        layer = container
-      }
-      // Specific case of time dimension layer where we embed the underlying geojson layer
-      if (layerOptions.timeDimension) {
-        layer = this.createLeafletLayer({ type: 'timeDimension.layer.geoJson', arguments: [ layer, layerOptions.timeDimension ] })
-      }
-      return layer
     },
     createMarkerFromStyle (latlng, markerStyle) {
       if (markerStyle) {
@@ -64,6 +83,7 @@ let geojsonLayersMixin = {
       }
     },
     convertFromSimpleStyleSpec (style) {
+      let convertedStyle = {}
       const mappings = {
         'stroke': 'color',
         'stroke-opacity': 'opacity',
@@ -73,20 +93,21 @@ let geojsonLayersMixin = {
       }
       _.forOwn(style, (value, key) => {
         const mapping = _.get(mappings, key)
-        if (mapping) _.set(style, mapping, value)
+        if (mapping) _.set(convertedStyle, mapping, value)
       })
 
-      return style
+      return convertedStyle
     },
     getGeoJsonOptions () {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {
           const featureStyle = this.options.featureStyle
+          let popup
           // Custom defined function in component for popup ?
           if (typeof this.getFeaturePopup === 'function') {
-            let popup = this.getFeaturePopup(feature, layer)
-            if (popup) layer.bindPopup(popup)
-          } else if (feature.properties) {
+            popup = this.getFeaturePopup(feature, layer)
+          }
+          if (!popup && feature.properties) {
             // Default content
             const borderStyle = ' style="border: 1px solid black; border-collapse: collapse;"'
             let html = '<table' + borderStyle + '>'
@@ -109,48 +130,58 @@ let geojsonLayersMixin = {
             // Configured or default style
             if (featureStyle && featureStyle.popup && featureStyle.popup.options) {
               layer.bindPopup(html, featureStyle.popup.options)
+              popup = L.popup(featureStyle.popup.options, layer)
             } else {
-              layer.bindPopup(html, {
+              popup = L.popup({
                 maxHeight: 400,
                 maxWidth: 400
-              })
+              }, layer)
             }
+            popup.setContent(html)
           }
-          if (layer.getPopup()) bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this)
+          if (popup) {
+            layer.bindPopup(popup)
+            bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this)
+          }
 
+          let tooltip
           // Custom defined function in component for tooltip ?
           if (typeof this.getFeatureTooltip === 'function') {
-            let tooltip = this.getFeatureTooltip(feature, layer)
-            if (tooltip) layer.bindTooltip(tooltip)
+            tooltip = this.getFeatureTooltip(feature, layer)
           } else if (featureStyle && featureStyle.tooltip && featureStyle.tooltip.property && feature.properties) {
-            let tooltip = feature.properties[featureStyle.tooltip.property]
-            if (tooltip) {
-              layer.bindTooltip(tooltip, featureStyle.tooltip.options || { permanent: true })
-            }
+            tooltip = L.tooltip(featureStyle.tooltip.options || { permanent: false }, layer)
+            tooltip.setContent(feature.properties[featureStyle.tooltip.property])
           }
-          if (layer.getTooltip()) bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this)
+          if (tooltip) {
+            layer.bindTooltip(tooltip)
+            bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this)
+          }
         },
         style: (feature) => {
+          let style
           // Custom defined function in component ?
           if (typeof this.getFeatureStyle === 'function') {
-            return this.getFeatureStyle(feature)
-          } else {
-            // Configured or default style
-            return this.options.featureStyle || {
+            style = this.getFeatureStyle(feature)
+          }
+          if (!style) {
+            // Feature style overrides default style
+            style = Object.assign({}, this.options.featureStyle || {
               opacity: 1,
               radius: 6,
               color: 'red',
               fillOpacity: 0.5,
               fillColor: 'green'
-            }
+            }, this.convertFromSimpleStyleSpec(feature.properties || {}))
           }
+          return style
         },
         pointToLayer: (feature, latlng) => {
-          let marker = null
+          let marker
           // Custom defined function in component ?
           if (typeof this.getPointMarker === 'function') {
             marker = this.getPointMarker(feature, latlng)
-          } else {
+          }
+          if (!marker) {
             // Configured or default style
             marker = this.createMarkerFromStyle(latlng, this.options.pointStyle)
           }
