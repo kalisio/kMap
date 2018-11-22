@@ -146,8 +146,8 @@ let baseGlobeMixin = {
       if (!layer) return
       // If it was visible remove it from map
       if (layer.isVisible) this.hideLayer(name)
-      // Delete the layer
-      delete this.layers[name]
+      // Delete the layer and make it reactive
+      this.$delete(this.layers, layer.name)
       delete this.cesiumLayers[name]
       this.$emit('layer-removed', layer)
     },

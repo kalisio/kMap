@@ -56,6 +56,7 @@ let fileLayersMixin = {
         })
         let fileLayer = this.getLeafletLayerByName(event.filename)
         event.layer.addTo(fileLayer)
+        this.map.fitBounds(fileLayer.getBounds())
       })
       this.loader.on('data:error', event => {
         logger.error(event.error)

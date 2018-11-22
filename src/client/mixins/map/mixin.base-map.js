@@ -32,7 +32,7 @@ let baseMapMixin = {
     },
     setupMap (options) {
       // Initialize the map
-      this.map = L.map('map', Object.assign({ zoomControl: false }, options)).setView([46, 1.5], 5)
+      this.map = L.map('map', Object.assign({ zoomControl: false }, options))
       this.$emit('map-ready')
     },
     processLeafletLayerOptions (options) {
@@ -100,6 +100,8 @@ let baseMapMixin = {
       // Add the leaflet layer to the map
       this.leafletLayers[name] = leafetLayer
       this.map.addLayer(leafetLayer)
+      // Ensure base layer will not pop on top of others
+      if (layer.type === 'BaseLayer') leafetLayer.bringToBack()
     },
     hideLayer (name) {
       // retrieve the layer
@@ -128,8 +130,8 @@ let baseMapMixin = {
       if (!layer) return
       // If it was visible remove it from map
       if (layer.isVisible) this.hideLayer(name)
-      // Delete the layer
-      delete this.layers[name]
+      // Delete the layer and make it reactive
+      this.$delete(this.layers, layer.name)
       delete this.leafletLayers[name]
       this.$emit('layer-removed', layer)
     },
@@ -156,7 +158,6 @@ let baseMapMixin = {
     this.options = Object.assign({}, this.$config('map'))
   },
   created () {
-    this.baseLayer = null
     this.leafletLayers = {}
     this.leafletFactory = []
     // Default Leaflet layer options requiring conversion from string to actual Leaflet objects
