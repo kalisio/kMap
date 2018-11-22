@@ -27,9 +27,7 @@ let servicesLayersMixin = {
         leaflet: {
           type: 'geoJson',
           isVisible: true,
-          arguments: [ { type: 'FeatureCollection', features: [] }, {
-            cluster: clusterOptions
-          }]
+          arguments: [ {}, { cluster: clusterOptions }]
         }
       })
       this.serviceLayer = this.getLeafletLayerByName(name)
