@@ -106,6 +106,7 @@ let geojsonLayersMixin = {
             case 'icon-anchor':
             case 'marker-size':
               if (!Array.isArray(value)) value = [value, value]
+              break
             default:
               _.set(convertedStyle, mapping, value)
           }
@@ -118,10 +119,10 @@ let geojsonLayersMixin = {
       })
       return convertedStyle
     },
-    registerLeafletStyle(type, generator) {
+    registerLeafletStyle (type, generator) {
       this[type + 'Factory'].push(generator)
     },
-    generateLeafletStyle() {
+    generateLeafletStyle () {
       let args = Array.from(arguments)
       const type = args[0]
       args.shift()

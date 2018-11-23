@@ -1,10 +1,10 @@
 import { hooks as coreHooks } from '@kalisio/kdk-core'
-import { marshallSpatialQuery } from '../../hooks'
+import { marshallSpatialQuery, aggregateFeaturesResultQuery } from '../../hooks'
 
 module.exports = {
   before: {
     all: [ coreHooks.marshallTimeQuery ],
-    find: [ coreHooks.marshallComparisonQuery, marshallSpatialQuery ],
+    find: [ coreHooks.marshallComparisonQuery, marshallSpatialQuery, aggregateFeaturesResultQuery ],
     get: [],
     create: [],
     update: [],

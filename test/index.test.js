@@ -121,16 +121,36 @@ describe('kMap', () => {
   })
 
   it('performs temporal filtering on vigicrues observations service', async () => {
-    console.log(new Date('2018-11-08T18:00').toISOString())
     let results = await vigicruesObsService.find({
       paginate: false,
       query: {
         time: {
           $gt: new Date('2018-11-08T18:00:00').toISOString(),
-          $lt: new Date('2018-11-08T22:00:00').toISOString() }
+          $lt: new Date('2018-11-08T22:00:00').toISOString()
+        }
       }
     })
     expect(results.length > 0).beTrue()
+  })
+
+  it('performs element aggregation on vigicrues observations service', async () => {
+    let query = {
+      time: {
+        $gte: new Date('2018-11-08T18:00:00Z').toISOString(),
+        $lte: new Date('2018-11-08T22:00:00Z').toISOString()
+      },
+      'properties.CdStationH': 'A282000101',
+      $groupBy: 'properties.CdStationH',
+      $aggregate: ['H']
+    }
+    let results = await vigicruesObsService.find({
+      paginate: false,
+      query
+    })
+    expect(results.length).to.equal(1)
+    const feature = results[0]
+    expect(feature.time.length === 5).beTrue()
+    expect(feature.H.length === 5).beTrue()
   })
 
   it('geocode an address', async () => {
@@ -160,11 +180,10 @@ describe('kMap', () => {
 
   // Cleanup
   after(() => {
-    /* if (server) server.close()
+    if (server) server.close()
     vigicruesStationsService.Model.drop()
     vigicruesObsService.Model.drop()
     layersService.Model.drop()
     userService.Model.drop()
-    */
   })
 })
