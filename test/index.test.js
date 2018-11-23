@@ -114,19 +114,20 @@ describe('kMap', () => {
     let results = await vigicruesObsService.find({
       paginate: false,
       query: {
-        'properties.Q': { $gt: 0.5, $lt: 1.5 }
+        'properties.H': { $gt: 0.33, $lt: 0.5 }
       }
     })
     expect(results.length > 0).beTrue()
   })
 
-  it('performs temporal filtering on vigicrues service', async () => {
+  it('performs temporal filtering on vigicrues observations service', async () => {
+    console.log(new Date('2018-11-08T18:00').toISOString())
     let results = await vigicruesObsService.find({
       paginate: false,
       query: {
         time: {
-          $gt: new Date('2018-11-20T06:00:00').toISOString(),
-          $lt: new Date('2018-11-20T08:00:00').toISOString() }
+          $gt: new Date('2018-11-08T18:00:00').toISOString(),
+          $lt: new Date('2018-11-08T22:00:00').toISOString() }
       }
     })
     expect(results.length > 0).beTrue()
@@ -159,9 +160,11 @@ describe('kMap', () => {
 
   // Cleanup
   after(() => {
-    if (server) server.close()
-    vigicruesService.Model.drop()
+    /* if (server) server.close()
+    vigicruesStationsService.Model.drop()
+    vigicruesObsService.Model.drop()
     layersService.Model.drop()
     userService.Model.drop()
+    */
   })
 })

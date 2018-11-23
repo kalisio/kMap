@@ -43,7 +43,7 @@ let geojsonLayersMixin = {
         } else if ((typeof dataSource === 'string') && (options.type !== 'realtime')) { // URL ? If so load data
           let response = await fetch(dataSource)
           if (response.status !== 200) {
-            throw new Error(`Impossible to fetch ${dataSopurce}: ` + response.status)
+            throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
           }
           _.set(options, 'arguments[0]', await response.json())
         }
