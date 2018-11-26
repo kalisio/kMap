@@ -30,7 +30,7 @@ describe('kMap', () => {
   })
 
   it('is CommonJS compatible', () => {
-    expect(typeof core).to.equal('function')
+    expect(typeof map).to.equal('function')
   })
 
   it('registers the services', (done) => {
@@ -149,8 +149,10 @@ describe('kMap', () => {
     })
     expect(results.length).to.equal(1)
     const feature = results[0]
-    expect(feature.time.length === 5).beTrue()
-    expect(feature.H.length === 5).beTrue()
+    expect(feature.time).toExist()
+    expect(feature.time.H).toExist()
+    expect(feature.time.H.length === 5).beTrue()
+    expect(feature.properties.H.length === 5).beTrue()
   })
 
   it('geocode an address', async () => {

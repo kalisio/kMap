@@ -45,7 +45,7 @@ export async function aggregateFeaturesResultQuery (hook) {
       _id: typeof query.$groupBy === 'string'  // Group by matching ID(s)
         ? '$' + query.$groupBy
         : query.$groupBy.reduce((object, id) => Object.assign(object, { [id.replace('properties.', '')]: '$' + id }), {}),
-      time: { $push: '$time' },                 // Keep track of all forecast times
+      time: { $push: '$time' },                 // Keep track of all times
       geometry: { $last: '$geometry' },         // geometry is similar for all results, keep last
       type: { $last: '$type' },                 // type is similar for all results, keep last
       properties: { $last: '$properties' }      // properties are similar for all results, keep last
@@ -64,6 +64,15 @@ export async function aggregateFeaturesResultQuery (hook) {
         // Keep track of all element values
         { $group: Object.assign({ [element]: { $push: '$properties.' + element } }, groupBy) }
       ]).toArray()
+      // Rearrange data so that we get ordered arrays indexed by element
+      partialResults.forEach(result => {
+        result.time = { [element]: result.time }
+        // Set back the element values as properties because we aggregated in an accumulator
+        // to avoid conflict with probe properties
+        result.properties[element] = result[element]
+        // Delete accumulator
+        delete result[element]
+      })
       // Now merge
       if (!aggregatedResults) aggregatedResults = partialResults
       else {
