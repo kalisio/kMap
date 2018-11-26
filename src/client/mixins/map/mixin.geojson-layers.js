@@ -6,18 +6,18 @@ import { LeafletEvents, bindLeafletEvents } from '../../utils'
 let geojsonLayersMixin = {
   methods: {
     async createLeafletGeoJsonLayer (options) {
+      let leafletOptions = options.leaflet || options
       // Check for valid type
-      if (options.type !== 'geoJson') return
-      // Check for layer options object, create if required
-      if (!_.has(options, 'arguments[1]')) _.set(options, 'arguments[1]', {})
-      let layerOptions = _.get(options, 'arguments[1]')
+      if (leafletOptions.type !== 'geoJson') return
+      // Get layer options object
+      let layerOptions = _.get(leafletOptions, 'arguments[1]')
 
       try {
         let container
         // Specific case of realtime layer where we first need to create an underlying container or setup Id function
         if (layerOptions.realtime) {
           // Alter type as required by the plugin
-          options.type = 'realtime'
+          leafletOptions.type = 'realtime'
           const id = _.get(layerOptions, 'id')
           if (id) _.set(layerOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
           container = _.get(layerOptions, 'container')
@@ -30,22 +30,22 @@ let geojsonLayersMixin = {
           container = this.createLeafletLayer({ type: 'markerClusterGroup', arguments: [ layerOptions.cluster ] })
         }
         // Merge generic GeoJson options and layer options
-        let geoJsonOptions = this.getGeoJsonOptions(layerOptions)
+        let geoJsonOptions = this.getGeoJsonOptions(options)
         Object.keys(geoJsonOptions).forEach(key => {
           // If layer provided do not override
           if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
         })
 
-        let dataSource = _.get(options, 'arguments[0]')
+        let dataSource = _.get(leafletOptions, 'arguments[0]')
         if (_.isEmpty(dataSource)) {
           // Empty valid GeoJson
-          _.set(options, 'arguments[0]', { type: 'FeatureCollection', features: [] })
-        } else if ((typeof dataSource === 'string') && (options.type !== 'realtime')) { // URL ? If so load data
+          _.set(leafletOptions, 'arguments[0]', { type: 'FeatureCollection', features: [] })
+        } else if ((typeof dataSource === 'string') && (leafletOptions.type !== 'realtime')) { // URL ? If so load data
           let response = await fetch(dataSource)
           if (response.status !== 200) {
             throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
           }
-          _.set(options, 'arguments[0]', await response.json())
+          _.set(leafletOptions, 'arguments[0]', await response.json())
         }
 
         let layer = this.createLeafletLayer(options)
@@ -135,14 +135,20 @@ let geojsonLayersMixin = {
       }
       return style
     },
-    getPointMarker (layerOptions, feature, latlng) {
+    getPointMarker (options, feature, latlng) {
+      let leafletOptions = options.leaflet || options
+      // Get layer options object
+      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let style = this.generateLeafletStyle('markerStyle', feature, latlng)
       return style || // Feature style overrides layer style which overrides default style
         this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
         this.convertFromSimpleStyleSpec(layerOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties)))
     },
-    getFeatureStyle (layerOptions, feature) {
+    getFeatureStyle (options, feature) {
+      let leafletOptions = options.leaflet || options
+      // Get layer options object
+      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let style = this.generateLeafletStyle('featureStyle', feature)
       return style || // Feature style overrides layer style which overrides default style
         Object.assign({}, this.options.featureStyle || {
@@ -155,7 +161,10 @@ let geojsonLayersMixin = {
         this.convertFromSimpleStyleSpec(layerOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
     },
-    getFeaturePopup (layerOptions, feature, layer) {
+    getFeaturePopup (options, feature, layer) {
+      let leafletOptions = options.leaflet || options
+      // Get layer options object
+      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let popup = this.generateLeafletStyle('popup', feature, layer)
       if (!popup && feature.properties) {
         const popupStyle = layerOptions.popup || this.options.popup
@@ -198,7 +207,10 @@ let geojsonLayersMixin = {
       }
       return popup
     },
-    getFeatureTooltip (layerOptions, feature, layer) {
+    getFeatureTooltip (options, feature, layer) {
+      let leafletOptions = options.leaflet || options
+      // Get layer options object
+      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let tooltip = this.generateLeafletStyle('tooltip', feature, layer)
       if (!tooltip) {
         const tooltipStyle = layerOptions.tooltip || this.options.tooltip
@@ -220,27 +232,27 @@ let geojsonLayersMixin = {
       }
       return tooltip
     },
-    getGeoJsonOptions (layerOptions = {}) {
+    getGeoJsonOptions (options = {}) {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {
-          let popup = this.getFeaturePopup(layerOptions, feature, layer)
+          let popup = this.getFeaturePopup(options, feature, layer)
           if (popup) {
             layer.bindPopup(popup)
-            bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this)
+            bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this, options)
           }
 
-          let tooltip = this.getFeatureTooltip(layerOptions, feature, layer)
+          let tooltip = this.getFeatureTooltip(options, feature, layer)
           if (tooltip) {
             layer.bindTooltip(tooltip)
-            bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this)
+            bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this, options)
           }
         },
         style: (feature) => {
-          return this.getFeatureStyle(layerOptions, feature)
+          return this.getFeatureStyle(options, feature)
         },
         pointToLayer: (feature, latlng) => {
-          let marker = this.getPointMarker(layerOptions, feature, latlng)
-          if (marker) bindLeafletEvents(marker, LeafletEvents.Marker, this)
+          let marker = this.getPointMarker(options, feature, latlng)
+          if (marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
           return marker
         }
       }

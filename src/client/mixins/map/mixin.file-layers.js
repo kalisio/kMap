@@ -15,7 +15,10 @@ let fileLayersMixin = {
         // L.Proj.GeoJson instead of the L.geoJson.
         layer: L.geoJson,
         // See http://leafletjs.com/reference.html#geojson-options
-        layerOptions: this.getGeoJsonOptions(),
+        layerOptions: this.getGeoJsonOptions({
+          type: 'geoJson',
+          arguments: [ {}, { popup: {} } ]
+        }),
         // Add to map after loading
         addToMap: false,
         // File size limit in kb

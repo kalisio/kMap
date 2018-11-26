@@ -1,8 +1,8 @@
 // Bind a set of events on given Leaflet object to a vue component
-export function bindLeafletEvents (object, events, component) {
+export function bindLeafletEvents (object, events, component, options) {
   events.forEach(eventName => {
     object.on(eventName, (...args) => {
-      component.$emit(eventName, ...args)
+      component.$emit(eventName, options, ...args)
     })
   })
 }

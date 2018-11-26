@@ -51,11 +51,13 @@ let baseMapMixin = {
       // Check for layer options object, create if required
       if (!_.has(leafletOptions, 'arguments[1]')) _.set(leafletOptions, 'arguments[1]', {})
       let layerOptions = _.get(leafletOptions, 'arguments[1]')
+      // Copy generic options
       layerOptions.attribution = processedOptions.attribution
       return processedOptions
     },
     createLeafletLayer (options) {
-      return _.get(L, options.type)(...options.arguments)
+      const leafletOptions = options.leaflet || options
+      return _.get(L, leafletOptions.type)(...leafletOptions.arguments)
     },
     registerLeafletConstructor (constructor) {
       this.leafletFactory.push(constructor)
@@ -66,11 +68,11 @@ let baseMapMixin = {
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.leafletFactory.length; i++) {
         const constructor = this.leafletFactory[i]
-        layer = await constructor(processedOptions.leaflet)
+        layer = await constructor(processedOptions)
         if (layer) break
       }
       // Use default Leaflet layer constructor if none found
-      return (layer || this.createLeafletLayer(processedOptions.leaflet))
+      return (layer || this.createLeafletLayer(processedOptions))
     },
     hasLayer (name) {
       return _.has(this.layers, name)

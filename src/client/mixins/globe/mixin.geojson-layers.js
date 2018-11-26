@@ -5,13 +5,14 @@ import _ from 'lodash'
 let geojsonLayersMixin = {
   methods: {
     async createCesiumGeoJsonLayer (options) {
+      const cesiumOptions = options.cesium
       // Check for valid type
-      if (options.type !== 'geoJson') return
+      if (cesiumOptions.type !== 'geoJson') return
       // Check for layer options object, create if required
-      if (!_.has(options, 'arguments[1]')) _.set(options, 'arguments[1]', {})
-      let layerOptions = _.get(options, 'arguments[1]')
+      if (!_.has(cesiumOptions, 'arguments[1]')) _.set(cesiumOptions, 'arguments[1]', {})
+      let layerOptions = _.get(cesiumOptions, 'arguments[1]')
       // Merge generic GeoJson options and layer options
-      let geoJsonOptions = this.getGeoJsonOptions()
+      let geoJsonOptions = this.getGeoJsonOptions(options)
       Object.keys(geoJsonOptions).forEach(key => {
         // If layer provided do not override
         if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
@@ -19,7 +20,7 @@ let geojsonLayersMixin = {
       this.convertFromSimpleStyleSpec(layerOptions)
 
       try {
-        let dataSource = _.get(options, 'arguments[0]')
+        let dataSource = _.get(cesiumOptions, 'arguments[0]')
         // Check if data source already added to the scene and we only want to
         // create a layer on top of it or if we have to load it
         for (let i = 0; i < this.viewer.dataSources.length; i++) {
@@ -86,23 +87,23 @@ let geojsonLayersMixin = {
         })
       }
     },
-    convertFromSimpleStyleSpec (options) {
-      _.forOwn(options, (value, key) => {
+    convertFromSimpleStyleSpec (style) {
+      _.forOwn(style, (value, key) => {
         // Convert to camelCase as required by cesium
         const camelKey = _.camelCase(key)
         if (camelKey !== key) {
-          options[camelKey] = value
-          delete options[key]
+          style[camelKey] = value
+          delete style[key]
         }
         // Convert from string to color object as required by cesium
         if (['markerColor', 'fill', 'stroke'].includes(camelKey)) {
-          options[camelKey] = Cesium.Color.fromCssColorString(value)
+          style[camelKey] = Cesium.Color.fromCssColorString(value)
         }
       })
 
-      return options
+      return style
     },
-    getGeoJsonOptions () {
+    getGeoJsonOptions (options) {
       return this.options.featureStyle || {}
     }
   },

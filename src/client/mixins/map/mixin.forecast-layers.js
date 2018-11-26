@@ -36,15 +36,16 @@ let forecastLayersMixin = {
       })
     },
     createLeafletForecastLayer (options) {
+      let leafletOptions = options.leaflet || options
       // Check for valid types
-      if (!options.type.startsWith('weacast')) return
+      if (!leafletOptions.type.startsWith('weacast')) return
       // Copy some generic options from model as well
-      if (options.arguments.length > 0) options.arguments[0].attribution = this.forecastModel.attribution
+      if (leafletOptions.arguments.length > 0) leafletOptions.arguments[0].attribution = this.forecastModel.attribution
       // We need to add Weacast API object as argument before creating the layer
-      options.arguments = [this.weacastApi].concat(options.arguments)
+      leafletOptions.arguments = [this.weacastApi].concat(leafletOptions.arguments)
       let layer = this.createLeafletLayer(options)
       // For visualization we might decimate the data resolution for performance reasons
-      layer.setForecastModel(this.getVisualModel(options))
+      layer.setForecastModel(this.getVisualModel(leafletOptions))
       return layer
     },
     async probeDynamicLocation (long, lat, startTime, endTime) {

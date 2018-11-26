@@ -41,19 +41,20 @@ let baseGlobeMixin = {
       return (options.type === 'Cesium') || (options.type === 'Ellipsoid')
     },
     createCesiumLayer (options) {
+      const cesiumOptions = options.cesium || options
       let provider
-      if (this.isTerrainLayer(options)) {
-        if (options.url || (options.type === 'Ellipsoid')) provider = options.type + 'TerrainProvider'
+      if (this.isTerrainLayer(cesiumOptions)) {
+        if (cesiumOptions.url || (cesiumOptions.type === 'Ellipsoid')) provider = cesiumOptions.type + 'TerrainProvider'
         // If no url given will use default terrain creation function createWorldTerrain()
         else provider = 'WorldTerrain'
       } else {
-        provider = options.type + 'ImageryProvider'
+        provider = cesiumOptions.type + 'ImageryProvider'
       }
       // Handle specific case of built-in creation functions
       const createFunction = 'create' + provider
-      provider = (Cesium[createFunction] ? Cesium[createFunction](options) : new Cesium[provider](options))
+      provider = (Cesium[createFunction] ? Cesium[createFunction](cesiumOptions) : new Cesium[provider](cesiumOptions))
       // Terrain is directly managed using a provider
-      return (this.isTerrainLayer(options) ? provider : new Cesium.ImageryLayer(provider))
+      return (this.isTerrainLayer(cesiumOptions) ? provider : new Cesium.ImageryLayer(provider))
     },
     registerCesiumConstructor (constructor) {
       this.cesiumFactory.push(constructor)
@@ -64,11 +65,11 @@ let baseGlobeMixin = {
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.cesiumFactory.length; i++) {
         const constructor = this.cesiumFactory[i]
-        layer = await constructor(processedOptions.cesium)
+        layer = await constructor(processedOptions)
         if (layer) break
       }
       // Use default Cesium layer constructor if none found
-      return (layer || this.createCesiumLayer(processedOptions.cesium))
+      return (layer || this.createCesiumLayer(processedOptions))
     },
     hasLayer (name) {
       return _.has(this.layers, name)
