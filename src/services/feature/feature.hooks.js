@@ -14,19 +14,19 @@ module.exports = {
   },
 
   after: {
-    all: [ coreHooks.unprocessTime,
+    all: [ coreHooks.unprocessTime ],
+    find: [
       (hook) => {
         const result = hook.result
         // Features are returned as a standard GeoJson collection
         hook.result = {
           type: 'FeatureCollection',
-          features: result.data
+          features: Array.isArray(result) ? result : result.data
         }
         // Copy pagination information so that client can use it anyway
         Object.assign(hook.result, _.pick(result, ['total', 'skip', 'limit']))
       }
     ],
-    find: [],
     get: [],
     create: [],
     update: [],
