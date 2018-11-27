@@ -5,25 +5,32 @@ const servicesPath = path.join(__dirname, '..', 'services')
 
 const debug = makeDebug('kalisio:kMap:services')
 
-export function createCollectionLayerService (collection) {
+export function createFeatureService (collection) {
   const app = this
 
-  debug('collection layer service created for collection ', collection)
+  debug('feature service created for collection ', collection)
+  let paginate = { default: 3000, max: 10000 }
+  if (app.get('feature')) {
+    Object.assign(paginate, app.get('feature').paginate || {})
+  }
   app.createService(collection, {
-    fileName: 'collection-layer',
+    fileName: 'feature',
     servicesPath,
     modelsPath,
-    collection
+    collection,
+    paginate
   })
 }
 
-export function createLayersService (context, db) {
+export function createCatalogService (context, db) {
   const app = this
 
-  debug('layers service created for context ', context)
-  let paginate = app.get('layers.paginate')
-  if (!paginate) paginate = { default: 100, max: 100 }
-  app.createService('layers', {
+  debug('catalog service created for context ', context)
+  let paginate = { default: 100, max: 100 }
+  if (app.get('catalog')) {
+    Object.assign(paginate, app.get('catalog').paginate || {})
+  }
+  app.createService('catalog', {
     servicesPath,
     modelsPath,
     context,
@@ -32,7 +39,7 @@ export function createLayersService (context, db) {
   })
 }
 
-export function removeLayersService (context) {
+export function removeCatalogService (context) {
   // TODO
 }
 

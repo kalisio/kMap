@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { marshallGeometry } from '../marshall'
+import { marshallGeometry, marshallTime } from '../marshall'
 
 export function marshallGeometryQuery (hook) {
   let query = hook.params.query
@@ -35,7 +35,7 @@ export function marshallSpatialQuery (hook) {
   }
 }
 
-export async function aggregateFeaturesResultQuery (hook) {
+export async function aggregateFeaturesQuery (hook) {
   let query = hook.params.query
   if (!query) return
   // Perform aggregation

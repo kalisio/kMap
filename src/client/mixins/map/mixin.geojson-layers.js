@@ -14,15 +14,48 @@ let geojsonLayersMixin = {
 
       try {
         let container
-        // Specific case of realtime layer where we first need to create an underlying container or setup Id function
+        // Specific case of realtime layer
         if (layerOptions.realtime) {
           // Alter type as required by the plugin
           leafletOptions.type = 'realtime'
-          const id = _.get(layerOptions, 'id')
+          // We first need to create an underlying container or setup Id function
+          const id = _.get(options, 'featureId', _.get(layerOptions, 'id'))
           if (id) _.set(layerOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
           container = _.get(layerOptions, 'container')
           if (container) {
             layerOptions.container = container = this.createLeafletLayer({ type: container, arguments: [] })
+          }
+          // Check for feature service layers and tell realtime plugin how to load data
+          if (options.service) {
+            _.set(leafletOptions, 'arguments[0]', async (successCallback, errorCallback) => {
+              let query = {}
+              // Request data available during last interval
+              if (layerOptions.interval) {
+                query.time = {
+                  $gte: this.currentTime.clone().subtract({ milliseconds: layerOptions.interval }).format(),
+                  $lte: this.currentTime.format() 
+                }
+              } else {
+                query.time = this.currentTime.format()
+              }
+              try {
+                successCallback(await this.$api.getService(options.service).find({ query }))
+              } catch (error) {
+                errorCallback(error)
+              }
+            })
+          }
+        } else {
+          let dataSource = _.get(leafletOptions, 'arguments[0]')
+          if (_.isEmpty(dataSource)) {
+            // Empty valid GeoJson
+            _.set(leafletOptions, 'arguments[0]', { type: 'FeatureCollection', features: [] })
+          } else if (typeof dataSource === 'string') { // URL ? If so load data
+            let response = await fetch(dataSource)
+            if (response.status !== 200) {
+              throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
+            }
+            _.set(leafletOptions, 'arguments[0]', await response.json())
           }
         }
         // Specific case of clustered layer where we first need to create an underlying group
@@ -35,18 +68,6 @@ let geojsonLayersMixin = {
           // If layer provided do not override
           if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
         })
-
-        let dataSource = _.get(leafletOptions, 'arguments[0]')
-        if (_.isEmpty(dataSource)) {
-          // Empty valid GeoJson
-          _.set(leafletOptions, 'arguments[0]', { type: 'FeatureCollection', features: [] })
-        } else if ((typeof dataSource === 'string') && (leafletOptions.type !== 'realtime')) { // URL ? If so load data
-          let response = await fetch(dataSource)
-          if (response.status !== 200) {
-            throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
-          }
-          _.set(leafletOptions, 'arguments[0]', await response.json())
-        }
 
         let layer = this.createLeafletLayer(options)
         // Specific case of realtime layer where the underlying container also need to be added to map
@@ -221,7 +242,7 @@ let geojsonLayersMixin = {
           if (tooltipStyle.property) {
             html = _.get(properties, tooltipStyle.property)
           } else if (tooltipStyle.template) {
-            let compiler = _.template(tooltipStyle.template)
+            let compiler = _.template(tooltipStyle.template, { variable: 'properties' })
             html = compiler(properties)
           }
           if (html) {

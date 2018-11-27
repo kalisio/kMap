@@ -4,14 +4,14 @@ import path from 'path'
 import _ from 'lodash'
 import fs from 'fs-extra'
 import core, { kalisio, permissions } from '@kalisio/kdk-core'
-import map, { permissions as mapPermissions, createCollectionLayerService } from '../src'
+import map, { permissions as mapPermissions, createFeatureService, createCatalogService } from '../src'
 
 const modelsPath = path.join(__dirname, '..', 'src', 'models')
 const servicesPath = path.join(__dirname, '..', 'src', 'services')
 
 describe('kMap', () => {
   let app, server, port, // baseUrl,
-    userService, userObject, geocoderService, layersService, layersArray,
+    userService, userObject, geocoderService, catalogService, layersArray,
     vigicruesStationsService, vigicruesObsService
 
   before(() => {
@@ -40,10 +40,10 @@ describe('kMap', () => {
     app.configure(map)
     geocoderService = app.getService('geocoder')
     expect(geocoderService).toExist()
-    // Create a global layers service
-    app.createService('layers', { modelsPath, servicesPath })
-    layersService = app.getService('layers')
-    expect(layersService).toExist()
+    // Create a global catalog service 
+    createCatalogService.call(app)
+    catalogService = app.getService('catalog')
+    expect(catalogService).toExist()
     // Now app is configured launch the server
     server = app.listen(port)
     server.once('listening', _ => done())
@@ -57,10 +57,11 @@ describe('kMap', () => {
     expect(users.data.length > 0).beTrue()
   })
 
-  it('registers the default layers', async () => {
+  it('registers the default layer catalog', async () => {
     let layers = await fs.readJson('./test/config/layers.json')
     expect(layers.length > 0)
-    layersArray = await layersService.create(layers)
+    // Create a global catalog service 
+    layersArray = await catalogService.create(layers)
     expect(layersArray.length > 0)
   })
 
@@ -68,9 +69,9 @@ describe('kMap', () => {
     // Create the service
     const vigicruesStationsLayer = _.find(layersArray, { name: 'vigicrues-stations' })
     expect(vigicruesStationsLayer).toExist()
-    expect(vigicruesStationsLayer.collection === 'vigicrues-stations').beTrue()
-    createCollectionLayerService.call(app, vigicruesStationsLayer.collection)
-    vigicruesStationsService = app.getService(vigicruesStationsLayer.collection)
+    expect(vigicruesStationsLayer.service === 'vigicrues-stations').beTrue()
+    createFeatureService.call(app, vigicruesStationsLayer.service)
+    vigicruesStationsService = app.getService(vigicruesStationsLayer.service)
     expect(vigicruesStationsService).toExist()
     // Create the spatial index
     vigicruesStationsService.Model.ensureIndex({ geometry: '2dsphere' })
@@ -83,9 +84,9 @@ describe('kMap', () => {
     // Create the service
     const vigicruesObsLayer = _.find(layersArray, { name: 'vigicrues-observations' })
     expect(vigicruesObsLayer).toExist()
-    expect(vigicruesObsLayer.collection === 'vigicrues-observations').beTrue()
-    createCollectionLayerService.call(app, vigicruesObsLayer.collection)
-    vigicruesObsService = app.getService(vigicruesObsLayer.collection)
+    expect(vigicruesObsLayer.service === 'vigicrues-observations').beTrue()
+    createFeatureService.call(app, vigicruesObsLayer.service)
+    vigicruesObsService = app.getService(vigicruesObsLayer.service)
     expect(vigicruesObsService).toExist()
     // Feed the collection
     let observations = require('./data/vigicrues.observations.json')
@@ -165,9 +166,9 @@ describe('kMap', () => {
 
   it('clears the layers', async () => {
     for (let i = 0; i < layersArray.length; ++i) {
-      await layersService.remove(layersArray[i]._id)
+      await catalogService.remove(layersArray[i]._id)
     }
-    layersArray = await layersService.find()
+    layersArray = await catalogService.find()
     expect(layersArray.length === 0)
   })
 
@@ -185,7 +186,7 @@ describe('kMap', () => {
     if (server) server.close()
     vigicruesStationsService.Model.drop()
     vigicruesObsService.Model.drop()
-    layersService.Model.drop()
+    catalogService.Model.drop()
     userService.Model.drop()
   })
 })
