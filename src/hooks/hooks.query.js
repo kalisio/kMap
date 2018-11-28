@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { marshallGeometry, marshallTime } from '../marshall'
+import { marshallGeometry } from '../marshall'
 
 export function marshallGeometryQuery (hook) {
   let query = hook.params.query
