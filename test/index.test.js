@@ -94,8 +94,7 @@ describe('kMap', () => {
   })
 
   it('performs spatial filtering on vigicrues stations service', async () => {
-    let results = await vigicruesStationsService.find({
-      paginate: false,
+    let result = await vigicruesStationsService.find({
       query: {
         geometry: {
           $near: {
@@ -108,22 +107,20 @@ describe('kMap', () => {
         }
       }
     })
-    expect(results.length > 0).beTrue()
+    expect(result.features.length > 0).beTrue()
   })
 
   it('performs value filtering on vigicrues observations service', async () => {
-    let results = await vigicruesObsService.find({
-      paginate: false,
+    let result = await vigicruesObsService.find({
       query: {
         'properties.H': { $gt: 0.33, $lt: 0.5 }
       }
     })
-    expect(results.length > 0).beTrue()
+    expect(result.features.length > 0).beTrue()
   })
 
   it('performs temporal filtering on vigicrues observations service', async () => {
-    let results = await vigicruesObsService.find({
-      paginate: false,
+    let result = await vigicruesObsService.find({
       query: {
         time: {
           $gt: new Date('2018-11-08T18:00:00').toISOString(),
@@ -131,28 +128,38 @@ describe('kMap', () => {
         }
       }
     })
-    expect(results.length > 0).beTrue()
+    expect(result.features.length > 0).beTrue()
   })
 
+  const aggregationQuery = {
+    time: {
+      $gte: new Date('2018-11-08T18:00:00Z').toISOString(),
+      $lte: new Date('2018-11-08T22:00:00Z').toISOString()
+    },
+    'properties.CdStationH': 'A282000101',
+    $groupBy: 'properties.CdStationH',
+    $aggregate: ['H']
+  }
+
   it('performs element aggregation on vigicrues observations service', async () => {
-    let query = {
-      time: {
-        $gte: new Date('2018-11-08T18:00:00Z').toISOString(),
-        $lte: new Date('2018-11-08T22:00:00Z').toISOString()
-      },
-      'properties.CdStationH': 'A282000101',
-      $groupBy: 'properties.CdStationH',
-      $aggregate: ['H']
-    }
-    let results = await vigicruesObsService.find({
-      paginate: false,
-      query
-    })
-    expect(results.length).to.equal(1)
-    const feature = results[0]
+    let result = await vigicruesObsService.find({ query: Object.assign({}, aggregationQuery) })
+    expect(result.features.length).to.equal(1)
+    const feature = result.features[0]
     expect(feature.time).toExist()
     expect(feature.time.H).toExist()
     expect(feature.time.H.length === 5).beTrue()
+    expect(feature.time.H[0].isBefore(feature.time.H[1])).beTrue()
+    expect(feature.properties.H.length === 5).beTrue()
+  })
+
+  it('performs sorted element aggregation on vigicrues observations service', async () => {
+    let result = await vigicruesObsService.find({ query: Object.assign({ $sort: { time: -1 } }, aggregationQuery) })
+    expect(result.features.length).to.equal(1)
+    const feature = result.features[0]
+    expect(feature.time).toExist()
+    expect(feature.time.H).toExist()
+    expect(feature.time.H.length === 5).beTrue()
+    expect(feature.time.H[0].isAfter(feature.time.H[1])).beTrue()
     expect(feature.properties.H.length === 5).beTrue()
   })
 
