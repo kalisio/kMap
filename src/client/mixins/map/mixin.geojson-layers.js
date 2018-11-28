@@ -28,15 +28,22 @@ let geojsonLayersMixin = {
           // Check for feature service layers and tell realtime plugin how to load data
           if (options.service) {
             _.set(leafletOptions, 'arguments[0]', async (successCallback, errorCallback) => {
-              let query = {}
-              // Request data available during last interval
-              if (layerOptions.interval) {
+              // Last available data only for realtime visualization
+              let query = {
+                //$limit: 1, $sort: { time: -1 },
+                //$groupBy: 'properties.' + options.featureId,
+                //$aggregate: options.variables.map(variable => variable.name)
+              }
+              // Request feature with at least one data available during history
+              if (options.history) {
                 query.time = {
-                  $gte: this.currentTime.clone().subtract({ milliseconds: layerOptions.interval }).format(),
+                  $gte: this.currentTime.clone().subtract({ seconds: options.history }).format(),
                   $lte: this.currentTime.format() 
                 }
               } else {
-                query.time = this.currentTime.format()
+                query.time = {
+                  $lte: this.currentTime.format() 
+                }
               }
               try {
                 successCallback(await this.$api.getService(options.service).find({ query }))
