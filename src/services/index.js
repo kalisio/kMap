@@ -5,7 +5,7 @@ const servicesPath = path.join(__dirname, '..', 'services')
 
 const debug = makeDebug('kalisio:kMap:services')
 
-export function createFeatureService (collection) {
+export function createFeatureService (collection, featureId, history) {
   const app = this
 
   debug('feature service created for collection ', collection)
@@ -18,7 +18,9 @@ export function createFeatureService (collection) {
     servicesPath,
     modelsPath,
     collection,
-    paginate
+    paginate,
+    featureId,
+    history
   })
 }
 
