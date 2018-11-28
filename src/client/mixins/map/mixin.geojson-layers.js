@@ -30,9 +30,9 @@ let geojsonLayersMixin = {
             _.set(leafletOptions, 'arguments[0]', async (successCallback, errorCallback) => {
               // Last available data only for realtime visualization
               let query = {
-                //$limit: 1, $sort: { time: -1 },
-                //$groupBy: 'properties.' + options.featureId,
-                //$aggregate: options.variables.map(variable => variable.name)
+                $limit: 1, $sort: { time: -1 },
+                $groupBy: options.featureId,
+                $aggregate: options.variables.map(variable => variable.name)
               }
               // Request feature with at least one data available during history
               if (options.history) {

@@ -42,15 +42,23 @@ export async function aggregateFeaturesQuery (hook) {
   // Perform aggregation
   if (query.$aggregate) {
     const collection = hook.service.Model
-    let groupBy = {
-      _id: typeof query.$groupBy === 'string'  // Group by matching ID(s)
-        ? '$' + query.$groupBy
+    const ids = typeof query.$groupBy === 'string'  // Group by matching ID(s), ie single ID or array of field to create a compound ID
+        ? { [query.$groupBy]: '$properties.' + query.$groupBy }
         // Aggregated in an accumulator to avoid conflict with feature properties
-        : query.$groupBy.reduce((object, id) => Object.assign(object, { [id.replace('properties.', '')]: '$' + id }), {}),
-      time: { $push: '$time' },                 // Keep track of all times
-      geometry: { $last: '$geometry' },         // geometry is similar for all results, keep last
-      type: { $last: '$type' },                 // type is similar for all results, keep last
-      properties: { $last: '$properties' }      // properties are similar for all results, keep last
+        : query.$groupBy.reduce((object, id) => Object.assign(object, { [id]: '$properties.' + id }), {})
+    let groupBy = { _id: ids }
+    // Do we only keep first or last available time ?
+    const singleFeature = (query.$limit === 1)
+    if (singleFeature) {
+      // In this case no need to aggregate on each element we simply keep the first/last feature
+      Object.assign(groupBy, { feature: { $first: '$$ROOT' } })
+    } else {
+      Object.assign(groupBy, {
+        time: { $push: '$time' },                 // Keep track of all times
+        geometry: { $last: '$geometry' },         // geometry is similar for all results, keep last
+        type: { $last: '$type' },                 // type is similar for all results, keep last
+        properties: { $last: '$properties' }      // properties are similar for all results, keep last
+      })
     }
     // The query contains the match stage except options relevent to the aggregation pipeline
     let match = _.omit(query, ['$groupBy', '$aggregate', '$sort', '$limit', '$skip'])
@@ -62,29 +70,40 @@ export async function aggregateFeaturesQuery (hook) {
       let pipeline = [ { $match: Object.assign({ ['properties.' + element]: { $exists: true } }, match) } ]
       // Ensure they are ordered by increasing time by default
       pipeline.push({ $sort: query.$sort || { time: 1 } })
-      // Manage pagination
-      pipeline.push({ $skip: query.$skip || 0 })
-      pipeline.push({ $limit: Math.min(query.$limit, service.paginate.max) || service.paginate.default })
       // Keep track of all feature values
-      pipeline.push({ $group: Object.assign({ [element]: { $push: '$properties.' + element } }, groupBy) })
-      let partialResults = await collection.aggregate(pipeline).toArray()
+      if (singleFeature) {
+        pipeline.push({ $group: groupBy })
+        pipeline.push({ $replaceRoot: { newRoot: '$feature' } })
+      } else {
+        pipeline.push({ $group: Object.assign({ [element]: { $push: '$properties.' + element } }, groupBy) })
+      }
+      let elementResults = await collection.aggregate(pipeline).toArray()
       // Rearrange data so that we get ordered arrays indexed by element
-      partialResults.forEach(result => {
+      elementResults.forEach(result => {
         result.time = { [element]: result.time }
-        // Set back the element values as properties because we aggregated in an accumulator
-        // to avoid conflict with feature properties
-        result.properties[element] = result[element]
-        // Delete accumulator
-        delete result[element]
+        if (!singleFeature) {
+          // Set back the element values as properties because we aggregated in an accumulator
+          // to avoid conflict with feature properties
+          result.properties[element] = result[element]
+          // Delete accumulator
+          delete result[element]
+        }
       })
-      // Now merge
-      if (!aggregatedResults) aggregatedResults = partialResults
-      else {
-        partialResults.forEach(result => {
-          let previousResult = aggregatedResults.find(aggregatedResult => aggregatedResult[query.$groupBy] === result[query.$groupBy])
+      // Now merge with previous element results
+      if (!aggregatedResults) {
+        aggregatedResults = elementResults
+      } else {
+        elementResults.forEach(result => {
+          let previousResult = aggregatedResults.find(aggregatedResult => {
+            const keys = _.keys(ids)
+            return (_.isEqual(_.pick(aggregatedResult, keys), _.pick(result, keys)))
+          })
+          // Merge with previous matching feature if any
           if (previousResult) {
             Object.assign(previousResult.time, result.time)
             previousResult.properties[element] = result.properties[element]
+          } else {
+            aggregatedResults.push(result)
           }
         })
       }
