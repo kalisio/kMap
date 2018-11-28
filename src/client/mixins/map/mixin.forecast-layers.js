@@ -48,7 +48,7 @@ let forecastLayersMixin = {
       layer.setForecastModel(this.getVisualModel(leafletOptions))
       return layer
     },
-    async probeDynamicLocation (long, lat, startTime, endTime) {
+    async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
       if (!this.forecastModel) return
       // From now to last available time
@@ -75,7 +75,7 @@ let forecastLayersMixin = {
       }, { query })
       if (response.features.length > 0) this.probedLocation = response.features[0]
     },
-    async probeStaticLocation (featureId, startTime, endTime) {
+    async getForecastForFeature (featureId, startTime, endTime) {
       // Check if probe is available
       if (!this.probe) return
 
