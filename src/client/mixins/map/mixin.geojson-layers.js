@@ -34,10 +34,10 @@ let geojsonLayersMixin = {
                 $groupBy: options.featureId,
                 $aggregate: options.variables.map(variable => variable.name)
               }
-              // Request feature with at least one data available during history
-              if (options.history) {
+              // Request feature with at least one data available during last interval
+              if (layerOptions.interval) {
                 query.time = {
-                  $gte: this.currentTime.clone().subtract({ seconds: options.history }).format(),
+                  $gte: this.currentTime.clone().subtract({ seconds: 2 * layerOptions.interval / 1000 }).format(),
                   $lte: this.currentTime.format() 
                 }
               } else {

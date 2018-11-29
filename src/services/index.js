@@ -5,23 +5,20 @@ const servicesPath = path.join(__dirname, '..', 'services')
 
 const debug = makeDebug('kalisio:kMap:services')
 
-export function createFeatureService (collection, featureId, history) {
+export function createFeatureService (options) {
   const app = this
 
-  debug('feature service created for collection ', collection)
+  debug('feature service created for collection ', options.collection)
   let paginate = { default: 3000, max: 10000 }
   if (app.get('feature')) {
     Object.assign(paginate, app.get('feature').paginate || {})
   }
-  app.createService(collection, {
+  app.createService(options.collection, Object.assign({
     fileName: 'feature',
     servicesPath,
     modelsPath,
-    collection,
-    paginate,
-    featureId,
-    history
-  })
+    paginate
+  }, options))
 }
 
 export function createCatalogService (context, db) {

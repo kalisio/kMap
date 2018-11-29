@@ -42,15 +42,19 @@ export async function aggregateFeaturesQuery (hook) {
   // Perform aggregation
   if (query.$aggregate) {
     const collection = service.Model
+    const featureId = (service.options ? service.options.featureId : '')
     const ids = typeof query.$groupBy === 'string'  // Group by matching ID(s), ie single ID or array of field to create a compound ID
         ? { [query.$groupBy]: '$properties.' + query.$groupBy }
         // Aggregated in an accumulator to avoid conflict with feature properties
         : query.$groupBy.reduce((object, id) => Object.assign(object, { [id]: '$properties.' + id }), {})
     let groupBy = { _id: ids }
     // Do we only keep first or last available time ?
-    const singleFeature = (query.$limit === 1)
-    if (singleFeature) {
+    const singleTime = (query.$limit === 1)
+    if (singleTime) {
       // In this case no need to aggregate on each element we simply keep the first/last feature
+      // BUG: according to https://jira.mongodb.org/browse/SERVER-9507 MongoDB is not yet
+      // able to optimize this kind of operations to avoid full index scan
+      // For now we should restrict it to short time range
       Object.assign(groupBy, { feature: { $first: '$$ROOT' } })
     } else {
       Object.assign(groupBy, {
@@ -62,6 +66,11 @@ export async function aggregateFeaturesQuery (hook) {
     }
     // The query contains the match stage except options relevent to the aggregation pipeline
     let match = _.omit(query, ['$groupBy', '$aggregate', '$sort', '$limit', '$skip'])
+    let aggregateOptions = {}
+    // Check if we could provide a hint to the aggregation when targeting feature ID
+    if (featureId && match['properties.' + featureId]) {
+      aggregateOptions.hint = { ['properties.' + featureId]: 1 }
+    }
     // Ensure we do not mix results with/without relevant element values
     // by separately querying each element then merging
     let aggregatedResults
@@ -71,17 +80,17 @@ export async function aggregateFeaturesQuery (hook) {
       // Ensure they are ordered by increasing time by default
       pipeline.push({ $sort: query.$sort || { time: 1 } })
       // Keep track of all feature values
-      if (singleFeature) {
+      if (singleTime) {
         pipeline.push({ $group: groupBy })
         pipeline.push({ $replaceRoot: { newRoot: '$feature' } })
       } else {
         pipeline.push({ $group: Object.assign({ [element]: { $push: '$properties.' + element } }, groupBy) })
       }
-      let elementResults = await collection.aggregate(pipeline).toArray()
+      let elementResults = await collection.aggregate(pipeline, aggregateOptions).toArray()
       // Rearrange data so that we get ordered arrays indexed by element
       elementResults.forEach(result => {
         result.time = { [element]: result.time }
-        if (!singleFeature) {
+        if (!singleTime) {
           // Set back the element values as properties because we aggregated in an accumulator
           // to avoid conflict with feature properties
           result.properties[element] = result[element]
