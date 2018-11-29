@@ -41,7 +41,7 @@ export async function aggregateFeaturesQuery (hook) {
   if (!query) return
   // Perform aggregation
   if (query.$aggregate) {
-    const collection = hook.service.Model
+    const collection = service.Model
     const ids = typeof query.$groupBy === 'string'  // Group by matching ID(s), ie single ID or array of field to create a compound ID
         ? { [query.$groupBy]: '$properties.' + query.$groupBy }
         // Aggregated in an accumulator to avoid conflict with feature properties
