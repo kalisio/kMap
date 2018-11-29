@@ -70,7 +70,11 @@ describe('kMap', () => {
     const vigicruesStationsLayer = _.find(layersArray, { name: 'vigicrues-stations' })
     expect(vigicruesStationsLayer).toExist()
     expect(vigicruesStationsLayer.service === 'vigicrues-stations').beTrue()
-    createFeatureService.call(app, vigicruesStationsLayer.service)
+    createFeatureService.call(app, {
+      collection: vigicruesStationsLayer.service,
+      featureId: vigicruesStationsLayer.featureId,
+      history: vigicruesStationsLayer.history
+    })
     vigicruesStationsService = app.getService(vigicruesStationsLayer.service)
     expect(vigicruesStationsService).toExist()
     // Create the spatial index
@@ -85,7 +89,11 @@ describe('kMap', () => {
     const vigicruesObsLayer = _.find(layersArray, { name: 'vigicrues-observations' })
     expect(vigicruesObsLayer).toExist()
     expect(vigicruesObsLayer.service === 'vigicrues-observations').beTrue()
-    createFeatureService.call(app, vigicruesObsLayer.service)
+    createFeatureService.call(app, {
+      collection: vigicruesObsLayer.service,
+      featureId: vigicruesObsLayer.featureId,
+      history: vigicruesObsLayer.history
+    })
     vigicruesObsService = app.getService(vigicruesObsLayer.service)
     expect(vigicruesObsService).toExist()
     // Feed the collection
@@ -137,7 +145,7 @@ describe('kMap', () => {
       $lte: new Date('2018-11-08T22:00:00Z').toISOString()
     },
     'properties.CdStationH': 'A282000101',
-    $groupBy: 'properties.CdStationH',
+    $groupBy: 'CdStationH',
     $aggregate: ['H']
   }
 
