@@ -5,7 +5,6 @@ import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
 import 'leaflet-fa-markers/L.Icon.FontAwesome.css'
 import 'leaflet-fa-markers/L.Icon.FontAwesome.js'
-import 'leaflet-realtime'
 import 'leaflet-fullscreen'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'

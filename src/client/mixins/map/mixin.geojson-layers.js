@@ -1,6 +1,7 @@
 import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
+import 'leaflet-realtime'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
@@ -28,6 +29,7 @@ let geojsonLayersMixin = {
           // Check for feature service layers
           if (options.service) {
             // Tell realtime plugin how to load data
+            layerOptions.removeMissing = false
             layerOptions.updateFeature = function(feature, oldLayer) {
               // A new feature is coming, create it
               if (!oldLayer) return
@@ -61,7 +63,7 @@ let geojsonLayersMixin = {
               // Request feature with at least one data available during last interval
               if (layerOptions.interval) {
                 query.time = {
-                  $gte: this.currentTime.clone().subtract({ seconds: 10 * layerOptions.interval / 1000 }).format(),
+                  $gte: this.currentTime.clone().subtract({ seconds: 2 * layerOptions.interval / 1000 }).format(),
                   $lte: this.currentTime.format() 
                 }
               } else {
