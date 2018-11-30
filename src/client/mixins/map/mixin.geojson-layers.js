@@ -25,9 +25,33 @@ let geojsonLayersMixin = {
           if (container) {
             layerOptions.container = container = this.createLeafletLayer({ type: container, arguments: [] })
           }
-          // Check for feature service layers and tell realtime plugin how to load data
+          // Check for feature service layers
           if (options.service) {
+            // Tell realtime plugin how to load data
+            layerOptions.updateFeature = function(feature, oldLayer) {
+              // A new feature is coming, create it
+              if (!oldLayer) return
+              // An existing one is found, simply update styling, etc.
+              layerOptions.onEachFeature(feature, oldLayer)
+              oldLayer.setStyle(layerOptions.style(feature))
+              // And coordinates for points
+              // FIXME: support others geometry types ?
+              if (feature.geometry.type === 'Point') {
+                oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+              }
+              return oldLayer
+            }
+            
             _.set(leafletOptions, 'arguments[0]', async (successCallback, errorCallback) => {
+              // If the probe location is given by another service use it on initialization
+              if (options.probeService) {
+                try {
+                  // Use probes as reference
+                  successCallback(await this.$api.getService(options.probeService).find({}))
+                } catch (error) {
+                  errorCallback(error)
+                }
+              }
               // Last available data only for realtime visualization
               let query = {
                 $limit: 1, $sort: { time: -1 },
@@ -37,7 +61,7 @@ let geojsonLayersMixin = {
               // Request feature with at least one data available during last interval
               if (layerOptions.interval) {
                 query.time = {
-                  $gte: this.currentTime.clone().subtract({ seconds: 2 * layerOptions.interval / 1000 }).format(),
+                  $gte: this.currentTime.clone().subtract({ seconds: 10 * layerOptions.interval / 1000 }).format(),
                   $lte: this.currentTime.format() 
                 }
               } else {
@@ -77,6 +101,7 @@ let geojsonLayersMixin = {
         })
 
         let layer = this.createLeafletLayer(options)
+
         // Specific case of realtime layer where the underlying container also need to be added to map
         if (layerOptions.realtime && container) {
           layer.once('add', () => container.addTo(this.map))
