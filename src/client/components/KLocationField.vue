@@ -8,7 +8,7 @@
       :label-width="labelWidth"
       :error="hasError"
     >
-      <q-search ref="search" v-model="pattern" :after="actions" @change="onChanged">
+      <q-search ref="search" v-model="pattern" :after="actions" @change="onChanged" :placeholder="$t('KLocationField.PLACEHOLDER')">
         <q-autocomplete :min-characters="5" :debounce="1000" @search="onSearch" @selected="onSelected" />
       </q-search>
     </q-field>
