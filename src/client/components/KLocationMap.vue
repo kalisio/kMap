@@ -16,9 +16,7 @@ export default {
   name: 'k-location-map',
   mixins: [
     kCoreMixins.refsResolver(['map']),
-    mixins.map.baseMap,
-    mixins.map.baseLayers,
-    mixins.map.geojsonLayers
+    mixins.map.baseMap
   ],
   props: {
     layout: {
