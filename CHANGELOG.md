@@ -1,5 +1,28 @@
 # Changelog
 
+## [v1.0.1](https://github.com/kalisio/kMap/tree/v1.0.1) (2018-12-03)
+
+[Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.0...v1.0.1)
+
+**Implemented enhancements:**
+
+- Allow to aggregate features when querying a collection-layer service [\#29](https://github.com/kalisio/kMap/issues/29)
+- Capability to create a GeoJson layer in map from URL [\#28](https://github.com/kalisio/kMap/issues/28)
+- Integrate generic geometry relative functions/hooks from kCore/weacast-core [\#27](https://github.com/kalisio/kMap/issues/27)
+- Categories in layer panel should not depend on type only [\#26](https://github.com/kalisio/kMap/issues/26)
+- Create a timed WMS layer [\#25](https://github.com/kalisio/kMap/issues/25)
+- Layers selector should provide a list of items instead of buttons [\#24](https://github.com/kalisio/kMap/issues/24)
+- Standardize map/globe baheaviours [\#22](https://github.com/kalisio/kMap/issues/22)
+- Layer service from MongoDB collection [\#18](https://github.com/kalisio/kMap/issues/18)
+- Interoperability with Weacast [\#16](https://github.com/kalisio/kMap/issues/16)
+- Create a layer control [\#13](https://github.com/kalisio/kMap/issues/13)
+- Create a layer description service [\#12](https://github.com/kalisio/kMap/issues/12)
+
+**Fixed bugs:**
+
+- KLayersPanel is not reactive [\#21](https://github.com/kalisio/kMap/issues/21)
+- Ability to drag'n'drop local files to create layers [\#19](https://github.com/kalisio/kMap/issues/19)
+
 ## [v1.0.0](https://github.com/kalisio/kMap/tree/v1.0.0) (2018-10-11)
 
 [Full Changelog](https://github.com/kalisio/kMap/compare/4ac50c6159edea68069b9fb7014e20971d0f6189...v1.0.0)
