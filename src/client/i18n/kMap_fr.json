@@ -1,5 +1,6 @@
 {
   "CLOSE": "Fermer",
+  "SEARCH": "Rechercher",
   "mixins": {
     "geolocation": {
       "ERROR_MESSAGE": "Il nous est impossible de déterminer votre position",
@@ -13,6 +14,9 @@
     "navigator": {
       "ACTION_SHEET_TITLE": "Selectionnez une application"
     }
+  },
+  "KLocationField": {
+    "PLACEHOLDER": "$t(SEARCH)"
   },
   "KLocationMap": {
     "CLOSE_ACTION": "$t(CLOSE)"
