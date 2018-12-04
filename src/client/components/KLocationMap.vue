@@ -42,7 +42,8 @@ export default {
   },
   data () {
     return {
-      title: ''
+      title: '',
+      location: {}
     }
   },
   methods: {
@@ -55,11 +56,12 @@ export default {
       if (_.isNil(location.longitude)) throw Error('Invalid location: undefined longitude property')
       if (_.isNil(location.latitude)) throw Error('Invalid location: undefined latitude property')
       if (_.isNil(location.name)) throw Error('Invalid location: undefined name property')
+      this.location = location
       this.$refs.modal.open()
       this.title = location.name
       this.center(location.longitude, location.latitude, this.zoom)
       if (!this.place) {
-        this.marker = L.marker([location.latitude, location.longitude], { icon: L.icon.fontAwesome(this.markerStyle) })
+        this.marker = L.marker([location.latitude, location.longitude], { icon: L.icon.fontAwesome(this.markerStyle), draggable: true })
         this.marker.addTo(this.map)
       } else {
         this.marker.setLatLng([location.latitude, location.longitude])
@@ -67,6 +69,8 @@ export default {
     },
     doClose () {
       this.$refs.modal.close()
+      this.location.latitude = this.marker.getLatLng().lat
+      this.location.longitude = this.marker.getLatLng().lng
     },
     modalStyle () {
       // Is there any better solution to ensure the modal wil fit the map ?
@@ -82,14 +86,22 @@ export default {
         zIndex: 0,
         position: 'absolute'
       }
+    },
+    async refreshBaseLayer () {
+      this.layers = {}
+      const catalogService = this.$api.getService('catalog')
+      // Get first visible base layer
+      let response = await catalogService.find({ query: { type: 'BaseLayer', 'leaflet.isVisible': true } })
+      if (response.data.length > 0) this.addLayer(response.data[0])
     }
   },
   created () {
     this.$options.components['k-modal'] = this.$load('frame/KModal')
   },
-  mounted () {
-    this.loadRefs()
-    .then(() => this.setupMap())
+  async mounted () {
+    await this.loadRefs()
+    this.setupMap()
+    this.refreshBaseLayer()
   }
 }
 </script>
