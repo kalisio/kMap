@@ -85,23 +85,38 @@ let baseMapMixin = {
       return this.leafletLayers[name]
     },
     async showLayer (name) {
-      // Retieve the layer
+      // Retrieve the layer
       let layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
       layer.isVisible = true
+      
       // Create the leaflet layer on first show
-      let leafetLayer = this.getLeafletLayerByName(name)
-      if (!leafetLayer) leafetLayer = await this.createLayer(layer)
+      let leafletLayer = this.getLeafletLayerByName(name)
+      let createdLeafletLayer = false
+
+      if (!leafletLayer) {
+        createdLeafletLayer = true
+        leafletLayer = await this.createLayer(layer)
+      }
+
       // Add the leaflet layer to the map
-      this.leafletLayers[name] = leafetLayer
-      this.map.addLayer(leafetLayer)
+      this.leafletLayers[name] = leafletLayer
+
+      this.map.addLayer(leafletLayer)
       // Ensure base layer will not pop on top of others
-      if (layer.type === 'BaseLayer') leafetLayer.bringToBack()
+      if (layer.type === 'BaseLayer') leafletLayer.bringToBack()
+
+      // emit event
+      if (createdLeafletLayer) {
+        this.$emit('map-create-leaflet-layer', {leafletLayer, layer})
+      } else {
+        this.$emit('map-show-leaflet-layer', {leafletLayer, layer})
+      }      
     },
     hideLayer (name) {
-      // retrieve the layer
+      // Retrieve the layer
       let layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
@@ -110,6 +125,9 @@ let baseMapMixin = {
       // Remove the leaflet layer from map
       let leafletLayer = this.leafletLayers[name]
       this.map.removeLayer(leafletLayer)
+
+      // emit event
+      this.$emit('map-hide-leaflet-layer', {leafletLayer, layer})
     },
     async addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
