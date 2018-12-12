@@ -67,7 +67,6 @@ let geolocationMixin = {
                 }, 1000 * 60 * 15)
                 // This will dispatch/display the error message
                 Events.$emit('error', error)
-                throw error
               }
             },
             {
