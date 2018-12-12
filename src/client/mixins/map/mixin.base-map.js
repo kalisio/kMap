@@ -40,23 +40,19 @@ let baseMapMixin = {
       let leafletOptions = processedOptions.leaflet
       // Transform from string to actual objects when required in some of the layer options
       this.leafletObjectOptions.forEach(option => {
-        // Find the right argument holding the option
-        let options = _.find(leafletOptions.arguments, argument => typeof _.get(argument, option) === 'string')
-        if (options) {
+        if (typeof _.get(leafletOptions, option) === 'string') {
           // Jump from string to object, eg { crs: 'CRS.EPSGXXX' } will become { crs: L.CRS.EPSGXXX }
-          _.set(options, option, _.get(L, _.get(options, option)))
+          _.set(leafletOptions, option, _.get(L, _.get(leafletOptions, option)))
         }
       })
-      // Check for layer options object, create if required
-      if (!_.has(leafletOptions, 'arguments[1]')) _.set(leafletOptions, 'arguments[1]', {})
-      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       // Copy generic options
-      layerOptions.attribution = processedOptions.attribution
+      leafletOptions.attribution = processedOptions.attribution
       return processedOptions
     },
     createLeafletLayer (options) {
       const leafletOptions = options.leaflet || options
-      return _.get(L, leafletOptions.type)(...leafletOptions.arguments)
+      if (leafletOptions.source) return _.get(L, leafletOptions.type)(leafletOptions.source, leafletOptions)
+      else return _.get(L, leafletOptions.type)(leafletOptions)
     },
     registerLeafletConstructor (constructor) {
       this.leafletFactory.push(constructor)

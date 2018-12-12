@@ -17,7 +17,7 @@ let fileLayersMixin = {
         // See http://leafletjs.com/reference.html#geojson-options
         layerOptions: this.getGeoJsonOptions({
           type: 'geoJson',
-          arguments: [ {}, { popup: {} } ]
+          popup: {}
         }),
         // Add to map after loading
         addToMap: false,
@@ -53,8 +53,7 @@ let fileLayersMixin = {
           icon: 'insert_drive_file',
           leaflet: {
             type: 'geoJson',
-            isVisible: true,
-            arguments: [ {}, {} ]
+            isVisible: true
           }
         })
         let fileLayer = this.getLeafletLayerByName(event.filename)

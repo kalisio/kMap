@@ -10,32 +10,30 @@ let geojsonLayersMixin = {
       let leafletOptions = options.leaflet || options
       // Check for valid type
       if (leafletOptions.type !== 'geoJson') return
-      // Get layer options object
-      let layerOptions = _.get(leafletOptions, 'arguments[1]')
-
+      
       try {
         let container
         // Specific case of realtime layer
-        if (layerOptions.realtime) {
+        if (leafletOptions.realtime) {
           // Alter type as required by the plugin
           leafletOptions.type = 'realtime'
           // We first need to create an underlying container or setup Id function
-          const id = _.get(options, 'featureId', _.get(layerOptions, 'id'))
-          if (id) _.set(layerOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
-          container = _.get(layerOptions, 'container')
+          const id = _.get(options, 'featureId', _.get(leafletOptions, 'id'))
+          if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
+          container = _.get(leafletOptions, 'container')
           if (container) {
-            layerOptions.container = container = this.createLeafletLayer({ type: container, arguments: [] })
+            leafletOptions.container = container = this.createLeafletLayer({ type: container })
           }
           // Check for feature service layers
           if (options.service) {
             // Tell realtime plugin how to load data
-            layerOptions.removeMissing = false
-            layerOptions.updateFeature = function(feature, oldLayer) {
+            leafletOptions.removeMissing = false
+            leafletOptions.updateFeature = function(feature, oldLayer) {
               // A new feature is coming, create it
               if (!oldLayer) return
               // An existing one is found, simply update styling, etc.
-              layerOptions.onEachFeature(feature, oldLayer)
-              oldLayer.setStyle(layerOptions.style(feature))
+              leafletOptions.onEachFeature(feature, oldLayer)
+              oldLayer.setStyle(leafletOptions.style(feature))
               // And coordinates for points
               // FIXME: support others geometry types ?
               if (feature.geometry.type === 'Point') {
@@ -44,7 +42,7 @@ let geojsonLayersMixin = {
               return oldLayer
             }
             
-            _.set(leafletOptions, 'arguments[0]', async (successCallback, errorCallback) => {
+            _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
               // If the probe location is given by another service use it on initialization
               if (options.probeService) {
                 try {
@@ -61,9 +59,9 @@ let geojsonLayersMixin = {
                 $aggregate: options.variables.map(variable => variable.name)
               }
               // Request feature with at least one data available during last interval
-              if (layerOptions.interval) {
+              if (leafletOptions.interval) {
                 query.time = {
-                  $gte: this.currentTime.clone().subtract({ seconds: 2 * layerOptions.interval / 1000 }).format(),
+                  $gte: this.currentTime.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
                   $lte: this.currentTime.format() 
                 }
               } else {
@@ -79,43 +77,43 @@ let geojsonLayersMixin = {
             })
           }
         } else {
-          let dataSource = _.get(leafletOptions, 'arguments[0]')
-          if (_.isEmpty(dataSource)) {
+          let dataSource = _.get(leafletOptions, 'source')
+          if (_.isNil(dataSource)) {
             // Empty valid GeoJson
-            _.set(leafletOptions, 'arguments[0]', { type: 'FeatureCollection', features: [] })
+            _.set(leafletOptions, 'source', { type: 'FeatureCollection', features: [] })
           } else if (typeof dataSource === 'string') { // URL ? If so load data
             let response = await fetch(dataSource)
             if (response.status !== 200) {
               throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
             }
-            _.set(leafletOptions, 'arguments[0]', await response.json())
+            _.set(leafletOptions, 'source', await response.json())
           }
         }
         // Specific case of clustered layer where we first need to create an underlying group
-        if (layerOptions.cluster) {
-          container = this.createLeafletLayer({ type: 'markerClusterGroup', arguments: [ layerOptions.cluster ] })
+        if (leafletOptions.cluster) {
+          container = this.createLeafletLayer(Object.assign({ type: 'markerClusterGroup' }, leafletOptions.cluster))
         }
         // Merge generic GeoJson options and layer options
         let geoJsonOptions = this.getGeoJsonOptions(options)
         Object.keys(geoJsonOptions).forEach(key => {
           // If layer provided do not override
-          if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
+          if (!_.has(leafletOptions, key)) _.set(leafletOptions, key, _.get(geoJsonOptions, key))
         })
 
         let layer = this.createLeafletLayer(options)
 
         // Specific case of realtime layer where the underlying container also need to be added to map
-        if (layerOptions.realtime && container) {
+        if (leafletOptions.realtime && container) {
           layer.once('add', () => container.addTo(this.map))
         }
         // Specific case of clustered layer where the group is added instead of the geojson layer
-        if (layerOptions.cluster && container) {
+        if (leafletOptions.cluster && container) {
           container.addLayer(layer)
           layer = container
         }
         // Specific case of time dimension layer where we embed the underlying geojson layer
-        if (layerOptions.timeDimension) {
-          layer = this.createLeafletLayer({ type: 'timeDimension.layer.geoJson', arguments: [ layer, layerOptions.timeDimension ] })
+        if (leafletOptions.timeDimension) {
+          layer = this.createLeafletLayer(Object.assign({ type: 'timeDimension.layer.geoJson', source: layer }, leafletOptions.timeDimension))
         }
         return layer
       } catch (error) {
@@ -192,18 +190,14 @@ let geojsonLayersMixin = {
     },
     getPointMarker (options, feature, latlng) {
       let leafletOptions = options.leaflet || options
-      // Get layer options object
-      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let style = this.generateLeafletStyle('markerStyle', feature, latlng)
       return style || // Feature style overrides layer style which overrides default style
         this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
-        this.convertFromSimpleStyleSpec(layerOptions),
+        this.convertFromSimpleStyleSpec(leafletOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties)))
     },
     getFeatureStyle (options, feature) {
       let leafletOptions = options.leaflet || options
-      // Get layer options object
-      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let style = this.generateLeafletStyle('featureStyle', feature)
       return style || // Feature style overrides layer style which overrides default style
         Object.assign({}, this.options.featureStyle || {
@@ -213,16 +207,14 @@ let geojsonLayersMixin = {
           fillOpacity: 0.5,
           fillColor: 'green'
         },
-        this.convertFromSimpleStyleSpec(layerOptions),
+        this.convertFromSimpleStyleSpec(leafletOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
     },
     getFeaturePopup (options, feature, layer) {
       let leafletOptions = options.leaflet || options
-      // Get layer options object
-      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let popup = this.generateLeafletStyle('popup', feature, layer)
       if (!popup && feature.properties) {
-        const popupStyle = layerOptions.popup || this.options.popup
+        const popupStyle = leafletOptions.popup || this.options.popup
         // Default content
         let properties = feature.properties
         // Custom list given ?
@@ -264,11 +256,9 @@ let geojsonLayersMixin = {
     },
     getFeatureTooltip (options, feature, layer) {
       let leafletOptions = options.leaflet || options
-      // Get layer options object
-      let layerOptions = _.get(leafletOptions, 'arguments[1]')
       let tooltip = this.generateLeafletStyle('tooltip', feature, layer)
       if (!tooltip) {
-        const tooltipStyle = layerOptions.tooltip || this.options.tooltip
+        const tooltipStyle = leafletOptions.tooltip || this.options.tooltip
         if (tooltipStyle && feature.properties) {
           // Default content
           let properties = feature.properties

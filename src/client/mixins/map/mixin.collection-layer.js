@@ -5,7 +5,7 @@ let collectionLayerMixin = {
     refreshLayer () {
       this.collectionLayer.clearLayers()
       let filteredItems = _.filter(this.items, (item) => this.filterItem(item))
-      let layer = this.createLeafletLayer({ type: 'geoJson', arguments: [ { type: 'FeatureCollection', features: filteredItems } ] })
+      let layer = this.createLeafletLayer({ type: 'geoJson', source: { type: 'FeatureCollection', features: filteredItems } })
       layer.addTo(this.collectionLayer)
     },
     addCollectionLayer (name, clusterOptions) {
@@ -16,7 +16,7 @@ let collectionLayerMixin = {
         leaflet: {
           type: 'geoJson',
           isVisible: true,
-          arguments: [{}, { cluster: clusterOptions }]
+          cluster: clusterOptions
         }
       })
       this.collectionLayer = this.getLeafletLayerByName(name)

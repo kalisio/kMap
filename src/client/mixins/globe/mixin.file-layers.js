@@ -20,7 +20,7 @@ let fileLayersMixin = {
           cesium: {
             type: 'geoJson',
             isVisible: true,
-            arguments: [ source.name ] // Set the data source name instead of URL in this case
+            source: source.name // Set the data source name instead of URL in this case
           }
         })
       })

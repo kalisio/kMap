@@ -9,7 +9,7 @@ let servicesLayersMixin = {
       .subscribe(response => {
         this.serviceLayer.clearLayers()
         // Declare the output GeoJson collection
-        let features = this.createLeafletLayer({ type: 'geoJson', arguments: [ { type: 'FeatureCollection', features: response.data } ] })
+        let features = this.createLeafletLayer({ type: 'geoJson', source: { type: 'FeatureCollection', features: response.data } })
         features.addTo(this.serviceLayer)
       })
     },
@@ -27,7 +27,7 @@ let servicesLayersMixin = {
         leaflet: {
           type: 'geoJson',
           isVisible: true,
-          arguments: [{}, { cluster: clusterOptions }]
+          cluster: clusterOptions
         }
       })
       this.serviceLayer = this.getLeafletLayerByName(name)

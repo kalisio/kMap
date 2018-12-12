@@ -8,19 +8,16 @@ let geojsonLayersMixin = {
       const cesiumOptions = options.cesium
       // Check for valid type
       if (cesiumOptions.type !== 'geoJson') return
-      // Check for layer options object, create if required
-      if (!_.has(cesiumOptions, 'arguments[1]')) _.set(cesiumOptions, 'arguments[1]', {})
-      let layerOptions = _.get(cesiumOptions, 'arguments[1]')
       // Merge generic GeoJson options and layer options
       let geoJsonOptions = this.getGeoJsonOptions(options)
       Object.keys(geoJsonOptions).forEach(key => {
         // If layer provided do not override
-        if (!_.has(layerOptions, key)) layerOptions[key] = geoJsonOptions[key]
+        if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
-      this.convertFromSimpleStyleSpec(layerOptions)
+      this.convertFromSimpleStyleSpec(cesiumOptions)
 
       try {
-        let dataSource = _.get(cesiumOptions, 'arguments[0]')
+        let dataSource = _.get(cesiumOptions, 'source')
         // Check if data source already added to the scene and we only want to
         // create a layer on top of it or if we have to load it
         for (let i = 0; i < this.viewer.dataSources.length; i++) {
@@ -30,9 +27,9 @@ let geojsonLayersMixin = {
             break
           }
         }
-        if (typeof dataSource === 'string') dataSource = await Cesium.GeoJsonDataSource.load(dataSource, layerOptions)
+        if (typeof dataSource === 'string') dataSource = await Cesium.GeoJsonDataSource.load(dataSource, cesiumOptions)
         this.applyStyle(dataSource.entities)
-        if (layerOptions.cluster) {
+        if (cesiumOptions.cluster) {
           // Set default cluster options
           _.assign(dataSource.clustering, {
             enabled: true,
@@ -41,7 +38,7 @@ let geojsonLayersMixin = {
             clusterBillboards: true,
             clusterLabels: true,
             clusterPoints: true
-          }, layerOptions.cluster)
+          }, cesiumOptions.cluster)
           dataSource.clustering.clusterEvent.addEventListener(this.applyClusterStyle)
         }
         return dataSource
