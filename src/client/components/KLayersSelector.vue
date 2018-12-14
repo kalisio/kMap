@@ -92,9 +92,9 @@ export default {
     },
     onLayerClicked (layer, selection) {
       if (this.options.exclusive) {
-        if (layer.isVisible) return
         let selectedLayer = _.find(selection, { isVisible: true })
         if (selectedLayer) this.callHandler({ name: 'toggle' }, selectedLayer)
+        if (layer === selectedLayer) return
       }
       this.callHandler({ name: 'toggle' }, layer)
     },
