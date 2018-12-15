@@ -110,9 +110,9 @@ let baseMapMixin = {
 
       // emit event
       if (createdLeafletLayer) {
-        this.$emit('map-create-leaflet-layer', {leafletLayer, layer})
+        this.$emit('leaflet-layer-added', {leafletLayer, layer})
       } else {
-        this.$emit('map-show-leaflet-layer', {leafletLayer, layer})
+        this.$emit('leaflet-layer-shown', {leafletLayer, layer})
       }      
     },
     hideLayer (name) {
@@ -127,7 +127,7 @@ let baseMapMixin = {
       this.map.removeLayer(leafletLayer)
 
       // emit event
-      this.$emit('map-hide-leaflet-layer', {leafletLayer, layer})
+      this.$emit('leaflet-layer-hidden', {leafletLayer, layer})
     },
     async addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {

@@ -3,9 +3,7 @@
   <div class="k-color-legend"
       @click="onClick"
   >
-  <q-tooltip>
-    {{hint}}
-  </q-tooltip>
+  <q-tooltip v-html="hint"></q-tooltip>
 
     <div class="k-color-unit"
       :style="colorUnitStyle"
