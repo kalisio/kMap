@@ -46,7 +46,7 @@ export default {
     colorUnitStyle () {
       return {
         width: '100%',
-        height: 100/(this.steps.length + 1) + '%'
+        height: 100 / (this.steps.length + 1) + '%'
       }
     }
   },
@@ -54,8 +54,8 @@ export default {
     getColorStepStyle (step, index) {
       return {
         width: '100%',
-        height: 100/(this.steps.length + 1) + '%',
-        top: (index + 1) * 100/(this.steps.length + 1) + '%',
+        height: 100 / (this.steps.length + 1) + '%',
+        top: (index + 1) * 100 / (this.steps.length + 1) + '%',
         backgroundColor: step.color
       }
     },

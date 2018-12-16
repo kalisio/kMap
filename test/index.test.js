@@ -1,13 +1,9 @@
 import chai, { util, expect } from 'chai'
 import chailint from 'chai-lint'
-import path from 'path'
 import _ from 'lodash'
 import fs from 'fs-extra'
 import core, { kalisio, permissions } from '@kalisio/kdk-core'
 import map, { permissions as mapPermissions, createFeatureService, createCatalogService } from '../src'
-
-const modelsPath = path.join(__dirname, '..', 'src', 'models')
-const servicesPath = path.join(__dirname, '..', 'src', 'services')
 
 describe('kMap', () => {
   let app, server, port, // baseUrl,
@@ -40,7 +36,7 @@ describe('kMap', () => {
     app.configure(map)
     geocoderService = app.getService('geocoder')
     expect(geocoderService).toExist()
-    // Create a global catalog service 
+    // Create a global catalog service
     createCatalogService.call(app)
     catalogService = app.getService('catalog')
     expect(catalogService).toExist()
@@ -60,7 +56,7 @@ describe('kMap', () => {
   it('registers the default layer catalog', async () => {
     let layers = await fs.readJson('./test/config/layers.json')
     expect(layers.length > 0)
-    // Create a global catalog service 
+    // Create a global catalog service
     layersArray = await catalogService.create(layers)
     expect(layersArray.length > 0)
   })

@@ -10,7 +10,7 @@ let geojsonLayersMixin = {
       let leafletOptions = options.leaflet || options
       // Check for valid type
       if (leafletOptions.type !== 'geoJson') return
-      
+
       try {
         let container
         // Specific case of realtime layer
@@ -28,7 +28,7 @@ let geojsonLayersMixin = {
           if (options.service) {
             // Tell realtime plugin how to load data
             leafletOptions.removeMissing = false
-            leafletOptions.updateFeature = function(feature, oldLayer) {
+            leafletOptions.updateFeature = function (feature, oldLayer) {
               // A new feature is coming, create it
               if (!oldLayer) return
               // An existing one is found, simply update styling, etc.
@@ -41,7 +41,7 @@ let geojsonLayersMixin = {
               }
               return oldLayer
             }
-            
+
             _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
               // If the probe location is given by another service use it on initialization
               if (options.probeService) {
@@ -54,7 +54,8 @@ let geojsonLayersMixin = {
               }
               // Last available data only for realtime visualization
               let query = {
-                $limit: 1, $sort: { time: -1 },
+                $limit: 1,
+                $sort: { time: -1 },
                 $groupBy: options.featureId,
                 $aggregate: options.variables.map(variable => variable.name)
               }
@@ -62,11 +63,11 @@ let geojsonLayersMixin = {
               if (leafletOptions.interval) {
                 query.time = {
                   $gte: this.currentTime.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
-                  $lte: this.currentTime.format() 
+                  $lte: this.currentTime.format()
                 }
               } else {
                 query.time = {
-                  $lte: this.currentTime.format() 
+                  $lte: this.currentTime.format()
                 }
               }
               try {

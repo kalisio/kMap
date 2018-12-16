@@ -91,7 +91,7 @@ let baseMapMixin = {
       // Check the visibility state
       if (this.isLayerVisible(name)) return
       layer.isVisible = true
-      
+
       // Create the leaflet layer on first show
       let leafletLayer = this.getLeafletLayerByName(name)
       let createdLeafletLayer = false
@@ -113,7 +113,7 @@ let baseMapMixin = {
         this.$emit('leaflet-layer-added', {leafletLayer, layer})
       } else {
         this.$emit('leaflet-layer-shown', {leafletLayer, layer})
-      }      
+      }
     },
     hideLayer (name) {
       // Retrieve the layer
