@@ -15,11 +15,11 @@ let GeotiffLayer = L.GridLayer.extend({
 
       let domain = [georaster.mins[0], georaster.maxs[0]]
       let classes = []
-      this.scale = chroma.scale().domain(domain)
-      if (options.chromajs) {
-        if (options.chromajs.domain) domain = options.chromajs.domain
-        if (options.chromajs.classes) classes = options.chromajs.classes
-        this.scale = chroma.scale(options.chromajs.scale).classes(classes).domain(domain)
+      this.colorMap = chroma.scale().domain(domain)
+      if (options.scale) {
+        if (options.domain) domain = options.domain
+        if (options.classes) classes = options.classes
+        this.colorMap = chroma.scale(options.scale).classes(classes).domain(domain)
       }
 
       // Unpacking values for use later. We do this in order to increase speed.
@@ -54,7 +54,7 @@ let GeotiffLayer = L.GridLayer.extend({
     let pixelWidth = this._pixelWidth
     let pixelHeight = this._pixelHeight
     let rasters = this._rasters
-    let scale = this.scale
+    let colorMap = this.colorMap
     let xmin = this._xmin
     let ymin = this._ymin
     let xmax = this._xmax
@@ -109,11 +109,11 @@ let GeotiffLayer = L.GridLayer.extend({
             let xInRasterPixels = Math.floor((lng - xmin) / pixelWidth)
             let values = rasters.map(raster => raster[yInRasterPixels][xInRasterPixels])
 
-            let color = null // '#ffffff00'
+            let color = null
             switch (values.length) {
               case 1:
                 const value = values[0]
-                if (value !== noDataValue) color = scale(values[0])
+                if (value !== noDataValue) color = colorMap(values[0])
                 break
               case 2:
               // FIXME
@@ -157,9 +157,9 @@ let geotiffLayersMixin = {
       const georaster = await parseGeoraster(arrayBuffer)
 
       // Copy options
-      if (options.chromajs) Object.assign(leafletOptions, { chromajs: options.chromajs })
-      if (options.band) Object.assign(leafletOptions, { band: options.band })
-
+      const colorMap = _.get(options, 'variables[0].chromajs', null)
+      if (colorMap) Object.assign(leafletOptions, colorMap)
+     
       Object.assign(leafletOptions, { georaster: georaster, resolution: 128 })
       return new GeotiffLayer(leafletOptions)
     }
