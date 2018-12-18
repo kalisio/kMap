@@ -76,6 +76,22 @@ let forecastLayersMixin = {
       }, { query })
       if (response.features.length > 0) this.probedLocation = response.features[0]
     },
+    async getProbe (name) {
+      const results = await this.weacastApi.getService('probes').find({
+        query: {
+          name,
+          forecast: this.forecastModel.name,
+          $paginate: false,
+          $select: ['elements', 'forecast', 'featureId']
+        }
+      })
+      if (results.length > 0) {
+        this.probe = results[0]
+        return this.probe
+      } else {
+        return null
+      }
+    },
     async getForecastForFeature (featureId, startTime, endTime) {
       // Check if probe is available
       if (!this.probe) return
