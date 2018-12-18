@@ -61,8 +61,8 @@ let geojsonLayersMixin = {
                 $aggregate: options.variables.map(variable => variable.name)
               }
               // Request feature with at least one data available during last interval
+              const now = moment.utc()
               if (leafletOptions.interval) {
-                const now = moment.utc()
                 query.time = {
                   $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
                   $lte: now.format()
@@ -267,8 +267,8 @@ let geojsonLayersMixin = {
           let properties = feature.properties
           let html
           if (tooltipStyle.property) {
-            html = (_.has(properties, tooltipStyle.property) ?
-            _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
+            html = (_.has(properties, tooltipStyle.property)
+            ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
           } else if (tooltipStyle.template) {
             let compiler = _.template(tooltipStyle.template)
             html = compiler({ properties, feature })

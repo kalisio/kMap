@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import L from 'leaflet'
 import parseGeoraster from 'georaster'
 import chroma from 'chroma-js'
@@ -9,7 +10,7 @@ let GeotiffLayer = L.GridLayer.extend({
     if (!options.keepBuffer) options.keepBuffer = 25
     if (!options.resolution) options.resolution = Math.pow(2, 5)
     if (options.updateWhenZooming === undefined) options.updateWhenZooming = false
-    
+
     this.url = options.url
     this.currentTime = moment(0)
     this.interval = options.interval
@@ -17,9 +18,9 @@ let GeotiffLayer = L.GridLayer.extend({
     this.colorMapOptions = {
       scale: options.scale ? options.scale : null,
       domain: options.domain ? options.domain : null,
-      classes: options.classes ? options.classes: null
+      classes: options.classes ? options.classes : null
     }
-    
+
     // Unpacking values for use later. We do this in order to increase speed.
     this._noDataValue = null
     this._pixelWidth = 1
@@ -36,11 +37,11 @@ let GeotiffLayer = L.GridLayer.extend({
     // caching the constant tile size, so we don't recalculate everytime we reate a new tile
     let tileSize = this.getTileSize()
     this._tileHeight = tileSize.y
-    this._tileWidth = tileSize.x 
+    this._tileWidth = tileSize.x
   },
 
   setGeoRaster (raster) {
-    let scale = this.colorMapOptions.scale ? this.colorMapOptions.scale : ""
+    let scale = this.colorMapOptions.scale ? this.colorMapOptions.scale : ''
     let domain = this.colorMapOptions.domain ? this.colorMapOptions.domain : [raster.mins[0], raster.maxs[0]]
     let classes = this.colorMapOptions.classes ? this.colorMapOptions.classes : []
     this.colorMap = chroma.scale(scale).classes(classes).domain(domain)
@@ -59,11 +60,11 @@ let GeotiffLayer = L.GridLayer.extend({
     let northEast = L.latLng(raster.ymax, raster.xmax)
     this._bounds = L.latLngBounds(southWest, northEast)
     L.setOptions(this, { bounds: this._bounds })
-    
+
     // caching the constant tile size, so we don't recalculate everytime we reate a new tile
     let tileSize = this.getTileSize()
     this._tileHeight = tileSize.y
-    this._tileWidth = tileSize.x 
+    this._tileWidth = tileSize.x
 
     this.redraw()
   },
@@ -71,15 +72,15 @@ let GeotiffLayer = L.GridLayer.extend({
   async setCurrentTime (datetime) {
     const timestamp = datetime.valueOf()
     let nearestTime = moment(Math.floor(timestamp / this.interval) * this.interval)
-    if (this.currentTime!==nearestTime) {
+    if (this.currentTime !== nearestTime) {
       // Store the time
       this.currentTime = nearestTime
       // Compute the url
       let compiledUrl = _.template(this.url)
-      const url = compiledUrl({ 
-        Y: this.currentTime.year(), 
-        M: this.currentTime.month(), 
-        D: this.currentTime.day(), 
+      const url = compiledUrl({
+        Y: this.currentTime.year(),
+        M: this.currentTime.month(),
+        D: this.currentTime.day(),
         hh: this.currentTime.hours().toString().padStart(2, '0'),
         mm: this.currentTime.minutes().toString().padStart(2, '0')
       })
@@ -199,7 +200,7 @@ let geotiffLayersMixin = {
       // Copy options
       const colorMap = _.get(options, 'variables[0].chromajs', null)
       if (colorMap) Object.assign(leafletOptions, colorMap)
-     
+
       Object.assign(leafletOptions, { resolution: 128 })
       this.geotiffLayer = new GeotiffLayer(leafletOptions)
       return this.geotiffLayer
