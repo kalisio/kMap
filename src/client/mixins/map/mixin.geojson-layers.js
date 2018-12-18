@@ -267,10 +267,11 @@ let geojsonLayersMixin = {
           let properties = feature.properties
           let html
           if (tooltipStyle.property) {
-            html = _.get(properties, tooltipStyle.property)
+            html = (_.has(properties, tooltipStyle.property) ?
+            _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
           } else if (tooltipStyle.template) {
-            let compiler = _.template(tooltipStyle.template, { variable: 'properties' })
-            html = compiler(properties)
+            let compiler = _.template(tooltipStyle.template)
+            html = compiler({ properties, feature })
           }
           if (html) {
             tooltip = L.tooltip(tooltipStyle.options || { permanent: false }, layer)
