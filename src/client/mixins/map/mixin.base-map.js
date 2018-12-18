@@ -108,6 +108,9 @@ let baseMapMixin = {
       // Ensure base layer will not pop on top of others
       if (layer.type === 'BaseLayer') leafletLayer.bringToBack()
 
+      // Apply the current time if needed
+      if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(this.currentTime)
+
       // emit event
       if (createdLeafletLayer) {
         this.$emit('leaflet-layer-added', {leafletLayer, layer})
@@ -160,6 +163,9 @@ let baseMapMixin = {
       } else {
         this.currentTime = datetime
       }
+      _.forEach(this.leafletLayers, leafletLayer => {
+        if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(datetime)
+      })
       this.$emit('current-time-changed', this.currentTime)
     },
     setMapCursor (className) {
