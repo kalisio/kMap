@@ -1,4 +1,5 @@
 import L from 'leaflet'
+import moment from 'moment'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
@@ -61,13 +62,14 @@ let geojsonLayersMixin = {
               }
               // Request feature with at least one data available during last interval
               if (leafletOptions.interval) {
+                const now = moment.utc()
                 query.time = {
-                  $gte: this.currentTime.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
-                  $lte: this.currentTime.format()
+                  $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
+                  $lte: now.format()
                 }
               } else {
                 query.time = {
-                  $lte: this.currentTime.format()
+                  $lte: now.format()
                 }
               }
               try {
@@ -265,10 +267,11 @@ let geojsonLayersMixin = {
           let properties = feature.properties
           let html
           if (tooltipStyle.property) {
-            html = _.get(properties, tooltipStyle.property)
+            html = (_.has(properties, tooltipStyle.property) ?
+            _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
           } else if (tooltipStyle.template) {
-            let compiler = _.template(tooltipStyle.template, { variable: 'properties' })
-            html = compiler(properties)
+            let compiler = _.template(tooltipStyle.template)
+            html = compiler({ properties, feature })
           }
           if (html) {
             tooltip = L.tooltip(tooltipStyle.options || { permanent: false }, layer)
