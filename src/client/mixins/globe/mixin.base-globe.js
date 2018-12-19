@@ -155,7 +155,7 @@ let baseGlobeMixin = {
     zoomToLayer (name) {
       const layer = this.getCesiumLayerByName(name)
       if (!layer || !layer.entities) return
-      
+
       this.viewer.flyTo(layer.entities, { duration: 0 })
     },
     center (longitude, latitude, altitude = 0, heading = 0, pitch = -90, roll = 0) {

@@ -10,7 +10,7 @@ export * from './init'
 let mixins = Object.assign({}, commonMixins, { map: mapMixins, globe: globeMixins })
 export { mixins }
 
-export default function init () { 
+export default function init () {
   const api = this
   return initialize(api)
 }
