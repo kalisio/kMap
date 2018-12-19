@@ -152,6 +152,12 @@ let baseMapMixin = {
       delete this.leafletLayers[name]
       this.$emit('layer-removed', layer)
     },
+    zoomToLayer (name) {
+      const layer = this.getLeafletLayerByName(name)
+      if (!layer) return
+
+      this.map.fitBounds(layer.getBounds())
+    },
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
     },
