@@ -12,7 +12,7 @@ let forecastLayersMixin = {
     }
   },
   methods: {
-    getVisualModel (layerConfig) {
+    getVisualForecastModel (layerConfig) {
       // For visualization we might decimate the data resolution for performance reasons
       let decimationFactor = layerConfig.decimationFactor || 2
       // Copy forecast model
@@ -46,7 +46,7 @@ let forecastLayersMixin = {
       if (colorMap) Object.assign(leafletOptions, colorMap)
       let layer = this.createLeafletLayer(options)
       // For visualization we might decimate the data resolution for performance reasons
-      layer.setForecastModel(this.getVisualModel(leafletOptions))
+      layer.setForecastModel(this.getVisualForecastModel(leafletOptions))
       return layer
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
@@ -75,8 +75,13 @@ let forecastLayersMixin = {
         elements: this.forecastModel.elements.map(element => element.name)
       }, { query })
       if (response.features.length > 0) this.probedLocation = response.features[0]
+      else throw new Error('Cannot find valid forecast at location')
     },
-    async getProbe (name) {
+    async getForecastProbe (name) {
+      // Avoid reloading probe when not necessary
+      if (this.probe && (this.probe.name === name) && (this.probe.forecast === this.forecastModel.name)) {
+        return this.probe
+      }
       const results = await this.weacastApi.getService('probes').find({
         query: {
           name,
@@ -109,8 +114,9 @@ let forecastLayersMixin = {
         }
       })
       if (results.length > 0) this.probedLocation = results[0]
+      else throw new Error('Cannot find valid forecast for feature')
     },
-    getValueAtCurrentTime (times, values) {
+    getForecastValueAtCurrentTime (times, values) {
       // Check for the right value at time
       if (Array.isArray(times) && Array.isArray(values)) {
         // Look for the nearest time
@@ -131,18 +137,21 @@ let forecastLayersMixin = {
         return values
       }
     },
-    getProbedLocationAtCurrentTime () {
+    getProbedLocationForecastAtCurrentTime () {
       // Create new geojson from raw response containing all times
       let feature = _.cloneDeep(this.probedLocation)
       // Then check for the right value at time
       _.forOwn(feature.properties, (value, key) => {
         if (Array.isArray(value)) {
-          feature.properties[key] = this.getValueAtCurrentTime(feature.forecastTime[key], value)
+          const times = _.get(feature, 'forecastTime.' + key)
+          if (times) {
+            feature.properties[key] = this.getForecastValueAtCurrentTime(times, value)
+          }
         }
       })
       return feature
     },
-    getProbedLocationMarker (feature, latlng) {
+    getProbedLocationForecastMarker (feature, latlng) {
       const properties = feature.properties
       if (!properties || !properties.windDirection || !properties.windSpeed) return null
       // Use wind barbs on probed features
