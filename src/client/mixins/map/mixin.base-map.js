@@ -114,9 +114,8 @@ let baseMapMixin = {
       // emit event
       if (createdLeafletLayer) {
         this.$emit('leaflet-layer-added', {leafletLayer, layer})
-      } else {
-        this.$emit('leaflet-layer-shown', {leafletLayer, layer})
       }
+      this.$emit('leaflet-layer-shown', {leafletLayer, layer})
     },
     hideLayer (name) {
       // Retrieve the layer
