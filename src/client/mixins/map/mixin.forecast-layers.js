@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import L from 'leaflet'
-
+import { getNearestTime } from '../../utils'
 import moment from 'moment'
 
 let forecastLayersMixin = {
@@ -120,18 +120,10 @@ let forecastLayersMixin = {
       // Check for the right value at time
       if (Array.isArray(times) && Array.isArray(values)) {
         // Look for the nearest time
-        let timeIndex = 0
-        let minDiff = Infinity
-        times.forEach((time, index) => {
-          let diff = Math.abs(this.currentTime.diff(moment.utc(time)))
-          if (diff < minDiff) {
-            minDiff = diff
-            timeIndex = index
-          }
-        })
+        const nearestTime = getNearestTime(this.currentTime, times.map(time => moment.utc(time)))
         // Check if we found a valid time within interval, otherwise the time is missing
-        if ((minDiff / 1000) > (0.5 * this.forecastModel.interval)) return null
-        else return values[timeIndex]
+        if ((nearestTime.difference / 1000) > (0.5 * this.forecastModel.interval)) return null
+        else return values[nearestTime.index]
       } else {
         // Constant value
         return values
