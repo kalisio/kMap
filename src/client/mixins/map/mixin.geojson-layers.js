@@ -34,7 +34,7 @@ let geojsonLayersMixin = {
               if (!oldLayer) return
               // An existing one is found, simply update styling, etc.
               leafletOptions.onEachFeature(feature, oldLayer)
-              oldLayer.setStyle(leafletOptions.style(feature))
+              if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
               // And coordinates for points
               // FIXME: support others geometry types ?
               if (feature.geometry.type === 'Point') {
