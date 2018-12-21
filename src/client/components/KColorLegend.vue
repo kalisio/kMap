@@ -31,8 +31,6 @@
 </template>
 
 <script>
-const STEPS = 100
-
 import { QResizeObservable, QTooltip } from 'quasar'
 
 export default {
@@ -69,7 +67,7 @@ export default {
       return this.componentHeight - this.colorUnitHeight
     },
     steps () {
-      return this.showGradient ? Math.trunc(this.colorLegendHeight) : 0   
+      return this.showGradient ? Math.trunc(this.colorLegendHeight) : 0
     },
     stepValue () {
       return this.dd / this.colorLegendHeight
@@ -108,10 +106,10 @@ export default {
       return css
     },
     getStepStyle (step) {
-      const value = this.dm + (step-1) * this.stepValue
+      const value = this.dm + (step - 1) * this.stepValue
 
       return {
-        top: step-1 + this.colorUnitHeight + 'px',
+        top: step - 1 + this.colorUnitHeight + 'px',
         backgroundColor: this.colorMap(value)
       }
     },
