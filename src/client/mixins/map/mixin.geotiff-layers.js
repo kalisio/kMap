@@ -66,6 +66,7 @@ let GeotiffLayer = L.GridLayer.extend({
     this._tileHeight = tileSize.y
     this._tileWidth = tileSize.x
 
+    this.fire('data', raster)
     this.redraw()
   },
 
