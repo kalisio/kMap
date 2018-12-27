@@ -1,7 +1,9 @@
 import logger from 'loglevel'
 import { Platform } from 'quasar'
 
-export function init (api) {
+export default function init () {
+  const api = this 
+
   logger.debug('Initializing kalisio map')
 
   // Declare the services
