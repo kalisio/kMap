@@ -5,7 +5,7 @@ import { marshallSpatialQuery, aggregateFeaturesQuery } from '../../hooks'
 module.exports = {
   before: {
     all: [ coreHooks.marshallTimeQuery ],
-    find: [ coreHooks.marshallComparisonQuery, marshallSpatialQuery, aggregateFeaturesQuery ],
+    find: [ coreHooks.marshallComparisonQuery, coreHooks.marshallSortQuery, marshallSpatialQuery, aggregateFeaturesQuery ],
     get: [],
     create: [ coreHooks.processTime ],
     update: [ coreHooks.processTime ],

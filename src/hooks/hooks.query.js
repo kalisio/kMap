@@ -49,7 +49,7 @@ export async function aggregateFeaturesQuery (hook) {
         : query.$groupBy.reduce((object, id) => Object.assign(object, { [id]: '$properties.' + id }), {})
     let groupBy = { _id: ids }
     // Do we only keep first or last available time ?
-    const singleTime = (query.$limit === 1)
+    const singleTime = (_.toNumber(query.$limit) === 1)
     if (singleTime) {
       // In this case no need to aggregate on each element we simply keep the first/last feature
       // BUG: according to https://jira.mongodb.org/browse/SERVER-9507 MongoDB is not yet
