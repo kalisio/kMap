@@ -7,94 +7,114 @@ import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
+    processRealtimeGeoJsonLayerOptions (options) {
+      let leafletOptions = options.leaflet || options
+      // Alter type as required by the plugin
+      leafletOptions.type = 'realtime'
+      // We first need to create an underlying container or setup Id function
+      const id = _.get(options, 'featureId', _.get(leafletOptions, 'id'))
+      if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
+      let container = _.get(leafletOptions, 'container')
+      if (container) {
+        leafletOptions.container = this.createLeafletLayer({ type: container })
+      }
+      // Check for feature service layers
+      if (options.service) {
+        // Tell realtime plugin how to load data
+        leafletOptions.removeMissing = false
+        leafletOptions.updateFeature = function (feature, oldLayer) {
+          // A new feature is coming, create it
+          if (!oldLayer) return
+          // An existing one is found, simply update styling, etc.
+          leafletOptions.onEachFeature(feature, oldLayer)
+          if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
+          // And coordinates for points
+          // FIXME: support others geometry types ?
+          if (feature.geometry.type === 'Point') {
+            oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+          }
+          return oldLayer
+        }
+
+        _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
+          // If the probe location is given by another service use it on initialization
+          if (options.probeService) {
+            try {
+              // Use probes as reference
+              successCallback(await this.$api.getService(options.probeService).find({}))
+            } catch (error) {
+              errorCallback(error)
+            }
+          }
+          // Any base query to process ?
+          let baseQuery = {}
+          if (options.baseQuery) {
+            if (typeof options.baseQuery === 'function') {
+              Object.assign(baseQuery, await options.baseQuery())
+            } else {
+              Object.assign(baseQuery, options.baseQuery)
+            }
+          }
+          // Last available data only for realtime visualization
+          let query = Object.assign({
+            $limit: 1,
+            $sort: { time: -1 },
+            $groupBy: options.featureId,
+            $aggregate: options.variables.map(variable => variable.name)
+          }, baseQuery)
+          // Request feature with at least one data available during last interval
+          const now = moment.utc()
+          if (leafletOptions.interval) {
+            query.time = {
+              $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
+              $lte: now.format()
+            }
+          } else {
+            query.time = {
+              $lte: now.format()
+            }
+          }
+          try {
+            successCallback(await this.$api.getService(options.service).find({ query }))
+          } catch (error) {
+            errorCallback(error)
+          }
+        })
+      }
+    },
+    async processGeoJsonLayerOptions (options) {
+      let leafletOptions = options.leaflet || options
+      let dataSource = _.get(leafletOptions, 'source')
+      if (_.isNil(dataSource)) {
+        // Empty valid GeoJson
+        _.set(leafletOptions, 'source', { type: 'FeatureCollection', features: [] })
+      } else if (typeof dataSource === 'string') { // URL ? If so load data
+        let response = await fetch(dataSource)
+        if (response.status !== 200) {
+          throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
+        }
+        _.set(leafletOptions, 'source', await response.json())
+      }
+    },
+    processClusterLayerOptions (options) {
+      let leafletOptions = options.leaflet || options
+      leafletOptions.container = this.createLeafletLayer(Object.assign({ type: 'markerClusterGroup' }, leafletOptions.cluster))
+    },
     async createLeafletGeoJsonLayer (options) {
       let leafletOptions = options.leaflet || options
       // Check for valid type
       if (leafletOptions.type !== 'geoJson') return
 
       try {
-        let container
         // Specific case of realtime layer
         if (leafletOptions.realtime) {
-          // Alter type as required by the plugin
-          leafletOptions.type = 'realtime'
-          // We first need to create an underlying container or setup Id function
-          const id = _.get(options, 'featureId', _.get(leafletOptions, 'id'))
-          if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
-          container = _.get(leafletOptions, 'container')
-          if (container) {
-            leafletOptions.container = container = this.createLeafletLayer({ type: container })
-          }
-          // Check for feature service layers
-          if (options.service) {
-            // Tell realtime plugin how to load data
-            leafletOptions.removeMissing = false
-            leafletOptions.updateFeature = function (feature, oldLayer) {
-              // A new feature is coming, create it
-              if (!oldLayer) return
-              // An existing one is found, simply update styling, etc.
-              leafletOptions.onEachFeature(feature, oldLayer)
-              if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
-              // And coordinates for points
-              // FIXME: support others geometry types ?
-              if (feature.geometry.type === 'Point') {
-                oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
-              }
-              return oldLayer
-            }
-
-            _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
-              // If the probe location is given by another service use it on initialization
-              if (options.probeService) {
-                try {
-                  // Use probes as reference
-                  successCallback(await this.$api.getService(options.probeService).find({}))
-                } catch (error) {
-                  errorCallback(error)
-                }
-              }
-              // Last available data only for realtime visualization
-              let query = {
-                $limit: 1,
-                $sort: { time: -1 },
-                $groupBy: options.featureId,
-                $aggregate: options.variables.map(variable => variable.name)
-              }
-              // Request feature with at least one data available during last interval
-              const now = moment.utc()
-              if (leafletOptions.interval) {
-                query.time = {
-                  $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
-                  $lte: now.format()
-                }
-              } else {
-                query.time = {
-                  $lte: now.format()
-                }
-              }
-              try {
-                successCallback(await this.$api.getService(options.service).find({ query }))
-              } catch (error) {
-                errorCallback(error)
-              }
-            })
-          }
+          this.processRealtimeGeoJsonLayerOptions(options)
         } else {
-          let dataSource = _.get(leafletOptions, 'source')
-          if (_.isNil(dataSource)) {
-            // Empty valid GeoJson
-            _.set(leafletOptions, 'source', { type: 'FeatureCollection', features: [] })
-          } else if (typeof dataSource === 'string') { // URL ? If so load data
-            let response = await fetch(dataSource)
-            if (response.status !== 200) {
-              throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
-            }
-            _.set(leafletOptions, 'source', await response.json())
-          }
+          await this.processGeoJsonLayerOptions(options)
         }
         // Specific case of clustered layer where we first need to create an underlying group
         if (leafletOptions.cluster) {
-          container = this.createLeafletLayer(Object.assign({ type: 'markerClusterGroup' }, leafletOptions.cluster))
+          this.processClusterLayerOptions(options)
         }
         // Merge generic GeoJson options and layer options
         let geoJsonOptions = this.getGeoJsonOptions(options)
@@ -106,13 +126,13 @@ let geojsonLayersMixin = {
         let layer = this.createLeafletLayer(options)
 
         // Specific case of realtime layer where the underlying container also need to be added to map
-        if (leafletOptions.realtime && container) {
-          layer.once('add', () => container.addTo(this.map))
+        if (leafletOptions.realtime && leafletOptions.container) {
+          layer.once('add', () => leafletOptions.container.addTo(this.map))
         }
         // Specific case of clustered layer where the group is added instead of the geojson layer
-        if (leafletOptions.cluster && container) {
-          container.addLayer(layer)
-          layer = container
+        if (leafletOptions.cluster && leafletOptions.container) {
+          leafletOptions.container.addLayer(layer)
+          layer = leafletOptions.container
         }
         // Specific case of time dimension layer where we embed the underlying geojson layer
         if (leafletOptions.timeDimension) {
