@@ -20,9 +20,10 @@ let geojsonLayersMixin = {
       }
       // Check for feature service layers
       if (options.service) {
-        // Tell realtime plugin how to load data
-        leafletOptions.removeMissing = false
-        leafletOptions.updateFeature = function (feature, oldLayer) {
+        // Tell realtime plugin how to update/load data
+        if (!_.has(leafletOptions, 'removeMissing')) leafletOptions.removeMissing = !options.probeService
+
+        if (!_.has(leafletOptions, 'updateFeature')) leafletOptions.updateFeature = function (feature, oldLayer) {
           // A new feature is coming, create it
           if (!oldLayer) return
           // An existing one is found, simply update styling, etc.
@@ -35,13 +36,14 @@ let geojsonLayersMixin = {
           }
           return oldLayer
         }
-
+        let initialized = !options.probeService // If not probe reference, nothing to be initialized
         _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
           // If the probe location is given by another service use it on initialization
-          if (options.probeService) {
+          if (!initialized) {
             try {
               // Use probes as reference
               successCallback(await this.$api.getService(options.probeService).find({}))
+              initialized = true
             } catch (error) {
               errorCallback(error)
             }
@@ -50,7 +52,10 @@ let geojsonLayersMixin = {
           let baseQuery = {}
           if (options.baseQuery) {
             if (typeof options.baseQuery === 'function') {
-              Object.assign(baseQuery, await options.baseQuery())
+              const result = await options.baseQuery()
+              // A null query indicate to skip update
+              if (!result) return
+              else Object.assign(baseQuery, result)
             } else {
               Object.assign(baseQuery, options.baseQuery)
             }
