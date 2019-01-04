@@ -216,6 +216,15 @@
     "service": "vigicrues-observations",
     "featureId": "CdStationH",
     "history": 604800
+  },
+  {
+    "name": "adsb-observations",
+    "iconUrl" : "https://s3.eu-central-1.amazonaws.com/kalisioscope/assets/adsb-icon.png",
+    "attribution" : "",
+    "type" : "OverlayLayer",
+    "service": "adsb-observations",
+    "featureId": "icao",
+    "history": 604800
   }
 ]
 

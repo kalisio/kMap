@@ -8,7 +8,7 @@ import map, { permissions as mapPermissions, createFeatureService, createCatalog
 describe('kMap', () => {
   let app, server, port, // baseUrl,
     userService, userObject, geocoderService, catalogService, layersArray,
-    vigicruesStationsService, vigicruesObsService
+    vigicruesStationsService, vigicruesObsService, adsbObsService
 
   before(() => {
     chailint(chai, util)
@@ -97,6 +97,23 @@ describe('kMap', () => {
     await vigicruesObsService.create(observations)
   })
 
+  it('create and feed the ADS-B observations service', async () => {
+    // Create the service
+    const adsbObsLayer = _.find(layersArray, { name: 'adsb-observations' })
+    expect(adsbObsLayer).toExist()
+    expect(adsbObsLayer.service === 'adsb-observations').beTrue()
+    createFeatureService.call(app, {
+      collection: adsbObsLayer.service,
+      featureId: adsbObsLayer.featureId,
+      history: adsbObsLayer.history
+    })
+    adsbObsService = app.getService(adsbObsLayer.service)
+    expect(adsbObsService).toExist()
+    // Feed the collection
+    let observations = require('./data/adsb.observations.json')
+    await adsbObsService.create(observations)
+  })
+
   it('performs spatial filtering on vigicrues stations service', async () => {
     let result = await vigicruesStationsService.find({
       query: {
@@ -135,7 +152,7 @@ describe('kMap', () => {
     expect(result.features.length > 0).beTrue()
   })
 
-  const aggregationQuery = {
+  let aggregationQuery = {
     time: {
       $gte: new Date('2018-11-08T18:00:00Z').toISOString(),
       $lte: new Date('2018-11-08T22:00:00Z').toISOString()
@@ -165,6 +182,25 @@ describe('kMap', () => {
     expect(feature.time.H.length === 5).beTrue()
     expect(feature.time.H[0].isAfter(feature.time.H[1])).beTrue()
     expect(feature.properties.H.length === 5).beTrue()
+  })
+
+  it('performs geometry aggregation on ADS-B observations service', async () => {
+    let aggregationQuery = {
+      time: {
+        $lte: new Date('2019-01-04T13:58:54.767Z').toISOString()
+      },
+      'properties.icao': '885102',
+      $groupBy: 'icao',
+      $aggregate: ['geometry']
+    }
+    let result = await adsbObsService.find({ query: Object.assign({}, aggregationQuery) })
+    expect(result.features.length).to.equal(1)
+    const feature = result.features[0]
+    expect(feature.time).toExist()
+    expect(feature.time.geometry).toExist()
+    expect(feature.time.geometry.length === 4).beTrue()
+    expect(feature.time.geometry[0].isBefore(feature.time.geometry[1])).beTrue()
+    expect(feature.geometry.length === 4).beTrue()
   })
 
   it('geocode an address', async () => {
@@ -197,6 +233,7 @@ describe('kMap', () => {
     if (server) server.close()
     vigicruesStationsService.Model.drop()
     vigicruesObsService.Model.drop()
+    adsbObsService.Model.drop()
     catalogService.Model.drop()
     userService.Model.drop()
   })

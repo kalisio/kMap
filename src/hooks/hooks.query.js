@@ -1,5 +1,8 @@
 import _ from 'lodash'
 import { marshallGeometry } from '../marshall'
+import makeDebug from 'debug'
+
+const debug = makeDebug('kalisio:kMap:query:hooks')
 
 export function marshallGeometryQuery (hook) {
   let query = hook.params.query
@@ -51,7 +54,7 @@ export async function aggregateFeaturesQuery (hook) {
     // Do we only keep first or last available time ?
     const singleTime = (_.toNumber(query.$limit) === 1)
     if (singleTime) {
-      // In this case no need to aggregate on each element we simply keep the first/last feature
+      // In this case no need to aggregate on each element we simply keep the first feature
       // BUG: according to https://jira.mongodb.org/browse/SERVER-9507 MongoDB is not yet
       // able to optimize this kind of operations to avoid full index scan
       // For now we should restrict it to short time range
@@ -59,24 +62,32 @@ export async function aggregateFeaturesQuery (hook) {
     } else {
       Object.assign(groupBy, {
         time: { $push: '$time' },                 // Keep track of all times
-        geometry: { $last: '$geometry' },         // geometry is similar for all results, keep last
-        type: { $last: '$type' },                 // type is similar for all results, keep last
-        properties: { $last: '$properties' }      // properties are similar for all results, keep last
+        type: { $last: '$type' },                 // type is assumed similar for all results, keep last
+        properties: { $last: '$properties' }      // non-aggregated properties are assumed similar for all results, keep last
       })
+      // Check if we aggregate geometry or simply properties
+      if (!query.$aggregate.includes('geometry')) {
+        Object.assign(groupBy, {
+          geometry: { $last: '$geometry' }        // geometry is assumed similar for all results, keep last
+        })
+      }
     }
     // The query contains the match stage except options relevent to the aggregation pipeline
     let match = _.omit(query, ['$groupBy', '$aggregate', '$sort', '$limit', '$skip'])
     let aggregateOptions = {}
     // Check if we could provide a hint to the aggregation when targeting feature ID
-    if (featureId && match['properties.' + featureId]) {
+    if (featureId && _.has(match, 'properties.' + featureId)) {
       aggregateOptions.hint = { ['properties.' + featureId]: 1 }
     }
     // Ensure we do not mix results with/without relevant element values
     // by separately querying each element then merging
     let aggregatedResults
     await Promise.all(query.$aggregate.map(async element => {
+      const isGeometry = (element === 'geometry')
+      // Geometry is a root property while others are feature properties
+      const prefix = (isGeometry ? '' : 'properties.')
       // Find matching features only
-      let pipeline = [ { $match: Object.assign({ ['properties.' + element]: { $exists: true } }, match) } ]
+      let pipeline = [ { $match: Object.assign({ [prefix + element]: { $exists: true } }, match) } ]
       // Ensure they are ordered by increasing time by default
       pipeline.push({ $sort: query.$sort || { time: 1 } })
       // Keep track of all feature values
@@ -84,18 +95,23 @@ export async function aggregateFeaturesQuery (hook) {
         pipeline.push({ $group: groupBy })
         pipeline.push({ $replaceRoot: { newRoot: '$feature' } })
       } else {
-        pipeline.push({ $group: Object.assign({ [element]: { $push: '$properties.' + element } }, groupBy) })
+        pipeline.push({ $group: Object.assign({ [element]: { $push: '$' + prefix + element } }, groupBy) })
       }
+      debug(`Aggregating ${element} element for features`)
+      pipeline.forEach(stage => {
+        _.forOwn(stage, (value, key) => debug('Stage', key, value))
+      })
       let elementResults = await collection.aggregate(pipeline, aggregateOptions).toArray()
+      debug(`Generated ${elementResults.length} feature(s) for ${element} element`)
       // Rearrange data so that we get ordered arrays indexed by element
       elementResults.forEach(result => {
         result.time = { [element]: result.time }
-        if (!singleTime) {
+        if (!singleTime && !isGeometry) {
           // Set back the element values as properties because we aggregated in an accumulator
-          // to avoid conflict with feature properties
-          result.properties[element] = result[element]
+          // to avoid conflict with non-aggregated feature properties
+          _.set(result, prefix + element, _.get(result, element))
           // Delete accumulator
-          delete result[element]
+          _.unset(result, element)
         }
       })
       // Now merge with previous element results
@@ -110,7 +126,7 @@ export async function aggregateFeaturesQuery (hook) {
           // Merge with previous matching feature if any
           if (previousResult) {
             Object.assign(previousResult.time, result.time)
-            previousResult.properties[element] = result.properties[element]
+            _.set(previousResult, prefix + element, _.get(result, prefix + element))
           } else {
             aggregatedResults.push(result)
           }
