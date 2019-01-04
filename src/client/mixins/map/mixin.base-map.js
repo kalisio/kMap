@@ -24,9 +24,9 @@ let baseMapMixin = {
     refreshMap () {
       this.map.invalidateSize()
     },
-    setupMap () {
+    setupMap (domEl) {
       // Initialize the map
-      this.map = L.map('map').setView([46, 1.5], 5)
+      this.map = L.map(domEl).setView([46, 1.5], 5)
       this.setupControls()
     },
     setupControls () {
