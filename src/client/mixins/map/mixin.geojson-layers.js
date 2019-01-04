@@ -131,8 +131,10 @@ let geojsonLayersMixin = {
         let layer = this.createLeafletLayer(options)
 
         // Specific case of realtime layer where the underlying container also need to be added to map
-        if (leafletOptions.realtime && leafletOptions.container) {
-          layer.once('add', () => leafletOptions.container.addTo(this.map))
+        if (leafletOptions.realtime) {
+          // Bind event
+          layer.on('update', (data) => this.$emit('layer-updated', Object.assign({ layer: options, leafletLayer: layer }, data)))
+          if (leafletOptions.container) layer.once('add', () => leafletOptions.container.addTo(this.map))
         }
         // Specific case of clustered layer where the group is added instead of the geojson layer
         if (leafletOptions.cluster && leafletOptions.container) {
