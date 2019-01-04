@@ -3,6 +3,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
+import * as turf from '@turf/turf'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
@@ -32,6 +33,15 @@ let geojsonLayersMixin = {
           // And coordinates for points
           // FIXME: support others geometry types ?
           if (feature.geometry.type === 'Point') {
+            // Compute bearing if supported
+            if (oldLayer.setRotationAngle) {
+              const oldCoordinates = oldLayer.getLatLng()
+              const bearing = turf.bearing(
+                turf.point([oldCoordinates.lng, oldCoordinates.lat]),
+                turf.point(feature.geometry.coordinates)
+              )
+              oldLayer.setRotationAngle(bearing)
+            }
             oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
           }
           return oldLayer
