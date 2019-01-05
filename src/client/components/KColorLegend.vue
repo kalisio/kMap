@@ -21,10 +21,10 @@
     </span>
 
     <div class="k-value-step"
-      v-for="(value, index) in values" :key="index"
-      :style="getValueStyle(value, index)"
+      v-for="(unitValue, index) in unitValues" :key="index"
+      :style="getValueStyle(index)"
     >
-      {{value}}
+      {{unitValue}}
     </div>
   </div>
 
@@ -43,7 +43,9 @@ export default {
     'unit',
     'hint',
     'colorMap',
+    'colors',
     'values',
+    'unitValues',
     'showGradient'
   ],
   data () {
@@ -92,7 +94,7 @@ export default {
         this.componentHeight = componentRect.height
       }
     },
-    getValueStyle (value, index) {
+    getValueStyle (index) {
       let css = {
         width: '100%',
         height: 100 / (this.values.length + 1) + '%',
@@ -100,7 +102,7 @@ export default {
       }
 
       if (!this.showGradient) {
-        css.backgroundColor = this.colorMap(value)
+        css.backgroundColor = this.colors ? this.colors[index] : this.colorMap(this.values[index])
       }
 
       return css
