@@ -71,22 +71,26 @@ let geojsonLayersMixin = {
             }
           }
           // Last available data only for realtime visualization
-          let query = Object.assign({
-            $limit: 1,
-            $sort: { time: -1 },
-            $groupBy: options.featureId,
-            $aggregate: options.variables.map(variable => variable.name)
-          }, baseQuery)
-          // Request feature with at least one data available during last interval
-          const now = moment.utc()
-          if (leafletOptions.interval) {
-            query.time = {
-              $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
-              $lte: now.format()
-            }
-          } else {
-            query.time = {
-              $lte: now.format()
+          let query = baseQuery
+          // Check if we have variables to be aggregate in time or not
+          if (options.variables) {
+            query = Object.assign({
+              $limit: 1,
+              $sort: { time: -1 },
+              $groupBy: options.featureId,
+              $aggregate: options.variables.map(variable => variable.name)
+            }, baseQuery)
+            // Request feature with at least one data available during last interval
+            const now = moment.utc()
+            if (leafletOptions.interval) {
+              query.time = {
+                $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
+                $lte: now.format()
+              }
+            } else {
+              query.time = {
+                $lte: now.format()
+              }
             }
           }
           try {
