@@ -1,7 +1,7 @@
 <template>
   <k-modal ref="modal" :title="title" :toolbar="toolbar()" :options="modalStyle()" @opened="refreshMap()">
     <div slot="modal-content" class="row justify-center">
-      <div ref="map" id="map" :style="mapStyle()"></div>  
+      <div ref="map" :style="mapStyle()"></div>  
     </div>
   </k-modal>
 </template>
@@ -100,7 +100,7 @@ export default {
   },
   async mounted () {
     await this.loadRefs()
-    this.setupMap()
+    this.setupMap(this.$refs.map)
     this.refreshBaseLayer()
   }
 }

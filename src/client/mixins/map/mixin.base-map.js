@@ -29,9 +29,9 @@ let baseMapMixin = {
     refreshMap () {
       this.map.invalidateSize()
     },
-    setupMap (options) {
+    setupMap (domEl, options) {
       // Initialize the map
-      this.map = L.map('map', Object.assign({ zoomControl: false }, options))
+      this.map = L.map(domEL, Object.assign({ zoomControl: false }, options))
       this.$emit('map-ready')
     },
     processLeafletLayerOptions (options) {
