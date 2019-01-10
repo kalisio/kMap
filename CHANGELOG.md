@@ -1,5 +1,12 @@
 # Changelog
 
+## [v1.0.2](https://github.com/kalisio/kMap/tree/v1.0.2) (2019-01-10)
+[Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.1...v1.0.2)
+
+**Fixed bugs:**
+
+- The dom ID to create a map is hard coded [\#43](https://github.com/kalisio/kMap/issues/43)
+
 ## [v1.0.1](https://github.com/kalisio/kMap/tree/v1.0.1) (2018-12-03)
 
 [Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.0...v1.0.1)
