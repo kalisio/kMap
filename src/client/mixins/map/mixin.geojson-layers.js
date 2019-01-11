@@ -3,7 +3,6 @@ import moment from 'moment'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
-import * as turf from '@turf/turf'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 let geojsonLayersMixin = {
@@ -33,15 +32,6 @@ let geojsonLayersMixin = {
           // And coordinates for points
           // FIXME: support others geometry types ?
           if (feature.geometry.type === 'Point') {
-            // Compute bearing if supported
-            if (oldLayer.setRotationAngle) {
-              const oldCoordinates = oldLayer.getLatLng()
-              const bearing = turf.bearing(
-                turf.point([oldCoordinates.lng, oldCoordinates.lat]),
-                turf.point(feature.geometry.coordinates)
-              )
-              oldLayer.setRotationAngle(bearing)
-            }
             oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
           }
           return oldLayer
@@ -80,11 +70,16 @@ let geojsonLayersMixin = {
               $groupBy: options.featureId,
               $aggregate: options.variables.map(variable => variable.name)
             }, baseQuery)
-            // Request feature with at least one data available during last interval
+            // Request feature with at least one data available during last query interval
             const now = moment.utc()
-            if (leafletOptions.interval) {
+            let queryInterval
+            if (leafletOptions.queryInterval) queryInterval = leafletOptions.queryInterval
+            // If query interval not given use 2 x refresh interval as default value
+            // this ensures we cover last interval if server/client update processes are not in sync
+            if (!queryInterval && leafletOptions.interval) queryInterval = 2 * leafletOptions.interval
+            if (queryInterval) {
               query.time = {
-                $gte: now.clone().subtract({ seconds: 2 * leafletOptions.interval / 1000 }).format(),
+                $gte: now.clone().subtract({ milliseconds: queryInterval }).format(),
                 $lte: now.format()
               }
             } else {
