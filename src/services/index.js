@@ -10,8 +10,8 @@ export function createFeatureService (options) {
 
   debug('feature service created for collection ', options.collection)
   let paginate = { default: 3000, max: 10000 }
-  if (app.get('feature')) {
-    Object.assign(paginate, app.get('feature').paginate || {})
+  if (app.get(options.collection)) {
+    Object.assign(paginate, app.get(options.collection).paginate || {})
   }
   app.createService(options.collection, Object.assign({
     fileName: 'feature',
