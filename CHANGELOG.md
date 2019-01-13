@@ -5,7 +5,6 @@
 
 **Fixed bugs:**
 
-- Make the Cesium token configurable [\#45](https://github.com/kalisio/kMap/issues/45)
 - setupMap is broken [\#44](https://github.com/kalisio/kMap/issues/44)
 
 ## [v1.0.2](https://github.com/kalisio/kMap/tree/v1.0.2) (2019-01-10)
