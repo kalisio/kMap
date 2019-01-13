@@ -3,6 +3,10 @@
 ## [v1.0.3](https://github.com/kalisio/kMap/tree/v1.0.3) (2019-01-13)
 [Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.2...v1.0.3)
 
+**Implemented enhancements:**
+
+- Remove KMap and KGlobe components [\#46][https://github.com/kalisio/kMap/issues/46
+
 **Fixed bugs:**
 
 - setupMap is broken [\#44](https://github.com/kalisio/kMap/issues/44)
@@ -10,21 +14,9 @@
 ## [v1.0.2](https://github.com/kalisio/kMap/tree/v1.0.2) (2019-01-10)
 [Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.1...v1.0.2)
 
-**Implemented enhancements:**
-
-- Allow feature service query to include a dynamic filter [\#42](https://github.com/kalisio/kMap/issues/42)
-- Manage orientation in feature service [\#40](https://github.com/kalisio/kMap/issues/40)
-- Allow aggregation of geometry in feature service [\#39](https://github.com/kalisio/kMap/issues/39)
-- Allow to use kMap with Leaflet only or Cesium only or both [\#36](https://github.com/kalisio/kMap/issues/36)
-- Update layer description format [\#34](https://github.com/kalisio/kMap/issues/34)
-- Add the capability to visualize GeoTiff raster data [\#31](https://github.com/kalisio/kMap/issues/31)
-- Create a color ramp legend [\#15](https://github.com/kalisio/kMap/issues/15)
-
 **Fixed bugs:**
 
 - The dom ID to create a map is hard coded [\#43](https://github.com/kalisio/kMap/issues/43)
-- Aggregation query on feature service does not work with REST [\#41](https://github.com/kalisio/kMap/issues/41)
-- Geolocation dialog cannot be dismissed on error [\#38](https://github.com/kalisio/kMap/issues/38)
 
 **Closed issues:**
 
