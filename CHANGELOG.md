@@ -5,7 +5,7 @@
 
 **Implemented enhancements:**
 
-- Remove KMap and KGlobe components [\#46][https://github.com/kalisio/kMap/issues/46
+- Remove KMap and KGlobe components [\#46](https://github.com/kalisio/kMap/issues/46)
 
 **Fixed bugs:**
 
