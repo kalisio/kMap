@@ -36,60 +36,25 @@ let geojsonLayersMixin = {
           }
           return oldLayer
         }
-        let initialized = !options.probeService // If not probe reference, nothing to be initialized
+        let initialized = !options.probeService // If no probe reference, nothing to be initialized
         _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
           // If the probe location is given by another service use it on initialization
           if (!initialized) {
             try {
               // Use probes as reference
-              successCallback(await this.$api.getService(options.probeService).find({}))
+              successCallback(await this.getProbeFeatures(options))
               initialized = true
             } catch (error) {
               errorCallback(error)
             }
           }
-          // Any base query to process ?
-          let baseQuery = {}
-          if (options.baseQuery) {
-            if (typeof options.baseQuery === 'function') {
-              const result = await options.baseQuery()
-              // A null query indicate to skip update
-              if (!result) return
-              else Object.assign(baseQuery, result)
-            } else {
-              Object.assign(baseQuery, options.baseQuery)
-            }
-          }
-          // Last available data only for realtime visualization
-          let query = baseQuery
-          // Check if we have variables to be aggregate in time or not
-          if (options.variables) {
-            query = Object.assign({
-              $limit: 1,
-              $sort: { time: -1 },
-              $groupBy: options.featureId,
-              $aggregate: options.variables.map(variable => variable.name)
-            }, baseQuery)
-            // Request feature with at least one data available during last query interval
-            const now = moment.utc()
-            let queryInterval
-            if (leafletOptions.queryInterval) queryInterval = leafletOptions.queryInterval
-            // If query interval not given use 2 x refresh interval as default value
-            // this ensures we cover last interval if server/client update processes are not in sync
-            if (!queryInterval && leafletOptions.interval) queryInterval = 2 * leafletOptions.interval
-            if (queryInterval) {
-              query.time = {
-                $gte: now.clone().subtract({ milliseconds: queryInterval }).format(),
-                $lte: now.format()
-              }
-            } else {
-              query.time = {
-                $lte: now.format()
-              }
-            }
-          }
+          let queryInterval
+          if (leafletOptions.queryInterval) queryInterval = leafletOptions.queryInterval
+          // If query interval not given use 2 x refresh interval as default value
+          // this ensures we cover last interval if server/client update processes are not in sync
+          if (!queryInterval && leafletOptions.interval) queryInterval = 2 * leafletOptions.interval
           try {
-            successCallback(await this.$api.getService(options.service).find({ query }))
+            successCallback(await this.getFeatures(options, queryInterval))
           } catch (error) {
             errorCallback(error)
           }

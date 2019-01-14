@@ -17,7 +17,8 @@ let geojsonLayersMixin = {
       this.convertFromSimpleStyleSpec(cesiumOptions)
 
       try {
-        let dataSource = _.get(cesiumOptions, 'source')
+        const source = _.get(cesiumOptions, 'source')
+        let dataSource = source
         // Check if data source already added to the scene and we only want to
         // create a layer on top of it or if we have to load it
         for (let i = 0; i < this.viewer.dataSources.length; i++) {
@@ -27,7 +28,50 @@ let geojsonLayersMixin = {
             break
           }
         }
-        if (typeof dataSource === 'string') dataSource = await Cesium.GeoJsonDataSource.load(dataSource, cesiumOptions)
+        if (!dataSource.name) {
+          dataSource = new Cesium.GeoJsonDataSource()
+          dataSource.notFromDrop = true
+          // Check for feature service layers
+          if (cesiumOptions.realtime) {
+            let queryInterval
+            if (cesiumOptions.queryInterval) queryInterval = cesiumOptions.queryInterval
+            // If query interval not given use 2 x refresh interval as default value
+            // this ensures we cover last interval if server/client update processes are not in sync
+            if (!queryInterval && cesiumOptions.interval) queryInterval = 2 * cesiumOptions.interval
+            dataSource.updateTimer = setInterval(async () => {
+              if (options.service) { // Check for feature service layers
+                await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+              } else {
+                // Assume source is an URL or a promise returning GeoJson
+                await dataSource.load(source, cesiumOptions)
+              }
+              this.applyStyle(dataSource.entities)
+            }, cesiumOptions.interval)
+            
+            // Required to be aware of the removed source
+            this.viewer.dataSources.dataSourceRemoved.addEventListener((collection, source) => {
+              // Stop update timer
+              if (source === dataSource) {
+                clearTimeout(dataSource.updateTimer)
+              }
+            })
+            if (options.probeService) {
+              // If the probe location is given by another service use it on initialization
+              await dataSource.load(this.getProbeFeatures(options), cesiumOptions)
+              // FIXME
+              //await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+            } else if (options.service) { // Check for feature service layers
+              // If no probe reference, nothing to be initialized
+              await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+            } else {
+              // Assume source is an URL or a promise returning GeoJson
+              await dataSource.load(source, cesiumOptions)
+            }
+          } else {
+            // Assume source is an URL or a promise returning GeoJson
+            await dataSource.load(source, cesiumOptions)
+          }
+        }
         this.applyStyle(dataSource.entities)
         if (cesiumOptions.cluster) {
           // Set default cluster options
