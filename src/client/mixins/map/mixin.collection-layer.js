@@ -8,9 +8,9 @@ let collectionLayerMixin = {
       let layer = this.createLeafletLayer({ type: 'geoJson', source: { type: 'FeatureCollection', features: filteredItems } })
       layer.addTo(this.collectionLayer)
     },
-    addCollectionLayer (name, clusterOptions) {
+    async addCollectionLayer (name, clusterOptions) {
       // Create an empty layer used as a container
-      this.addLayer({
+      await this.addLayer({
         name,
         type: 'OverlayLayer',
         leaflet: {
