@@ -1,7 +1,6 @@
 import logger from 'loglevel'
 import { Events, Toast } from 'quasar'
 import { Store, utils } from '@kalisio/kdk-core/client'
-import { errors } from '../../common'
 
 let geolocationMixin = {
   methods: {
@@ -47,7 +46,6 @@ let geolocationMixin = {
         }
         // It seems there is no message when a code is present, however we cannot alter the original error
         // with the new message because it is a read-only property so we clone it
-        error = new errors.KPositionError(message)
         Toast.create.negative({
           html: message,
           timeout: 10000,

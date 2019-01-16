@@ -11,7 +11,7 @@
 import L from 'leaflet'
 import _ from 'lodash'
 import * as mapMixins from '../mixins/map'
-import { mixins as kCoreMixins, utils as kCoreUtils } from '@kalisio/kdk-core/client'
+import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-location-map',
@@ -27,11 +27,11 @@ export default {
     mapOptions: {
       type: Object,
       default: () => {
-        return { 
+        return {
           maxBounds: [ [-90, -180], [90, 180] ],
           maxBoundsViscosity: 0.25,
           minZoom: 2,
-          maxZoom: 18, 
+          maxZoom: 18,
           zoom: 15
         }
       }
@@ -39,9 +39,9 @@ export default {
     modalStyle: {
       type: Object,
       default: () => {
-        return { 
-          minWidth: '60%', 
-          minHeight: '60%' 
+        return {
+          minWidth: '60%',
+          minHeight: '60%'
         }
       }
     },
@@ -85,7 +85,7 @@ export default {
     },
     doClose () {
       this.$refs.modal.close()
-      if (hits.draggable) {
+      if (this.draggable) {
         this.location.latitude = this.marker.getLatLng().lat
         this.location.longitude = this.marker.getLatLng().lng
         this.$emit('location-changed', location)

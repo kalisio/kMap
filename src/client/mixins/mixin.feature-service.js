@@ -3,7 +3,8 @@ import moment from 'moment'
 let featureServiceMixin = {
   methods: {
     async getProbeFeatures (options) {
-      return await this.$api.getService(options.probeService).find({})
+      let response = await this.$api.getService(options.probeService).find({})
+      return response
     },
     async getFeatures (options, queryInterval) {
       // Any base query to process ?
@@ -41,7 +42,8 @@ let featureServiceMixin = {
           }
         }
       }
-      return await this.$api.getService(options.service).find({ query })
+      let response = await this.$api.getService(options.service).find({ query })
+      return response
     }
   }
 }

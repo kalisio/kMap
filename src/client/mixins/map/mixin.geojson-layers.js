@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import moment from 'moment'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
@@ -23,18 +22,20 @@ let geojsonLayersMixin = {
         // Tell realtime plugin how to update/load data
         if (!_.has(leafletOptions, 'removeMissing')) leafletOptions.removeMissing = !options.probeService
 
-        if (!_.has(leafletOptions, 'updateFeature')) leafletOptions.updateFeature = function (feature, oldLayer) {
+        if (!_.has(leafletOptions, 'updateFeature')) {
+          leafletOptions.updateFeature = function (feature, oldLayer) {
           // A new feature is coming, create it
-          if (!oldLayer) return
+            if (!oldLayer) return
           // An existing one is found, simply update styling, etc.
-          leafletOptions.onEachFeature(feature, oldLayer)
-          if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
+            leafletOptions.onEachFeature(feature, oldLayer)
+            if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
           // And coordinates for points
           // FIXME: support others geometry types ?
-          if (feature.geometry.type === 'Point') {
-            oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+            if (feature.geometry.type === 'Point') {
+              oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+            }
+            return oldLayer
           }
-          return oldLayer
         }
         let initialized = !options.probeService // If no probe reference, nothing to be initialized
         _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
