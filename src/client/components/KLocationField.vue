@@ -19,7 +19,6 @@
 <script>
 import _ from 'lodash'
 import { QField, QSearch, QAutocomplete } from 'quasar'
-import KLocationMap from './KLocationMap.vue'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
@@ -27,10 +26,12 @@ export default {
   components: {
     QField,
     QSearch,
-    QAutocomplete,
-    KLocationMap
+    QAutocomplete
   },
-  mixins: [kCoreMixins.baseField],
+  mixins: [
+    kCoreMixins.refsResolver(['map']),
+    kCoreMixins.baseField
+  ],
   computed: {
     actions () {
       let buttons = [
@@ -98,6 +99,13 @@ export default {
     onMapClicked () {
       this.$refs.map.open(this.model)
     }
+  },
+  created () {
+    // load the required components
+    this.$options.components['k-location-map'] = this.$load('KLocationMap')
+  },
+  async mounted () {
+    await this.loadRefs()
   }
 }
 </script>
