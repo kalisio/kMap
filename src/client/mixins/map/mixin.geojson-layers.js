@@ -180,32 +180,33 @@ let geojsonLayersMixin = {
     registerLeafletStyle (type, generator) {
       this[type + 'Factory'].push(generator)
     },
+    unregisterLeafletStyle (type, generator) {
+      _.pull(this[type + 'Factory'], generator)
+    },
     generateLeafletStyle () {
       let args = Array.from(arguments)
       const type = args[0]
       args.shift()
       let style
       // Iterate over all registered generators until we find one
-      for (let i = 0; i < this[type + 'Factory'].length; i++) {
+      // Last registered overrides previous ones (usefull to override default styles)
+      for (let i = this[type + 'Factory'].length - 1; i >= 0; i--) {
         const generator = this[type + 'Factory'][i]
         style = generator(...args)
         if (style) break
       }
       return style
     },
-    getPointMarker (options, feature, latlng) {
+    getDefaultMarker (feature, latlng, options) {
       let leafletOptions = options.leaflet || options
-      let style = this.generateLeafletStyle('markerStyle', feature, latlng)
-      return style || // Feature style overrides layer style which overrides default style
+      return
         this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
         this.convertFromSimpleStyleSpec(leafletOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties)))
     },
-    getFeatureStyle (options, feature) {
+    getDefaultStyle (feature, options) {
       let leafletOptions = options.leaflet || options
-      let style = this.generateLeafletStyle('featureStyle', feature)
-      return style || // Feature style overrides layer style which overrides default style
-        Object.assign({}, this.options.featureStyle || {
+      return Object.assign({}, this.options.featureStyle || {
           opacity: 1,
           radius: 6,
           color: 'red',
@@ -215,10 +216,10 @@ let geojsonLayersMixin = {
         this.convertFromSimpleStyleSpec(leafletOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
     },
-    getFeaturePopup (options, feature, layer) {
+    getDefaultPopup (feature, layer, options) {
       let leafletOptions = options.leaflet || options
-      let popup = this.generateLeafletStyle('popup', feature, layer)
-      if (!popup && feature.properties) {
+      let popup
+      if (feature.properties) {
         const popupStyle = leafletOptions.popup || this.options.popup
         // Default content
         let properties = feature.properties
@@ -259,26 +260,24 @@ let geojsonLayersMixin = {
       }
       return popup
     },
-    getFeatureTooltip (options, feature, layer) {
+    getDefaultTooltip (feature, layer, options) {
       let leafletOptions = options.leaflet || options
-      let tooltip = this.generateLeafletStyle('tooltip', feature, layer)
-      if (!tooltip) {
-        const tooltipStyle = leafletOptions.tooltip || this.options.tooltip
-        if (tooltipStyle && feature.properties) {
-          // Default content
-          let properties = feature.properties
-          let html
-          if (tooltipStyle.property) {
-            html = (_.has(properties, tooltipStyle.property)
-            ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
-          } else if (tooltipStyle.template) {
-            let compiler = _.template(tooltipStyle.template)
-            html = compiler({ properties, feature })
-          }
-          if (html) {
-            tooltip = L.tooltip(tooltipStyle.options || { permanent: false }, layer)
-            tooltip.setContent(html)
-          }
+      let tooltip
+      const tooltipStyle = leafletOptions.tooltip || this.options.tooltip
+      if (tooltipStyle && feature.properties) {
+        // Default content
+        let properties = feature.properties
+        let html
+        if (tooltipStyle.property) {
+          html = (_.has(properties, tooltipStyle.property)
+          ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
+        } else if (tooltipStyle.template) {
+          let compiler = _.template(tooltipStyle.template)
+          html = compiler({ properties, feature })
+        }
+        if (html) {
+          tooltip = L.tooltip(tooltipStyle.options || { permanent: false }, layer)
+          tooltip.setContent(html)
         }
       }
       return tooltip
@@ -286,23 +285,23 @@ let geojsonLayersMixin = {
     getGeoJsonOptions (options = {}) {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {
-          let popup = this.getFeaturePopup(options, feature, layer)
+          let popup = this.generateLeafletStyle('popup', feature, layer, options)
           if (popup) {
             layer.bindPopup(popup)
             bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this, options)
           }
 
-          let tooltip = this.getFeatureTooltip(options, feature, layer)
+          let tooltip = this.generateLeafletStyle('tooltip', feature, layer, options)
           if (tooltip) {
             layer.bindTooltip(tooltip)
             bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this, options)
           }
         },
         style: (feature) => {
-          return this.getFeatureStyle(options, feature)
+          return this.generateLeafletStyle('featureStyle', feature, options)
         },
         pointToLayer: (feature, latlng) => {
-          let marker = this.getPointMarker(options, feature, latlng)
+          let marker = this.generateLeafletStyle('markerStyle', feature, latlng, options)
           if (marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
           return marker
         }
@@ -316,6 +315,10 @@ let geojsonLayersMixin = {
     this.popupFactory = []
     this.markerStyleFactory = []
     this.featureStyleFactory = []
+    this.registerLeafletStyle('markerStyle', this.getDefaultMarker)
+    this.registerLeafletStyle('featureStyle', this.getDefaultStyle)
+    this.registerLeafletStyle('tooltip', this.getDefaultTooltip)
+    this.registerLeafletStyle('popup', this.getDefaultPopup)
     this.registerLeafletConstructor(this.createLeafletGeoJsonLayer)
   }
 }

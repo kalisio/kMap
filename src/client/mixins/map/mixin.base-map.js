@@ -10,6 +10,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
+import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 // Fix to make Leaflet assets be correctly inserted by webpack
 delete L.Icon.Default.prototype._getIconUrl
@@ -32,6 +33,7 @@ let baseMapMixin = {
     setupMap (domEl, options) {
       // Initialize the map
       this.map = L.map(domEl, Object.assign({ zoomControl: false }, options))
+      bindLeafletEvents(this.map, LeafletEvents.Map, this, options)
       this.$emit('map-ready')
     },
     processLeafletLayerOptions (options) {
