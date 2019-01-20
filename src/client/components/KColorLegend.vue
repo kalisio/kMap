@@ -53,7 +53,7 @@ export default {
       componentHeight: 0,
       domainStart: this.colorMap.domain()[0],
       domainRange: this.colorMap.domain()[1] - this.colorMap.domain()[0],
-      invert: this.values[0] < this.values[this.values.length-1]
+      invert: this.values[0] < this.values[this.values.length - 1]
     }
   },
   mounted () {
@@ -116,7 +116,7 @@ export default {
       let css = {
         width: '100%',
         height: height + 'px',
-        top: top + 'px',
+        top: top + 'px'
       }
 
       if (!this.showGradient) {
