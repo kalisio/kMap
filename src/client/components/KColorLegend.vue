@@ -140,6 +140,8 @@ export default {
       const domainValue = this.domainStart + (gradientStep - 1) * this.gradientStepValue
 
       return {
+        width: '100%',
+        height: '1px',
         top: top + 'px',
         backgroundColor: this.colorMap(domainValue)
       }
@@ -177,7 +179,5 @@ export default {
   .k-gradient-step {
     position: absolute;
     display: inline-block;
-    width: 100%;
-    height: 1px;
   }
 </style>
