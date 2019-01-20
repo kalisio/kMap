@@ -8,21 +8,21 @@
 
     <q-tooltip v-show="hint" v-html="hint"></q-tooltip>
 
-    <div class="k-unit"
+    <div class="k-unit-box"
       :style="colorUnitStyle"
     >
       {{unit}}
     </div>
 
-    <span class="k-grad-step"
-      v-for="step in steps" :key="'step'+step"
-      :style="getStepStyle(step)"
+    <span class="k-gradient-step"
+      v-for="gradientStep in gradientSteps" :key="'step'+gradientStep"
+      :style="getGradientStepStyle(gradientStep)"
     >
     </span>
 
     <div class="k-value-step"
       v-for="(unitValue, index) in unitValues" :key="index"
-      :style="getValueStyle(index)"
+      :style="getUnitValueStyle(index)"
     >
       {{unitValue}}
     </div>
@@ -51,8 +51,9 @@ export default {
   data () {
     return {
       componentHeight: 0,
-      dm: this.colorMap.domain()[0],
-      dd: this.colorMap.domain()[1] - this.colorMap.domain()[0]
+      domainStart: this.colorMap.domain()[0],
+      domainRange: this.colorMap.domain()[1] - this.colorMap.domain()[0],
+      invert: this.values[0] < this.values[this.values.length-1]
     }
   },
   mounted () {
@@ -61,18 +62,22 @@ export default {
   beforeDestroy () {
   },
   computed: {
+    // Height of the unit box (in pixels)
     colorUnitHeight () {
       return this.componentHeight / (this.values.length + 1)  // + 1: the unit itself is an extra "box"
     },
-    // Height of the legend WITHOUT the unit
+    // Height of the legend (in pixels) WITHOUT the unit box
     colorLegendHeight () {
       return this.componentHeight - this.colorUnitHeight
     },
-    steps () {
+    // This is a number (the number of gradient steps) used in the Vue "v-for" clause - it must be an integer!
+    gradientSteps () {
+      // If we're not showing a gradient then return zero for the gradient steps,
+      // otherwise use Math.trunc() to make it an integer
       return this.showGradient ? Math.trunc(this.colorLegendHeight) : 0
     },
-    stepValue () {
-      return this.dd / this.colorLegendHeight
+    gradientStepValue () {
+      return this.domainRange / this.colorLegendHeight
     },
     colorUnitStyle () {
       return {
@@ -94,11 +99,24 @@ export default {
         this.componentHeight = componentRect.height
       }
     },
-    getValueStyle (index) {
+    getUnitValueStyle (index) {
+      let height = this.colorLegendHeight / this.values.length
+
+      let top = index * height
+
+      // invert: calculate placement from the bottom of the legend
+      if (this.invert) {
+        top = this.colorLegendHeight - top
+
+      // offset it from the color unit box
+      } else {
+        top = this.colorUnitHeight + top
+      }
+
       let css = {
         width: '100%',
-        height: 100 / (this.values.length + 1) + '%',
-        top: (index + 1) * 100 / (this.values.length + 1) + '%'  // index + 1: the unit itself is an extra "box"
+        height: height + 'px',
+        top: top + 'px',
       }
 
       if (!this.showGradient) {
@@ -107,12 +125,23 @@ export default {
 
       return css
     },
-    getStepStyle (step) {
-      const value = this.dm + (step - 1) * this.stepValue
+    getGradientStepStyle (gradientStep) {
+      let top = gradientStep
+
+      // invert: calculate placement from the bottom of the legend
+      if (this.invert) {
+        top = this.colorLegendHeight - top
+      }
+
+      // offset it from the color unit box
+      top = this.colorUnitHeight + top
+
+      // calculate the domain value at this gradient step
+      const domainValue = this.domainStart + (gradientStep - 1) * this.gradientStepValue
 
       return {
-        top: step - 1 + this.colorUnitHeight + 'px',
-        backgroundColor: this.colorMap(value)
+        top: top + 'px',
+        backgroundColor: this.colorMap(domainValue)
       }
     },
     onClick () {
@@ -128,7 +157,7 @@ export default {
     cursor: pointer;    
   }
 
-  .k-unit {
+  .k-unit-box {
     position: absolute;
     top: 0;
     background-color: #f2f2f2;
@@ -145,7 +174,7 @@ export default {
     border-color: #f2f2f2; 
   }
 
-  .k-grad-step {
+  .k-gradient-step {
     position: absolute;
     display: inline-block;
     width: 100%;
