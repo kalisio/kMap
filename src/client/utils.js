@@ -45,9 +45,9 @@ export function unbindLeafletEvents (object) {
 
 export const LeafletEvents = {
   Map: ['baselayerchange', 'overlayadd', 'overlayremove', 'layeradd', 'layerremove', 'zoomlevelschange',
-        'resize', 'unload', 'viewreset', 'load', 'zoomstart', 'movestart', 'zoom', 'move', 'zoomend', 'moveend',
-        'click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'mousemove', 'contextmenu',
-        'keypress', 'preclick', 'moveend', 'zoomanim' ],
+    'resize', 'unload', 'viewreset', 'load', 'zoomstart', 'movestart', 'zoom', 'move', 'zoomend', 'moveend',
+    'click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'mousemove', 'contextmenu',
+    'keypress', 'preclick', 'moveend', 'zoomanim' ],
   Popup: ['add', 'remove'],
   Tooltip: ['add', 'remove'],
   Layer: ['add', 'remove', 'popupopen', 'popupclose', 'tooltipopen', 'tooltipclose'],
