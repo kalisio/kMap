@@ -287,12 +287,14 @@ let geojsonLayersMixin = {
         onEachFeature: (feature, layer) => {
           let popup = this.generateLeafletStyle('popup', feature, layer, options)
           if (popup) {
+            if (layer.getPopup()) layer.unbindPopup()
             layer.bindPopup(popup)
             bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this, options)
           }
 
           let tooltip = this.generateLeafletStyle('tooltip', feature, layer, options)
           if (tooltip) {
+            if (layer.getTooltip()) layer.unbindTooltip()
             layer.bindTooltip(tooltip)
             bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this, options)
           }
