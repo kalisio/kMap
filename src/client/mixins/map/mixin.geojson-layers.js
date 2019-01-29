@@ -24,13 +24,13 @@ let geojsonLayersMixin = {
 
         if (!_.has(leafletOptions, 'updateFeature')) {
           leafletOptions.updateFeature = function (feature, oldLayer) {
-          // A new feature is coming, create it
+            // A new feature is coming, create it
             if (!oldLayer) return
-          // An existing one is found, simply update styling, etc.
+            // An existing one is found, simply update styling, etc.
             leafletOptions.onEachFeature(feature, oldLayer)
             if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
-          // And coordinates for points
-          // FIXME: support others geometry types ?
+            // And coordinates for points
+            // FIXME: support others geometry types ?
             if (feature.geometry.type === 'Point') {
               oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
             }
@@ -285,13 +285,15 @@ let geojsonLayersMixin = {
     getGeoJsonOptions (options = {}) {
       let geojsonOptions = {
         onEachFeature: (feature, layer) => {
+          // Check for custom onEachFeature function
+          if (typeof this.onLeafletFeature === 'function') this.onLeafletFeature(feature, layer, options)
+          // Then for tooltip/popup
           let popup = this.generateLeafletStyle('popup', feature, layer, options)
           if (popup) {
             if (layer.getPopup()) layer.unbindPopup()
             layer.bindPopup(popup)
             bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this, options)
           }
-
           let tooltip = this.generateLeafletStyle('tooltip', feature, layer, options)
           if (tooltip) {
             if (layer.getTooltip()) layer.unbindTooltip()
