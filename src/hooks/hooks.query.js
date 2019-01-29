@@ -120,7 +120,9 @@ export async function aggregateFeaturesQuery (hook) {
       } else {
         elementResults.forEach(result => {
           let previousResult = aggregatedResults.find(aggregatedResult => {
-            const keys = _.keys(ids)
+            let keys = _.keys(ids)
+            // When single time no aggregation is perofrmed at all so we only have raw features
+            if (singleTime) keys = keys.map(key => 'properties.' + key)
             return (_.isEqual(_.pick(aggregatedResult, keys), _.pick(result, keys)))
           })
           // Merge with previous matching feature if any
