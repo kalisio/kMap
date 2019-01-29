@@ -199,20 +199,19 @@ let geojsonLayersMixin = {
     },
     getDefaultMarker (feature, latlng, options) {
       let leafletOptions = options.leaflet || options
-      return
-        this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
+      return this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
         this.convertFromSimpleStyleSpec(leafletOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties)))
     },
     getDefaultStyle (feature, options) {
       let leafletOptions = options.leaflet || options
       return Object.assign({}, this.options.featureStyle || {
-          opacity: 1,
-          radius: 6,
-          color: 'red',
-          fillOpacity: 0.5,
-          fillColor: 'green'
-        },
+        opacity: 1,
+        radius: 6,
+        color: 'red',
+        fillOpacity: 0.5,
+        fillColor: 'green'
+      },
         this.convertFromSimpleStyleSpec(leafletOptions),
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
     },
