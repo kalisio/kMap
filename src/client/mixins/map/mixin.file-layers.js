@@ -15,10 +15,7 @@ let fileLayersMixin = {
         // L.Proj.GeoJson instead of the L.geoJson.
         layer: L.geoJson,
         // See http://leafletjs.com/reference.html#geojson-options
-        layerOptions: this.getGeoJsonOptions({
-          type: 'geoJson',
-          popup: {}
-        }),
+        layerOptions: this.getGeoJsonOptions(),
         // Add to map after loading
         addToMap: false,
         // File size limit in kb
@@ -26,6 +23,7 @@ let fileLayersMixin = {
         // Restrict accepted file formats (default: .geojson, .kml, and .gpx)
         formats: [
           '.geojson',
+          '.json',
           '.kml',
           '.gpx'
         ]
@@ -48,12 +46,14 @@ let fileLayersMixin = {
       this.loader.on('data:loaded', async event => {
         // Create an empty layer used as a container
         await this.addLayer({
-          name: event.filename,
+          name: event.filename || this.$t('mixins.fileLayers.IMPORTED_DATA_NAME'),
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
           leaflet: {
             type: 'geoJson',
-            isVisible: true
+            isVisible: true,
+            popup: this.options.popup,
+            cluster: this.options.cluster
           }
         })
         let fileLayer = this.getLeafletLayerByName(event.filename)

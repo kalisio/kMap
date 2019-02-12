@@ -11,6 +11,9 @@
     },
     "navigator": {
       "ACTION_SHEET_TITLE": "Selectionnez une application"
+    },
+    "fileLayers": {
+      "IMPORTED_DATA_NAME": "Mes données"
     }
   },
   "KLocationField": {

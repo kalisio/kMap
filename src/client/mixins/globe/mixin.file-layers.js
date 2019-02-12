@@ -12,6 +12,7 @@ let fileLayersMixin = {
       this.viewer.dataSources.dataSourceAdded.addEventListener((collection, source) => {
         // Check if source has not been dropped, otherwise add it as layer
         if (source.notFromDrop) return
+        if (!source.name) source.name = this.$t('mixins.fileLayers.IMPORTED_DATA_NAME')
         // Create an empty layer used as a container
         this.addLayer({
           name: source.name,
@@ -20,6 +21,7 @@ let fileLayersMixin = {
           cesium: {
             type: 'geoJson',
             isVisible: true,
+            cluster: this.options.cluster,
             source: source.name // Set the data source name instead of URL in this case
           }
         })
