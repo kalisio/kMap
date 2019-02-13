@@ -29,12 +29,13 @@ let baseMapMixin = {
   },
   methods: {
     refreshMap () {
-      this.map.invalidateSize()
+      if (this.map) this.map.invalidateSize()
     },
     setupMap (domEl, options) {
+      let viewerOptions = options || this.options.viewer
       // Initialize the map
-      this.map = L.map(domEl, Object.assign({ zoomControl: false }, options))
-      bindLeafletEvents(this.map, LeafletEvents.Map, this, options)
+      this.map = L.map(domEl, Object.assign({ zoomControl: false }, viewerOptions))
+      bindLeafletEvents(this.map, LeafletEvents.Map, this, viewerOptions)
       this.$emit('map-ready')
     },
     processLeafletLayerOptions (options) {

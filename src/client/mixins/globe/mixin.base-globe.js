@@ -15,14 +15,15 @@ let baseGlobeMixin = {
   methods: {
     refreshGlobe () {
     },
-    setupGlobe (domEl, token) {
+    setupGlobe (domEl, token, options) {
+      let viewerOptions = options || this.options.viewer
       if (token) Cesium.Ion.defaultAccessToken = token
       // Initialize the globe
-      Object.assign(this.options.viewer, {
+      Object.assign(viewerOptions, {
         imageryProviderViewModels: [],
         terrainProviderViewModels: []
       })
-      this.viewer = new Cesium.Viewer(domEl, this.options.viewer)
+      this.viewer = new Cesium.Viewer(domEl, viewerOptions)
       // Cesium always create a default provider
       this.viewer.scene.imageryLayers.removeAll()
       this.$emit('globe-ready')
