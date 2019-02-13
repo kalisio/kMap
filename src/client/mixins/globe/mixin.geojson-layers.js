@@ -54,7 +54,7 @@ let geojsonLayersMixin = {
           // Setup update timer
           dataSource.updateTimer = setInterval(async () => {
             await updateData()
-            this.applyStyle(dataSource.entities)
+            this.applyStyle(dataSource.entities, options)
           }, cesiumOptions.interval)
         }
       })
@@ -106,7 +106,7 @@ let geojsonLayersMixin = {
             await dataSource.load(source, cesiumOptions)
           }
         }
-        this.applyStyle(dataSource.entities)
+        this.applyStyle(dataSource.entities, options)
         if (cesiumOptions.cluster) {
           // Set default cluster options
           _.assign(dataSource.clustering, {
@@ -117,7 +117,9 @@ let geojsonLayersMixin = {
             clusterLabels: true,
             clusterPoints: true
           }, cesiumOptions.cluster)
-          dataSource.clustering.clusterEvent.addEventListener(this.applyClusterStyle)
+          dataSource.clustering.clusterEvent.addEventListener(
+            (entities, cluster) => this.applyClusterStyle(entities, cluster, options)
+          )
         }
         return dataSource
       } catch (error) {
@@ -125,42 +127,28 @@ let geojsonLayersMixin = {
         return null
       }
     },
-    applyStyle (entities) {
-      // Custom defined function in component ?
-      if (typeof this.getEntityStyle === 'function') {
-        for (let i = 0; i < entities.values.length; i++) {
-          let entity = entities.values[i]
-          const style = this.getEntityStyle(entity)
-          // Loop over possible types
-          let entityTypes = ['billboard', 'label', 'point', 'polyline', 'polygon']
-          entityTypes.forEach(type => {
-            if (entity[type]) {
-              _.assign(entity[type], style[type])
-            }
-          })
-        }
+    applyStyle (entities, options) {
+      for (let i = 0; i < entities.values.length; i++) {
+        let entity = entities.values[i]
+        const style = this.generateCesiumStyle('entityStyle', entity, options)
+        // Loop over possible types
+        const entityTypes = ['billboard', 'label', 'point', 'polyline', 'polygon']
+        entityTypes.forEach(type => {
+          if (entity[type]) {
+            _.assign(entity[type], style[type])
+          }
+        })
       }
     },
-    applyClusterStyle (entities, cluster) {
-      // Custom defined function in component ?
-      if (typeof this.getClusterStyle === 'function') {
-        const style = this.getClusterStyle(entities, cluster)
-        // Loop over possible styles
-        let featureTypes = ['billboard', 'label', 'point']
-        featureTypes.forEach(type => {
-          if (_.has(cluster, type)) {
-            _.assign(cluster[type], style[type])
-          }
-        })
-      } else {
-        // Loop over possible styles
-        let featureTypes = ['billboard', 'label', 'point']
-        featureTypes.forEach(type => {
-          if (_.has(cluster, type)) {
-            _.assign(cluster[type], { show: true })
-          }
-        })
-      }
+    applyClusterStyle (entities, cluster, options) {
+      const style = this.generateCesiumStyle('clusterStyle', entities, cluster, options)
+      // Loop over possible styles
+      const featureTypes = ['billboard', 'label', 'point']
+      featureTypes.forEach(type => {
+        if (_.has(cluster, type)) {
+          _.assign(cluster[type], style[type])
+        }
+      })
     },
     convertFromSimpleStyleSpec (style) {
       _.forOwn(style, (value, key) => {
@@ -178,12 +166,91 @@ let geojsonLayersMixin = {
 
       return style
     },
+    convertToCesiumObjects (style) {
+      // Helper to convert from string to objects
+      function createCesiumObject (constructor, options) {
+        let object = _.get(Cesium, constructor)
+        // Can be constant, constructable or callable
+        if (typeof object === 'function') {
+          try { return object(options) }
+          catch (error) { /* Simply avoid raising any error */ }
+          try { return new object(options) } catch (error) { /* Simply avoid raising any error */ }
+        } else return object
+      }
+      return _.mapValues(style, (value) => {
+        if (typeof value === 'object') {
+          if (value.type && value.options) {
+            const constructor = value.type.replace('Cesium.', '')
+            return createCesiumObject(constructor, this.convertToCesiumObjects(value.options))
+          }
+          else return this.convertToCesiumObjects(value)
+        } else if (typeof value === 'string') {
+          if (value.startsWith('Cesium.')) {
+            const constructor = value.replace('Cesium.', '')
+            return createCesiumObject(constructor)
+          }
+        }
+        return value
+      })
+    },
+    registerCesiumStyle (type, generator) {
+      this[type + 'Factory'].push(generator)
+    },
+    unregisterCesiumStyle (type, generator) {
+      _.pull(this[type + 'Factory'], generator)
+    },
+    generateCesiumStyle () {
+      let args = Array.from(arguments)
+      const type = args[0]
+      args.shift()
+      let style
+      // Iterate over all registered generators until we find one
+      // Last registered overrides previous ones (usefull to override default styles)
+      for (let i = this[type + 'Factory'].length - 1; i >= 0; i--) {
+        const generator = this[type + 'Factory'][i]
+        style = generator(...args)
+        if (style) break
+      }
+      return style
+    },
+    getDefaultEntityStyle (entity, options) {
+      let cesiumOptions = options.cesium || options
+      return Object.assign({},
+        this.options.entityStyle || {},
+        cesiumOptions.entityStyle || {})
+    },
+    getDefaultClusterStyle (entities, cluster, options) {
+      let cesiumOptions = options.cesium || options
+      let style = Object.assign({},
+        this.options.clusterStyle || {},
+        cesiumOptions.clusterStyle || {})
+      // Look for templated options
+      if (_.has(style, 'label.text')) {
+        let compiler = _.template(_.get(style, 'label.text'))
+        // To avoid erasing of initial value due to reference, duplicate
+        let labelStyle = _.cloneDeep(_.get(style, 'label'))
+        _.set(labelStyle, 'text', compiler({ entities, cluster }))
+        _.set(style, 'label', labelStyle)
+      }
+      return style
+    },
     getGeoJsonOptions (options) {
       return this.options.featureStyle || {}
     }
   },
   created () {
+    this.entityStyleFactory = []
+    this.clusterStyleFactory = []
+    this.registerCesiumStyle('entityStyle', this.getDefaultEntityStyle)
+    this.registerCesiumStyle('clusterStyle', this.getDefaultClusterStyle)
     this.registerCesiumConstructor(this.createCesiumGeoJsonLayer)
+    // Perform required conversion from JSON to Cesium objects
+    this.convertToCesiumObjects(this.options.entityStyle)
+    this.convertToCesiumObjects(this.options.clusterStyle)
+    // Default feature styling
+    if (this.options.featureStyle) {
+      Object.assign(Cesium.GeoJsonDataSource, this.convertFromSimpleStyleSpec(_.cloneDeep(this.options.featureStyle)))
+    }
   }
 }
 
