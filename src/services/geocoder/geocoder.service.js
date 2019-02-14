@@ -27,11 +27,23 @@ export default function (name, app, options) {
       return results
     },
     async create (data, params) {
+      const nbResults = _.get(this, 'paginate.default', 10)
       debug('geocoder service called for create', data)
-      let results = await Promise.all(geocoders.map(geocoder => this.geocode(geocoder, data.address)))
-      // FIXME: we should order according to best matching
-      results = _.flatten(results)
-      return results
+      let aggregatedResults = await Promise.all(geocoders.map(geocoder => this.geocode(geocoder, data.address)))
+      let results = []
+      let processing = true
+      // Iterate to take best results for each provider in same order
+      while (processing) {
+        const previousCount = results.length
+        aggregatedResults.forEach(resultsForProvider => {
+          // Take current best result
+          const bestResultForProvider = resultsForProvider.shift()
+          if (bestResultForProvider) results.push(bestResultForProvider)
+        })
+        // Stop when no more results to be added or pagination exceeded
+        if ((previousCount === results.length) || (nbResults <= results.length)) processing = false
+      }
+      return results.splice(0, nbResults)
     }
   }
 }

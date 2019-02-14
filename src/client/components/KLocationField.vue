@@ -79,11 +79,13 @@ export default {
       .then(response => {
         let places = []
         response.forEach(element => {
-          let label = ''
-          if (element.streetNumber) label += (element.streetNumber + ' ')
-          if (element.streetName) label += (element.streetName + ' ')
-          if (element.city) label += (element.city + ' ')
-          if (element.zipcode) label += (' (' + element.zipcode + ')')
+          let label = element.formattedAddress || ''
+          if (!label) {
+            if (element.streetNumber) label += (element.streetNumber + ', ')
+            if (element.streetName) label += (element.streetName + ' ')
+            if (element.city) label += (element.city + ' ')
+            if (element.zipcode) label += (' (' + element.zipcode + ')')
+          }
           let place = {
             value: Object.assign(element, { name: label }),
             label: label
