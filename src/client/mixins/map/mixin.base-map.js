@@ -24,6 +24,7 @@ L.Icon.Default.mergeOptions({
 let baseMapMixin = {
   data () {
     return {
+      currentTime: {},
       layers: {}
     }
   },
