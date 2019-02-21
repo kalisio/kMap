@@ -2,6 +2,7 @@ import _ from 'lodash'
 import Cesium from 'cesium/Source/Cesium.js'
 import 'cesium/Source/Widgets/widgets.css'
 import BuildModuleUrl from 'cesium/Source/Core/buildModuleUrl'
+import { convertCesiumHandlerEvent } from '../../utils'
 // Cesium has its own dynamic module loader requiring to be configured
 // Cesium files need to be also added as static assets of the applciation
 BuildModuleUrl.setBaseUrl('./statics/Cesium/')
@@ -26,6 +27,13 @@ let baseGlobeMixin = {
       this.viewer = new Cesium.Viewer(domEl, viewerOptions)
       // Cesium always create a default provider
       this.viewer.scene.imageryLayers.removeAll()
+      // Add defaults handler
+      this.registerCesiumHandler(this.getDefaultPickPositionHandler, 'MOUSE_MOVE')
+      this.registerCesiumHandler(this.getDefaultPickObjectHandler, 'LEFT_CLICK')
+      this.registerCesiumHandler(this.getDefaultPickObjectHandler, 'RIGHT_CLICK')
+      // Remove default Cesium handlers
+      this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
+      this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
       this.$emit('globe-ready')
     },
     processCesiumLayerOptions (options) {
@@ -60,6 +68,15 @@ let baseGlobeMixin = {
     },
     registerCesiumConstructor (constructor) {
       this.cesiumFactory.push(constructor)
+    },
+    registerCesiumHandler (handler, eventType) {
+      if (!this.cesiumHandler) this.cesiumHandler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas)
+      const originalEvent = convertCesiumHandlerEvent(eventType)
+      this.cesiumHandler.setInputAction((event) => handler(Object.assign(event, { originalEvent })),
+        Cesium.ScreenSpaceEventType[eventType])
+    },
+    unregisterCesiumHandler (eventType) {
+      this.cesiumHandlers.removeInputAction(Cesium.ScreenSpaceEventType[eventType])
     },
     async createLayer (options) {
       let processedOptions = this.processCesiumLayerOptions(options)
@@ -171,6 +188,29 @@ let baseGlobeMixin = {
       }
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
       else this.viewer.camera.setView(target)
+    },
+    getDefaultPickPositionHandler(event) {
+      let pickedPosition = this.viewer.camera.pickEllipsoid(event.endPosition || event.position, this.viewer.scene.globe.ellipsoid)
+      if (pickedPosition) {
+        pickedPosition = Cesium.Cartographic.fromCartesian(pickedPosition)
+        const longitude = Cesium.Math.toDegrees(pickedPosition.longitude)
+        const latitude = Cesium.Math.toDegrees(pickedPosition.latitude)
+        // Mimic Leaflet events
+        this.$emit(event.originalEvent.name, Object.assign({}, event, {
+          type: event.originalEvent.name,
+          latlng: [latitude, longitude]
+        }))
+      }
+    },
+    getDefaultPickObjectHandler(event) {
+      const pickedObject = this.viewer.scene.pick(event.endPosition || event.position)
+      if (pickedObject) {
+        // Mimic Leaflet events
+        this.$emit(event.originalEvent.name, Object.assign({}, event, {
+          type: event.originalEvent.name,
+          target: pickedObject.id || pickedObject.primitive.id
+        }))
+      }
     }
   },
   beforeCreate () {
