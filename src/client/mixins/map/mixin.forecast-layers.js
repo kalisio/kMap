@@ -161,12 +161,19 @@ let forecastLayersMixin = {
         forceDir: true
       })
       return L.marker(latlng, { icon, draggable: 'true' })
+    },
+    onCurrentForecastTimeChanged (time) {
+      this.weacastApi.setForecastTime(time)
     }
   },
   created () {
     this.registerLeafletConstructor(this.createLeafletForecastLayer)
+    this.$on('current-time-changed', this.onCurrentForecastTimeChanged)
   },
   mounted () {
+  },
+  beforeDestroy () {
+    this.$off('current-time-changed', this.onCurrentForecastTimeChanged)
   }
 }
 

@@ -24,7 +24,6 @@ L.Icon.Default.mergeOptions({
 let baseMapMixin = {
   data () {
     return {
-      currentTime: {},
       layers: {}
     }
   },
@@ -166,23 +165,16 @@ let baseMapMixin = {
     center (longitude, latitude, zoomLevel) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
     },
-    setCurrentTime (datetime) {
-      // String or milliseconds
-      if (typeof datetime === 'string' || Number.isInteger(datetime)) {
-        this.currentTime = moment.utc(datetime)
-      } else {
-        this.currentTime = datetime
-      }
-      _.forEach(this.leafletLayers, leafletLayer => {
-        if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(datetime)
-      })
-      this.$emit('current-time-changed', this.currentTime)
-    },
     setMapCursor (className) {
       L.DomUtil.addClass(this.map._container, className)
     },
     unsetMapCursor (className) {
       L.DomUtil.removeClass(this.map._container, className)
+    },
+    onCurrentMapTimeChanged (time) {
+      _.forEach(this.leafletLayers, leafletLayer => {
+        if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(datetime)
+      })
     }
   },
   beforeCreate () {
@@ -193,10 +185,12 @@ let baseMapMixin = {
     this.leafletFactory = []
     // Default Leaflet layer options requiring conversion from string to actual Leaflet objects
     this.leafletObjectOptions = ['crs', 'rendererFactory']
+    this.$on('current-time-changed', this.onCurrentMapTimeChanged)
   },
   beforeDestroy () {
     Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))
     this.map.remove()
+    this.$off('current-time-changed', this.onCurrentMapTimeChanged)
   }
 }
 
