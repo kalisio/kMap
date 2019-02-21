@@ -1,7 +1,7 @@
 <template>
-  <k-modal ref="modal" :title="title" :toolbar="toolbar()" :options="modalStyle()" @opened="refreshMap()">
-    <div slot="modal-content" class="row justify-center">
-      <div ref="map" :style="mapStyle()"></div>  
+  <k-modal ref="modal" :title="title" :toolbar="toolbar()" :options="modalStyle" @opened="refreshMap()">
+    <div slot="modal-content">
+      <div ref="map" class="map" />  
     </div>
   </k-modal>
 </template>
@@ -30,6 +30,15 @@ export default {
     zoom: {
       type: Number,
       default: 15
+    },
+    modalStyle: {
+      type: Object,
+      default: () => {
+        return { 
+          minWidth: '60%', 
+          minHeight: '60%' 
+        }
+      }
     },
     markerStyle: {
       type: Object,
@@ -69,21 +78,6 @@ export default {
     },
     doClose () {
       this.$refs.modal.close()
-    },
-    modalStyle () {
-      // Is there any better solution to ensure the modal wil fit the map ?
-      let modalWidth = this.layout.width * 1.05
-      let modalHeight = this.layout.height * 1.25
-      return { minWidth: modalWidth + 'px', minHeight: modalHeight + 'px' }
-    },
-    mapStyle () {
-      return {
-        width: this.layout.width + 'px',
-        height: this.layout.height + 'px',
-        fontWeight: 'normal',
-        zIndex: 0,
-        position: 'absolute'
-      }
     }
   },
   created () {
@@ -95,3 +89,15 @@ export default {
   }
 }
 </script>
+
+<style>
+.map {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 5rem;
+  bottom: 1rem;
+  font-weight: normal;
+  z-index: 0;
+}
+</style>
