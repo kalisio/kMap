@@ -54,7 +54,7 @@ let timeMixin = {
       this.currentTime = this.convertToMoment(datetime)
       this.$emit('current-time-changed', this.currentTime)
     },
-    updateTimeFormat (format) {
+    setTimeFormat (format) {
       this.currentTimeFormat = format
     },
     formatTime(format, datetime) {
@@ -71,10 +71,10 @@ let timeMixin = {
   },
   created () {
     // Whenever the time format is updated, update data as well
-    Events.$on('time-format-changed', this.updateTimeFormat)
+    Events.$on('time-format-changed', this.setTimeFormat)
   },
   beforeDestroy () {
-    Events.$off('time-format-changed', this.updateTimeFormat)
+    Events.$off('time-format-changed', this.setTimeFormat)
   }
 }
 
