@@ -188,7 +188,7 @@ let baseGlobeMixin = {
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
       else this.viewer.camera.setView(target)
     },
-    getCesiumLayerForEntity (entity) {
+    getLayerForEntity (entity) {
       let layerName
       _.forOwn(this.cesiumLayers, (value, key) => {
         if (!layerName && value.entities) {
@@ -210,7 +210,7 @@ let baseGlobeMixin = {
       const pickedObject = this.viewer.scene.pick(event.endPosition || event.position)
       if (pickedObject) {
         emittedEvent.target = pickedObject.id || pickedObject.primitive.id
-        if (typeof this.getCesiumLayerForEntity === 'function') options = this.getCesiumLayerForEntity(emittedEvent.target)
+        if (emittedEvent.target instanceof Cesium.Entity) options = this.getLayerForEntity(emittedEvent.target)
       }
       // Mimic Leaflet events
       this.$emit(event.originalEvent.name, options, emittedEvent)

@@ -1,6 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
+import { getHtmlTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -140,7 +141,7 @@ let geojsonLayersMixin = {
         const entityTypes = ['billboard', 'label', 'point', 'polyline', 'polygon']
         entityTypes.forEach(type => {
           if (entity[type]) {
-            _.assign(entity[type], style[type])
+            _.merge(entity[type], style[type])
           }
         })
       }
@@ -151,7 +152,7 @@ let geojsonLayersMixin = {
       const featureTypes = ['billboard', 'label', 'point']
       featureTypes.forEach(type => {
         if (_.has(cluster, type)) {
-          _.assign(cluster[type], style[type])
+          _.merge(cluster[type], style[type])
         }
       })
     },
@@ -160,15 +161,7 @@ let geojsonLayersMixin = {
         let entity = entities.values[i]
         const tooltip = this.generateCesiumStyle('tooltip', entity, options)
         if (tooltip) {
-          let position = entity.position
-          if (!position) {
-            if (entity.polygon) {
-              position = Cesium.BoundingSphere.fromPoints(entity.polygon.positions.getValue()).center
-            } else if (entity.polyline) {
-              position = Cesium.BoundingSphere.fromPoints(entity.polyline.positions.getValue()).center
-            }
-            Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(position, position)
-          }
+          const position = this.getPositionForEntity(entity)
           // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child
           // Similarly ff entity already has a label we need a separated entity anyway
           //if (entity.label) {
@@ -251,13 +244,13 @@ let geojsonLayersMixin = {
     },
     getDefaultEntityStyle (entity, options) {
       let cesiumOptions = options.cesium || options
-      return Object.assign({},
+      return _.merge({},
         this.options.entityStyle || {},
         cesiumOptions.entityStyle || {})
     },
     getDefaultClusterStyle (entities, cluster, options) {
       let cesiumOptions = options.cesium || options
-      let style = Object.assign({},
+      let style = _.merge({},
         this.options.clusterStyle || {},
         cesiumOptions.clusterStyle || {})
       // Look for templated options
@@ -270,27 +263,53 @@ let geojsonLayersMixin = {
       }
       return style
     },
+    getDefaultPopup (entity, options) {
+      let popup
+      if (entity.properties) {
+        let cesiumOptions = options.cesium || options
+        let popupStyle = _.merge({},
+          this.options.popup || {},
+          cesiumOptions.popup || {})
+        // Default content
+        let properties = entity.properties.getValue(0)
+        // Custom list given ?
+        if (popupStyle) {
+          if (popupStyle.pick) {
+            properties = _.pick(properties, popupStyle.pick)
+          } else if (popupStyle.omit) {
+            properties = _.omit(properties, popupStyle.omit)
+          }
+        }
+        let html = getHtmlTable(properties)
+        popup = Object.assign({
+          text: html,
+          show : true,
+        }, popupStyle.options)
+      }
+      return popup
+    },
     getDefaultTooltip (entity, options) {
       let tooltip
       if (entity.properties) {
         let cesiumOptions = options.cesium || options
-        let tooltipStyle = Object.assign({},
+        let tooltipStyle = _.merge({},
           this.options.tooltip || {},
           cesiumOptions.tooltip || {})
         // Default content
-        let properties = entity.properties
+        let properties = entity.properties.getValue(0)
         let html
         if (tooltipStyle.property) {
-          html = properties[tooltipStyle.property]
+          html = (_.has(properties, tooltipStyle.property)
+          ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
         } else if (tooltipStyle.template) {
           let compiler = _.template(tooltipStyle.template)
-          html = compiler({ properties })
+          html = compiler({ properties, feature })
         }
         if (html) {
           tooltip = Object.assign({
             text: html,
             show : (tooltipStyle.permanent ? true : false)
-          }, tooltipStyle)
+          }, tooltipStyle.options)
         }
       }
       return tooltip
@@ -304,6 +323,18 @@ let geojsonLayersMixin = {
     },
     getChildForEntity (entity, index) {
       if (this.getNbChildrenForEntity(entity) > 0) return entity._children[index || 0]
+    },
+    getPositionForEntity (entity) {
+      let position = entity.position
+      if (!position) {
+        if (entity.polygon) {
+          position = Cesium.BoundingSphere.fromPoints(entity.polygon.positions.getValue()).center
+        } else if (entity.polyline) {
+          position = Cesium.BoundingSphere.fromPoints(entity.polyline.positions.getValue()).center
+        }
+        Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(position, position)
+      }
+      return position
     },
     isTooltipOpen (entity) {
       if (entity.label) return entity.label.show
@@ -330,28 +361,49 @@ let geojsonLayersMixin = {
         this.closeTooltip(this.overEntity)
         this.overEntity = null
       }
-      if (entity) {
+      // Only for entities from a layer
+      if (options && entity) {
         this.overEntity = entity
         this.openTooltip(this.overEntity)
       }
     },
     onPopup (options, event) {
-      // FIXME: display popup
-      console.log(event)
+      const entity = event.target
+      // Close previous if any (but not when clicking on the popup itself)
+      if (this.popupEntity) {
+        this.viewer.entities.remove(this.popupEntity)
+        this.popupEntity = null
+      }
+      // Do not reopen on same entity clicked
+      if (this.clickedEntity === entity) {
+        this.clickedEntity = null
+      } else {
+        this.clickedEntity = entity
+      }
+      // Only for entities from a layer
+      if (!this.clickedEntity || !options) return
+      const popup = this.generateCesiumStyle('popup', this.clickedEntity, options)
+      if (popup) {
+        const position = this.getPositionForEntity(this.clickedEntity)
+        this.popupEntity = this.viewer.entities.add({ position, label: popup })
+      }
     }
   },
   created () {
     this.entityStyleFactory = []
     this.clusterStyleFactory = []
     this.tooltipFactory = []
+    this.popupFactory = []
     this.registerCesiumStyle('entityStyle', this.getDefaultEntityStyle)
     this.registerCesiumStyle('clusterStyle', this.getDefaultClusterStyle)
     this.registerCesiumStyle('tooltip', this.getDefaultTooltip)
+    this.registerCesiumStyle('popup', this.getDefaultPopup)
     this.registerCesiumConstructor(this.createCesiumGeoJsonLayer)
     // Perform required conversion from JSON to Cesium objects
     if (this.options.entityStyle) this.options.entityStyle = this.convertToCesiumObjects(this.options.entityStyle)
     if (this.options.clusterStyle) this.options.clusterStyle = this.convertToCesiumObjects(this.options.clusterStyle)
     if (this.options.tooltip) this.options.tooltip = this.convertToCesiumObjects(this.options.tooltip)
+    if (this.options.popup) this.options.popup = this.convertToCesiumObjects(this.options.popup)
     // Default feature styling
     if (this.options.featureStyle) {
       Object.assign(Cesium.GeoJsonDataSource, this.convertFromSimpleStyleSpec(_.cloneDeep(this.options.featureStyle)))

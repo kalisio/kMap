@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 // Find the nearest time of a given one in a given moment time list
 export function getNearestTime (time, times) {
   // Look for the nearest time
@@ -84,4 +86,23 @@ export function convertCesiumHandlerEvent(type) {
   }
 
   return { name, button }
+}
+
+export function getHtmlTable(properties) {
+  properties = _.pickBy(properties, value => !_.isNil(value))
+  const keys = _.keys(properties)
+  let html
+  if (keys.length === 0) return null
+  else if (keys.length === 1) html = _.get(properties, keys[0])
+  else {
+    const borderStyle = ' style="border: 1px solid black; border-collapse: collapse;"'
+    html = '<table' + borderStyle + '>'
+    html += '<tr' + borderStyle + '><th' + borderStyle + '>Property</th><th>Value</th></tr>'
+    html += keys
+      .map(key => '<tr' + borderStyle + '><th' +
+        borderStyle + '>' + key + '</th><th>' + _.get(properties, key) + '</th></tr>')
+      .join('')
+    html += '</table>'
+  }
+  return html
 }

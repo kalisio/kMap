@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
-import { LeafletEvents, bindLeafletEvents } from '../../utils'
+import { LeafletEvents, bindLeafletEvents, getHtmlTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -230,21 +230,7 @@ let geojsonLayersMixin = {
             properties = _.omit(properties, popupStyle.omit)
           }
         }
-        properties = _.pickBy(properties, value => !_.isNil(value))
-        const keys = _.keys(properties)
-        let html
-        if (keys.length === 0) return null
-        else if (keys.length === 1) html = _.get(properties, keys[0])
-        else {
-          const borderStyle = ' style="border: 1px solid black; border-collapse: collapse;"'
-          html = '<table' + borderStyle + '>'
-          html += '<tr' + borderStyle + '><th' + borderStyle + '>Property</th><th>Value</th></tr>'
-          html += keys
-            .map(key => '<tr style="border: 1px solid black; border-collapse: collapse;"><th' +
-              borderStyle + '>' + key + '</th><th>' + _.get(properties, key) + '</th></tr>')
-            .join('')
-          html += '</table>'
-        }
+        let html = getHtmlTable(properties)
         // Configured or default style
         if (popupStyle && popupStyle.options) {
           popup = L.popup(popupStyle.options, layer)
