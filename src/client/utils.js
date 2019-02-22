@@ -76,9 +76,9 @@ export function convertCesiumHandlerEvent(type) {
   if (name === 'mouse') {
     name += movement
     button = buttonMapping[button]
-  } else if (event === 'click') {
+  } else if (name.endsWith('click')) {
     button = buttonMapping[button]
-  } else if (event === 'pinch') {
+  } else if (name === 'pinch') {
     name += movement
     button = undefined
   } else {
