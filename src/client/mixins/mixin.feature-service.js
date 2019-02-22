@@ -24,22 +24,28 @@ let featureServiceMixin = {
       // Check if we have variables to be aggregate in time or not
       if (options.variables) {
         query = Object.assign({
-          $limit: 1,
-          $sort: { time: -1 },
           $groupBy: options.featureId,
           $aggregate: options.variables.map(variable => variable.name)
         }, baseQuery)
-        // Request feature with at least one data available during last query interval
+        // Request feature with at least one data available during last query interval if none given
         const now = moment.utc()
-        if (queryInterval) {
-          query.time = {
-            $gte: now.clone().subtract({ milliseconds: queryInterval }).format(),
-            $lte: now.format()
-          }
+        if (typeof queryInterval === 'object') {
+          query.time = queryInterval
+        } else if (Number.isInteger(queryInterval)) {
+          Object.assign(query, {
+            $limit: 1,
+            $sort: { time: -1 },
+            time: {
+              $gte: now.clone().subtract({ milliseconds: queryInterval }).format(),
+              $lte: now.format()
+            }
+          })
         } else {
-          query.time = {
-            $lte: now.format()
-          }
+          Object.assign(query, {
+            $limit: 1,
+            $sort: { time: -1 },
+            time: { $lte: now.format() }
+          })
         }
       }
       let response = await this.$api.getService(options.service).find({ query })

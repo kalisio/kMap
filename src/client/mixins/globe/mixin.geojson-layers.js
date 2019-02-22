@@ -80,6 +80,10 @@ let geojsonLayersMixin = {
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
       this.convertFromSimpleStyleSpec(cesiumOptions)
+      // Perform required conversion from JSON to Cesium objects
+      if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(cesiumOptions.entityStyle)
+      if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
+      if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
 
       try {
         const source = _.get(cesiumOptions, 'source')
@@ -121,6 +125,7 @@ let geojsonLayersMixin = {
             (entities, cluster) => this.applyClusterStyle(entities, cluster, options)
           )
         }
+        this.applyTooltips(dataSource.entities, options)
         return dataSource
       } catch (error) {
         logger.error(error)
@@ -150,6 +155,30 @@ let geojsonLayersMixin = {
         }
       })
     },
+    applyTooltips (entities, options) {
+      for (let i = 0; i < entities.values.length; i++) {
+        let entity = entities.values[i]
+        const tooltip = this.generateCesiumStyle('tooltip', entity, options)
+        if (tooltip) {
+          let position = entity.position
+          if (!position) {
+            if (entity.polygon) {
+              position = Cesium.BoundingSphere.fromPoints(entity.polygon.positions.getValue()).center
+            } else if (entity.polyline) {
+              position = Cesium.BoundingSphere.fromPoints(entity.polyline.positions.getValue()).center
+            }
+            Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(position, position)
+            position = new Cesium.ConstantProperty(position)
+          }
+          // FIXME: for now directly add the label to the entity does not seem to work
+          // If entity already has a label we need a separated entity
+          //if (entity.label) {
+            this.viewer.entities.add({ parent: entity, position, label: tooltip })
+          //}
+          //else entity.label = new Cesium.LabelGraphics(tooltip)
+        }
+      }
+    },
     convertFromSimpleStyleSpec (style) {
       _.forOwn(style, (value, key) => {
         // Convert to camelCase as required by cesium
@@ -168,20 +197,26 @@ let geojsonLayersMixin = {
     },
     convertToCesiumObjects (style) {
       // Helper to convert from string to objects
-      function createCesiumObject (constructor, options) {
+      function createCesiumObject () {
+        let args = Array.from(arguments)
+        const constructor = args[0]
+        args.shift()
         let object = _.get(Cesium, constructor)
         // Can be constant, constructable or callable
         if (typeof object === 'function') {
-          try { return object(options) }
+          try { return object(...args) }
           catch (error) { /* Simply avoid raising any error */ }
-          try { return new object(options) } catch (error) { /* Simply avoid raising any error */ }
+          try { return new object(...args) } catch (error) { /* Simply avoid raising any error */ }
         } else return object
       }
-      return _.mapValues(style, (value) => {
+      const mapValue = (value) => {
         if (typeof value === 'object') {
-          if (value.type && value.options) {
-            const constructor = value.type.replace('Cesium.', '')
-            return createCesiumObject(constructor, this.convertToCesiumObjects(value.options))
+          const type = value.type
+          const options = value.options
+          if (type && options) {
+            const constructor = type.replace('Cesium.', '')
+            if (Array.isArray(options)) return createCesiumObject(constructor, ...this.convertToCesiumObjects(options))
+            else return createCesiumObject(constructor, this.convertToCesiumObjects(options))
           }
           else return this.convertToCesiumObjects(value)
         } else if (typeof value === 'string') {
@@ -191,7 +226,9 @@ let geojsonLayersMixin = {
           }
         }
         return value
-      })
+      }
+      if (Array.isArray(style)) return style.map(mapValue)
+      else return _.mapValues(style, mapValue)
     },
     registerCesiumStyle (type, generator) {
       this[type + 'Factory'].push(generator)
@@ -234,23 +271,99 @@ let geojsonLayersMixin = {
       }
       return style
     },
+    getDefaultTooltip (entity, options) {
+      let tooltip
+      if (entity.properties) {
+        let cesiumOptions = options.cesium || options
+        let tooltipStyle = Object.assign({},
+          this.options.tooltip || {},
+          cesiumOptions.tooltip || {})
+        // Default content
+        let properties = entity.properties
+        let html
+        if (tooltipStyle.property) {
+          html = properties[tooltipStyle.property]
+        } else if (tooltipStyle.template) {
+          let compiler = _.template(tooltipStyle.template)
+          html = compiler({ properties })
+        }
+        if (html) {
+          tooltip = Object.assign({
+            text: html,
+            show : (tooltipStyle.permanent ? true : false)
+          }, tooltipStyle)
+        }
+      }
+      return tooltip
+    },
     getGeoJsonOptions (options) {
       return this.options.featureStyle || {}
+    },
+    getNbChildrenForEntity (entity) {
+      if (entity._children) return entity._children.length
+      else return 0
+    },
+    getChildForEntity (entity, index) {
+      if (this.getNbChildrenForEntity(entity) > 0) return entity._children[index || 0]
+    },
+    isTooltipOpen (entity) {
+      if (entity.label) return entity.label.show
+      // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child entity
+      else if (this.getNbChildrenForEntity(entity) > 0) return this.isTooltipOpen(this.getChildForEntity(entity))
+      else return false
+    },
+    openTooltip (entity) {
+      if (entity.label) entity.label.show = true
+      // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child entity
+      else if (this.getNbChildrenForEntity(entity) > 0) this.openTooltip(this.getChildForEntity(entity))
+    },
+    closeTooltip (entity) {
+      if (entity.label) entity.label.show = false
+      // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child entity
+      else if (this.getNbChildrenForEntity(entity) > 0) this.closeTooltip(this.getChildForEntity(entity))
+    },
+    onTooltip (options, event) {
+      // Nothing to do in this case
+      if (options && _.get(options, 'cesium.tooltip.permanent)')) return
+      // FIXME: show/hide tooltip
+      const entity = event.target
+      if (this.overEntity) {
+        this.closeTooltip(this.overEntity)
+        this.overEntity = null
+      }
+      if (entity) {
+        this.overEntity = entity
+        this.openTooltip(this.overEntity)
+      }
+    },
+    onPopup (options, event) {
+      // FIXME: display popup
     }
   },
   created () {
     this.entityStyleFactory = []
     this.clusterStyleFactory = []
+    this.tooltipFactory = []
     this.registerCesiumStyle('entityStyle', this.getDefaultEntityStyle)
     this.registerCesiumStyle('clusterStyle', this.getDefaultClusterStyle)
+    this.registerCesiumStyle('tooltip', this.getDefaultTooltip)
     this.registerCesiumConstructor(this.createCesiumGeoJsonLayer)
     // Perform required conversion from JSON to Cesium objects
-    this.convertToCesiumObjects(this.options.entityStyle)
-    this.convertToCesiumObjects(this.options.clusterStyle)
+    if (this.options.entityStyle) this.options.entityStyle = this.convertToCesiumObjects(this.options.entityStyle)
+    if (this.options.clusterStyle) this.options.clusterStyle = this.convertToCesiumObjects(this.options.clusterStyle)
+    if (this.options.tooltip) this.options.tooltip = this.convertToCesiumObjects(this.options.tooltip)
     // Default feature styling
     if (this.options.featureStyle) {
       Object.assign(Cesium.GeoJsonDataSource, this.convertFromSimpleStyleSpec(_.cloneDeep(this.options.featureStyle)))
     }
+  },
+  mounted () {
+    this.$on('mousemove', this.onTooltip)
+    this.$on('click', this.onPopup)
+  },
+  beforeDestroy () {
+    this.$off('mousemove', this.onTooltip)
+    this.$off('click', this.onPopup)
   }
 }
 

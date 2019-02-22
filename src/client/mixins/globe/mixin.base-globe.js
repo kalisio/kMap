@@ -28,9 +28,9 @@ let baseGlobeMixin = {
       // Cesium always create a default provider
       this.viewer.scene.imageryLayers.removeAll()
       // Add defaults handler
-      this.registerCesiumHandler(this.getDefaultPickPositionHandler, 'MOUSE_MOVE')
-      this.registerCesiumHandler(this.getDefaultPickObjectHandler, 'LEFT_CLICK')
-      this.registerCesiumHandler(this.getDefaultPickObjectHandler, 'RIGHT_CLICK')
+      this.registerCesiumHandler(this.getDefaultPickHandler, 'MOUSE_MOVE')
+      this.registerCesiumHandler(this.getDefaultPickHandler, 'LEFT_CLICK')
+      this.registerCesiumHandler(this.getDefaultPickHandler, 'RIGHT_CLICK')
       // Remove default Cesium handlers
       this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
       this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
@@ -43,7 +43,6 @@ let baseGlobeMixin = {
       processedOptions.cesium.iconUrl = Cesium.buildModuleUrl(processedOptions.iconUrl)
       // Copy generic options
       processedOptions.cesium.name = processedOptions.name
-      processedOptions.cesium.tooltip = processedOptions.name
       processedOptions.cesium.attribution = processedOptions.attribution
       return processedOptions
     },
@@ -189,28 +188,31 @@ let baseGlobeMixin = {
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
       else this.viewer.camera.setView(target)
     },
-    getDefaultPickPositionHandler(event) {
+    getCesiumLayerForEntity (entity) {
+      _.forOwn(this.cesiumLayers, (value, key) => {
+        if (value instanceof Cesium.DataSource) {
+          if (value.entities.contains(entity)) return this.getLayerByName(key)
+        }
+      })
+      return null
+    },
+    getDefaultPickHandler(event) {
+      let emittedEvent = {}
+      let options
       let pickedPosition = this.viewer.camera.pickEllipsoid(event.endPosition || event.position, this.viewer.scene.globe.ellipsoid)
       if (pickedPosition) {
         pickedPosition = Cesium.Cartographic.fromCartesian(pickedPosition)
         const longitude = Cesium.Math.toDegrees(pickedPosition.longitude)
         const latitude = Cesium.Math.toDegrees(pickedPosition.latitude)
-        // Mimic Leaflet events
-        this.$emit(event.originalEvent.name, Object.assign({}, event, {
-          type: event.originalEvent.name,
-          latlng: [latitude, longitude]
-        }))
+        emittedEvent.latlng = [latitude, longitude]
       }
-    },
-    getDefaultPickObjectHandler(event) {
       const pickedObject = this.viewer.scene.pick(event.endPosition || event.position)
       if (pickedObject) {
-        // Mimic Leaflet events
-        this.$emit(event.originalEvent.name, Object.assign({}, event, {
-          type: event.originalEvent.name,
-          target: pickedObject.id || pickedObject.primitive.id
-        }))
+        emittedEvent.target = pickedObject.id || pickedObject.primitive.id
+        if (typeof this.getCesiumLayerForEntity === 'function') options = this.getCesiumLayerForEntity(emittedEvent.target)
       }
+      // Mimic Leaflet events
+      this.$emit(event.originalEvent.name, options, emittedEvent)
     }
   },
   beforeCreate () {
