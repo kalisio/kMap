@@ -189,12 +189,13 @@ let baseGlobeMixin = {
       else this.viewer.camera.setView(target)
     },
     getCesiumLayerForEntity (entity) {
+      let layerName
       _.forOwn(this.cesiumLayers, (value, key) => {
-        if (value instanceof Cesium.DataSource) {
-          if (value.entities.contains(entity)) return this.getLayerByName(key)
+        if (!layerName && value.entities) {
+          if (value.entities.contains(entity)) layerName = this.getLayerByName(key)
         }
       })
-      return null
+      return layerName
     },
     getDefaultPickHandler(event) {
       let emittedEvent = {}

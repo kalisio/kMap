@@ -337,6 +337,7 @@ let geojsonLayersMixin = {
     },
     onPopup (options, event) {
       // FIXME: display popup
+      console.log(event)
     }
   },
   created () {
