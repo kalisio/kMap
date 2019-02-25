@@ -3,26 +3,9 @@
 ## [v1.0.4](https://github.com/kalisio/kMap/tree/v1.0.4) (2019-02-25)
 [Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.3...v1.0.4)
 
-**Implemented enhancements:**
-
-- Create a time mixin [\#57](https://github.com/kalisio/kMap/issues/57)
-- Add default clustering options for imported GeoJson layers [\#56](https://github.com/kalisio/kMap/issues/56)
-- Allow for custom onEachFeature in Leaflet GeoJson layers [\#53](https://github.com/kalisio/kMap/issues/53)
-- Make the LocationMap draggable using a prop [\#48](https://github.com/kalisio/kMap/issues/48)
-- Remove KMap and KGlobe components [\#46](https://github.com/kalisio/kMap/issues/46)
-- GeoJson layers does not support runtime mode in Globe [\#23](https://github.com/kalisio/kMap/issues/23)
-- Geocoder service should be able to use various providers [\#10](https://github.com/kalisio/kMap/issues/10)
-
 **Fixed bugs:**
 
-- When aggregating distinct features on multiple elements values are mixed between features [\#54](https://github.com/kalisio/kMap/issues/54)
-- collection-layer mixin is not working anymore [\#50](https://github.com/kalisio/kMap/issues/50)
-- KLocationMap should import map mixins only [\#49](https://github.com/kalisio/kMap/issues/49)
 - On mobile devices, the LocationMap  exceeds from the screen [\#47](https://github.com/kalisio/kMap/issues/47)
-
-**Closed issues:**
-
-- Multiple tooltips are stacked [\#52](https://github.com/kalisio/kMap/issues/52)
 
 ## [v1.0.3](https://github.com/kalisio/kMap/tree/v1.0.3) (2019-01-13)
 [Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.2...v1.0.3)
