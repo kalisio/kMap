@@ -1,22 +1,55 @@
 # Change Log
 
-## [v1.0.3](https://github.com/kalisio/kMap/tree/v1.0.3) (2019-01-13)
-[Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.2...v1.0.3)
+## [v1.0.4](https://github.com/kalisio/kMap/tree/v1.0.4) (2019-02-25)
+[Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.3...v1.0.4)
 
 **Implemented enhancements:**
 
+- Create a time mixin [\#57](https://github.com/kalisio/kMap/issues/57)
+- Add default clustering options for imported GeoJson layers [\#56](https://github.com/kalisio/kMap/issues/56)
+- Allow for custom onEachFeature in Leaflet GeoJson layers [\#53](https://github.com/kalisio/kMap/issues/53)
+- Make the LocationMap draggable using a prop [\#48](https://github.com/kalisio/kMap/issues/48)
 - Remove KMap and KGlobe components [\#46](https://github.com/kalisio/kMap/issues/46)
+- GeoJson layers does not support runtime mode in Globe [\#23](https://github.com/kalisio/kMap/issues/23)
+- Geocoder service should be able to use various providers [\#10](https://github.com/kalisio/kMap/issues/10)
 
 **Fixed bugs:**
 
+- When aggregating distinct features on multiple elements values are mixed between features [\#54](https://github.com/kalisio/kMap/issues/54)
+- collection-layer mixin is not working anymore [\#50](https://github.com/kalisio/kMap/issues/50)
+- KLocationMap should import map mixins only [\#49](https://github.com/kalisio/kMap/issues/49)
+- On mobile devices, the LocationMap  exceeds from the screen [\#47](https://github.com/kalisio/kMap/issues/47)
+
+**Closed issues:**
+
+- Multiple tooltips are stacked [\#52](https://github.com/kalisio/kMap/issues/52)
+
+## [v1.0.3](https://github.com/kalisio/kMap/tree/v1.0.3) (2019-01-13)
+[Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.2...v1.0.3)
+
+**Fixed bugs:**
+
+- Make the Cesium token configurable [\#45](https://github.com/kalisio/kMap/issues/45)
 - setupMap is broken [\#44](https://github.com/kalisio/kMap/issues/44)
 
 ## [v1.0.2](https://github.com/kalisio/kMap/tree/v1.0.2) (2019-01-10)
 [Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.1...v1.0.2)
 
+**Implemented enhancements:**
+
+- Allow feature service query to include a dynamic filter [\#42](https://github.com/kalisio/kMap/issues/42)
+- Manage orientation in feature service [\#40](https://github.com/kalisio/kMap/issues/40)
+- Allow aggregation of geometry in feature service [\#39](https://github.com/kalisio/kMap/issues/39)
+- Allow to use kMap with Leaflet only or Cesium only or both [\#36](https://github.com/kalisio/kMap/issues/36)
+- Update layer description format [\#34](https://github.com/kalisio/kMap/issues/34)
+- Add the capability to visualize GeoTiff raster data [\#31](https://github.com/kalisio/kMap/issues/31)
+- Create a color ramp legend [\#15](https://github.com/kalisio/kMap/issues/15)
+
 **Fixed bugs:**
 
 - The dom ID to create a map is hard coded [\#43](https://github.com/kalisio/kMap/issues/43)
+- Aggregation query on feature service does not work with REST [\#41](https://github.com/kalisio/kMap/issues/41)
+- Geolocation dialog cannot be dismissed on error [\#38](https://github.com/kalisio/kMap/issues/38)
 
 **Closed issues:**
 
