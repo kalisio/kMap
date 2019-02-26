@@ -2,7 +2,7 @@
   <k-modal 
     ref="modal" :title="title" :toolbar="toolbar()" :options="modalStyle" @opened="refreshMap()">
     <div slot="modal-content">
-      <div ref="map" class="map" />
+      <div ref="map" class="k-location-map" />
     </div>
   </k-modal>
 </template>
@@ -112,7 +112,7 @@ export default {
 </script>
 
 <style>
-.map {
+.k-location-map {
   position: absolute;
   left: 1rem;
   right: 1rem;
