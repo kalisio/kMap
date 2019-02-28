@@ -287,18 +287,22 @@ let geojsonLayersMixin = {
           // Check for custom onEachFeature function
           if (typeof this.onLeafletFeature === 'function') this.onLeafletFeature(feature, layer, options)
           // Then for tooltip/popup
+          // First remove previous popup if any
+          if (layer.getPopup()) layer.unbindPopup()
           let popup = this.generateLeafletStyle('popup', feature, layer, options)
           if (popup) {
+            // Because we build a new popup we need to restore previous state
             const wasOpen = (layer.getPopup() && layer.isPopupOpen())
-            if (layer.getPopup()) layer.unbindPopup()
             layer.bindPopup(popup)
             bindLeafletEvents(layer.getPopup(), LeafletEvents.Popup, this, options)
             if (wasOpen) layer.openPopup()
           }
+          // First remove previous tooltip if any
+          if (layer.getTooltip()) layer.unbindTooltip()
           let tooltip = this.generateLeafletStyle('tooltip', feature, layer, options)
           if (tooltip) {
+            // Because we build a new tooltip we need to restore previous state
             const wasOpen = (layer.getTooltip() && layer.isTooltipOpen())
-            if (layer.getTooltip()) layer.unbindTooltip()
             layer.bindTooltip(tooltip)
             bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this, options)
             if (wasOpen) layer.openTooltip()
