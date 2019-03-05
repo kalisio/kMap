@@ -60,6 +60,8 @@ let geojsonLayersMixin = {
             errorCallback(error)
           }
         })
+      } else if (!_.has(leafletOptions, 'source')) { // Even for manual update leaflet realtime require a src
+        _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {})
       }
     },
     async processGeoJsonLayerOptions (options) {
@@ -154,11 +156,13 @@ let geojsonLayersMixin = {
         'marker-color': 'icon.options.markerColor',
         'icon-color': 'icon.options.iconColor',
         'icon-anchor': 'icon.options.iconAnchor',
-        'icon-classes': 'icon.options.iconClasses'
+        'icon-classes': 'icon.options.iconClasses',
+        'icon-html': 'icon.options.html',
+        'icon-class': 'icon.options.className'
       }
       _.forOwn(style, (value, key) => {
-        const mapping = _.get(mappings, key)
-        if (mapping) {
+        if (_.has(mappings, key)) {
+          const mapping = _.get(mappings, key)
           // Specific options
           switch (key) {
             case 'icon-anchor':
@@ -170,7 +174,8 @@ let geojsonLayersMixin = {
           }
           // In this case we have a marker spec
           if (key.startsWith('icon') || key.startsWith('marker')) {
-            _.set(convertedStyle, 'icon.type', _.has(style, 'icon-classes') ? 'icon.fontAwesome' : 'icon')
+            _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes') ?
+              'icon.fontAwesome' : _.has(style, 'icon-html') ? 'divIcon' : 'icon'))
             _.set(convertedStyle, 'type', 'marker')
           }
         }
@@ -305,6 +310,13 @@ let geojsonLayersMixin = {
       }
 
       return geojsonOptions
+    },
+    updateLayer (name, geoJson, remove) {
+      // Retrieve the layer
+      let layer = this.getLeafletLayerByName(name)
+      if (!layer) return // Cannot update invisible layer
+      if (remove && (typeof layer.remove === 'function')) layer.remove(geoJson)
+      else if (typeof layer.update === 'function') layer.update(geoJson)
     }
   },
   created () {

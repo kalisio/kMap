@@ -156,14 +156,14 @@ let baseMapMixin = {
       delete this.leafletLayers[name]
       this.$emit('layer-removed', layer)
     },
-    zoomToLayer (name) {
+    zoomToLayer (name, options) {
       const layer = this.getLeafletLayerByName(name)
       if (!layer) return
 
-      this.map.fitBounds(layer.getBounds())
+      this.map.fitBounds(layer.getBounds(), options)
     },
-    center (longitude, latitude, zoomLevel) {
-      this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12)
+    center (longitude, latitude, zoomLevel, options) {
+      this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12, options)
     },
     setMapCursor (className) {
       L.DomUtil.addClass(this.map._container, className)
