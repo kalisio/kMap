@@ -15,7 +15,7 @@
             {{layer.name}}
           </q-tooltip>
         </q-btn-->
-        <q-item :id="layer.name | kebabCase" :key="layer.name" inset-separator link @click="onLayerClicked(layer, selection)">
+        <q-item :class="{ selected: layer.isVisible }" :id="layer.name | kebabCase" :key="layer.name" inset-separator link @click="onLayerClicked(layer, selection)">
           <q-item-side v-if="!layer.iconUrl" :icon="layer.icon" left>
           </q-item-side>
           <q-item-side v-else :avatar="layer.iconUrl" left>
@@ -104,3 +104,9 @@ export default {
   }
 }
 </script>
+
+<style>
+.selected {
+  background: #e0e0e0;
+}
+</style>
