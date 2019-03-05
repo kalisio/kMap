@@ -171,7 +171,7 @@ let baseMapMixin = {
     unsetMapCursor (className) {
       L.DomUtil.removeClass(this.map._container, className)
     },
-    onCurrentMapTimeChanged (time) {
+    onCurrentMapTimeChanged (datetime) {
       _.forEach(this.leafletLayers, leafletLayer => {
         if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(datetime)
       })
