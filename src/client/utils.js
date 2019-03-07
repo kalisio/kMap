@@ -97,7 +97,6 @@ export function getHtmlTable(properties) {
   else {
     const borderStyle = ' style="border: 1px solid black; border-collapse: collapse;"'
     html = '<table' + borderStyle + '>'
-    html += '<tr' + borderStyle + '><th' + borderStyle + '>Property</th><th>Value</th></tr>'
     html += keys
       .map(key => '<tr' + borderStyle + '><th' +
         borderStyle + '>' + key + '</th><th>' + _.get(properties, key) + '</th></tr>')
@@ -105,4 +104,46 @@ export function getHtmlTable(properties) {
     html += '</table>'
   }
   return html
+}
+
+export function getTextTable(properties) {
+  properties = _.pickBy(properties, value => !_.isNil(value))
+  const keys = _.keys(properties)
+  let text
+  if (keys.length === 0) return null
+  else if (keys.length === 1) text = _.get(properties, keys[0])
+  else {
+    text = keys
+      .map(key => key + ': ' + _.get(properties, key))
+      .join('\n')
+  }
+  return text
+}
+
+// Template a string or array of strings property according to a given item
+export function template (context, property) {
+  const isArray = Array.isArray(property)
+  // Recurse
+  if (!isArray && (typeof property === 'object')) return templateObject(context, property)
+  let values = (isArray ? property : [property])
+  values = values.map(value => {
+    if (typeof value === 'string') {
+      let compiler = _.template(value)
+      return compiler(context)
+    } else if (typeof value === 'object') {
+      return templateObject(context, value)
+    } else {
+      return value
+    }
+  })
+
+  const result = (isArray ? values : values[0])
+  return result
+}
+
+// Utility function used to template strings from a fixed set of properties on a given object (recursive)
+export function templateObject (context, object, properties) {
+  // Restrict to some properties only ?
+  let keys = (properties || _.keys(object))
+  return _.mapValues(object, (value, key) => (keys.includes(key) ? template(context, value) : value))
 }

@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
-import { LeafletEvents, bindLeafletEvents, getHtmlTable } from '../../utils'
+import { LeafletEvents, bindLeafletEvents, getHtmlTable, templateObject } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -17,26 +17,27 @@ let geojsonLayersMixin = {
       if (container) {
         leafletOptions.container = this.createLeafletLayer({ type: container })
       }
+      // Custom update function to ensure dynamic styling works as expected
+      if (!_.has(leafletOptions, 'updateFeature')) {
+        leafletOptions.updateFeature = function (feature, oldLayer) {
+          // A new feature is coming, create it
+          if (!oldLayer) return
+          // An existing one is found, simply update styling, etc.
+          leafletOptions.onEachFeature(feature, oldLayer)
+          if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
+          if (oldLayer.setIcon) oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature), 'options.icon'))
+          // And coordinates for points
+          // FIXME: support others geometry types ?
+          if (feature.geometry.type === 'Point') {
+            oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+          }
+          return oldLayer
+        }
+      }
       // Check for feature service layers
       if (options.service) {
         // Tell realtime plugin how to update/load data
         if (!_.has(leafletOptions, 'removeMissing')) leafletOptions.removeMissing = !options.probeService
-
-        if (!_.has(leafletOptions, 'updateFeature')) {
-          leafletOptions.updateFeature = function (feature, oldLayer) {
-            // A new feature is coming, create it
-            if (!oldLayer) return
-            // An existing one is found, simply update styling, etc.
-            leafletOptions.onEachFeature(feature, oldLayer)
-            if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
-            // And coordinates for points
-            // FIXME: support others geometry types ?
-            if (feature.geometry.type === 'Point') {
-              oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
-            }
-            return oldLayer
-          }
-        }
         let initialized = !options.probeService // If no probe reference, nothing to be initialized
         _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {
           // If the probe location is given by another service use it on initialization
@@ -104,7 +105,7 @@ let geojsonLayersMixin = {
           // If layer provided do not override
           if (!_.has(leafletOptions, key)) _.set(leafletOptions, key, _.get(geoJsonOptions, key))
         })
-
+        leafletOptions.layerStyle = this.convertFromSimpleStyleSpec(leafletOptions)
         let layer = this.createLeafletLayer(options)
 
         // Specific case of realtime layer where the underlying container also need to be added to map
@@ -128,12 +129,19 @@ let geojsonLayersMixin = {
         return null
       }
     },
-    createMarkerFromStyle (latlng, markerStyle) {
+    createMarkerFromStyle (latlng, markerStyle, feature) {
       if (markerStyle) {
         let icon = markerStyle.icon
         // Parse icon options to get icon object if any
         if (icon) {
-          icon = _.get(L, icon.type)(icon.options)
+          let options = icon.options
+          // We allow to template some properties
+          if (feature.properties && options) {
+            const properties = feature.properties
+            // Avoid updating in place and loose template(s)
+            options = Object.assign({}, templateObject({ properties, feature }, options, ['iconUrl', 'html']))
+          }
+          icon = _.get(L, icon.type)(options)
           return _.get(L, markerStyle.type || 'marker')(latlng, { icon })
         } else {
           return _.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options)
@@ -142,9 +150,9 @@ let geojsonLayersMixin = {
         return L.marker(latlng)
       }
     },
-    convertFromSimpleStyleSpec (style) {
+    convertFromSimpleStyleSpec (style, inPlace) {
       if (!style) return {}
-      let convertedStyle = {}
+      let convertedStyle = (inPlace ? style : {})
       const mappings = {
         'stroke': 'color',
         'stroke-opacity': 'opacity',
@@ -154,7 +162,8 @@ let geojsonLayersMixin = {
         'marker-size': 'icon.options.iconSize',
         'marker-symbol': 'icon.options.iconUrl',
         'marker-color': 'icon.options.markerColor',
-        'icon-color': 'icon.options.iconColor',
+        'icon-color': 'icon.options.iconSize',
+        'icon-size': 'icon.options.iconAnchor',
         'icon-anchor': 'icon.options.iconAnchor',
         'icon-classes': 'icon.options.iconClasses',
         'icon-html': 'icon.options.html',
@@ -165,13 +174,16 @@ let geojsonLayersMixin = {
           const mapping = _.get(mappings, key)
           // Specific options
           switch (key) {
+            case 'icon-size':
             case 'icon-anchor':
             case 'marker-size':
               if (!Array.isArray(value)) value = [value, value]
+              _.set(convertedStyle, mapping, value)
               break
             default:
               _.set(convertedStyle, mapping, value)
           }
+          if (inPlace) _.unset(style, key)
           // In this case we have a marker spec
           if (key.startsWith('icon') || key.startsWith('marker')) {
             _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes') ?
@@ -205,8 +217,8 @@ let geojsonLayersMixin = {
     getDefaultMarker (feature, latlng, options) {
       let leafletOptions = options.leaflet || options
       return this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
-        this.convertFromSimpleStyleSpec(leafletOptions),
-        this.convertFromSimpleStyleSpec(feature.style || feature.properties)))
+        leafletOptions.layerStyle,
+        this.convertFromSimpleStyleSpec(feature.style || feature.properties)), feature)
     },
     getDefaultStyle (feature, options) {
       let leafletOptions = options.leaflet || options
@@ -217,7 +229,7 @@ let geojsonLayersMixin = {
         fillOpacity: 0.5,
         fillColor: 'green'
       },
-        this.convertFromSimpleStyleSpec(leafletOptions),
+        leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
     },
     getDefaultPopup (feature, layer, options) {
@@ -329,6 +341,9 @@ let geojsonLayersMixin = {
     this.registerLeafletStyle('tooltip', this.getDefaultTooltip)
     this.registerLeafletStyle('popup', this.getDefaultPopup)
     this.registerLeafletConstructor(this.createLeafletGeoJsonLayer)
+    // Performe required conversion for default feature styling
+    if (this.options.featureStyle) this.convertFromSimpleStyleSpec(this.options.featureStyle, 'update-in-place')
+    if (this.options.pointStyle) this.convertFromSimpleStyleSpec(this.options.pointStyle, 'update-in-place')
   }
 }
 

@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { getHtmlTable } from '../../utils'
+import { getTextTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -80,7 +80,7 @@ let geojsonLayersMixin = {
         // If layer provided do not override
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
-      this.convertFromSimpleStyleSpec(cesiumOptions)
+      this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
       // Perform required conversion from JSON to Cesium objects
       if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(cesiumOptions.entityStyle)
       if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
@@ -171,21 +171,29 @@ let geojsonLayersMixin = {
         }
       }
     },
-    convertFromSimpleStyleSpec (style) {
+    convertFromSimpleStyleSpec (style, inPlace = false) {
+      if (!style) return {}
+      let convertedStyle = (inPlace ? style : {})
+      const mappings = {
+        'stroke': 'stroke',
+        'stroke-width': 'strokeWidth',
+        'fill-color': 'fill',
+        'marker-size': 'markerSize',
+        'marker-symbol': 'markerSymbol',
+        'marker-color': 'markerColor'
+      }
       _.forOwn(style, (value, key) => {
-        // Convert to camelCase as required by cesium
-        const camelKey = _.camelCase(key)
-        if (camelKey !== key) {
-          style[camelKey] = value
-          delete style[key]
-        }
-        // Convert from string to color object as required by cesium
-        if (['markerColor', 'fill', 'stroke'].includes(camelKey)) {
-          style[camelKey] = Cesium.Color.fromCssColorString(value)
+        if (_.has(mappings, key)) {
+          const mapping = _.get(mappings, key)
+          _.set(convertedStyle, mapping, value)
+          if (inPlace) _.unset(style, key)
+          // Convert from string to color object as required by cesium
+          if ((typeof value === 'string') && ['markerColor', 'fill', 'stroke'].includes(mapping)) {
+            _.set(convertedStyle, mapping, Cesium.Color.fromCssColorString(value))
+          }
         }
       })
-
-      return style
+      return convertedStyle
     },
     convertToCesiumObjects (style) {
       // Helper to convert from string to objects
@@ -280,9 +288,11 @@ let geojsonLayersMixin = {
             properties = _.omit(properties, popupStyle.omit)
           }
         }
-        let html = getHtmlTable(properties)
+        // Cesium does not support HTML
+        //let html = getHtmlTable(properties)
+        let text = getTextTable(properties)
         popup = Object.assign({
-          text: html,
+          text: text,
           show : true,
         }, popupStyle.options)
       }
@@ -406,7 +416,7 @@ let geojsonLayersMixin = {
     if (this.options.popup) this.options.popup = this.convertToCesiumObjects(this.options.popup)
     // Default feature styling
     if (this.options.featureStyle) {
-      Object.assign(Cesium.GeoJsonDataSource, this.convertFromSimpleStyleSpec(_.cloneDeep(this.options.featureStyle)))
+      Object.assign(Cesium.GeoJsonDataSource, this.convertFromSimpleStyleSpec(this.options.featureStyle, 'update-in-place'))
     }
   },
   mounted () {
