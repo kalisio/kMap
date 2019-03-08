@@ -5,10 +5,62 @@ import { CesiumStyleMappings, getTextTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
+    async startRealtimeGeoJsonDataUpdate (dataSource, options) {
+      const cesiumOptions = options.cesium
+      // Setup update timer
+      dataSource.updateTimer = setInterval(async () => {
+        await this.updateRealtimeGeoJsonData(dataSource, options)
+        this.applyStyle(dataSource.entities, options)
+        this.applyTooltips(dataSource.entities, options)
+      }, cesiumOptions.interval)
+      // Launch first update
+      await this.updateRealtimeGeoJsonData(dataSource, options)
+    },
+    stopRealtimeGeoJsonDataUpdate (dataSource) {
+      if (!dataSource.updateTimer) return
+      clearTimeout(dataSource.updateTimer)
+      dataSource.updateTimer = null
+    },
+    async updateRealtimeGeoJsonData (dataSource, options, geoJson) {
+      const cesiumOptions = options.cesium
+      const source = _.get(cesiumOptions, 'source')
+      if (options.probeService) {
+        // If the probe location is given by another service use it on initialization
+        if (!initialized) {
+          await dataSource.load(this.getProbeFeatures(options), cesiumOptions)
+          initialized = true
+        }
+        // Then get last available measures
+        let measureSource = new Cesium.GeoJsonDataSource()
+        await measureSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+        // Then merge with probes
+        const probes = dataSource.entities.values
+        const measures = measureSource.entities.values
+        for (let i = 0; i < probes.length; i++) {
+          const probe = probes[i]
+          const probeProperties = probe.properties
+          for (let j = 0; j < measures.length; j++) {
+            const measure = measures[j]
+            // When we found a measure for a probe we update it
+            if (_.get(probeProperties, featureId).getValue() === _.get(measure.properties, featureId).getValue()) {
+              probe.properties = measure.properties
+              probe.description = measure.description
+            }
+          }
+        }
+      } else if (options.service) { // Check for feature service layers only, in this case update in place
+        // If no probe reference, nothing to be initialized
+        await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+      } else if (source || geoJson) {
+        // Assume source is an URL or a promise returning GeoJson
+        await dataSource.load(geoJson ? geoJson : source, cesiumOptions)
+      }
+    },
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
       const featureId = _.get(options, 'featureId')
       const cesiumOptions = options.cesium
       const source = _.get(cesiumOptions, 'source')
+      const start = _.get(cesiumOptions, 'start', true) // Default is to start fetching
       let queryInterval
       if (cesiumOptions.queryInterval) queryInterval = cesiumOptions.queryInterval
       // If query interval not given use 2 x refresh interval as default value
@@ -16,59 +68,15 @@ let geojsonLayersMixin = {
       if (!queryInterval && cesiumOptions.interval) queryInterval = 2 * cesiumOptions.interval
       // Update function to fetch for new data and update Cesium data source
       let initialized = !options.probeService // If no probe reference, nothing to be initialized
-      const updateData = async () => {
-        if (options.probeService) {
-          // If the probe location is given by another service use it on initialization
-          if (!initialized) {
-            await dataSource.load(this.getProbeFeatures(options), cesiumOptions)
-            initialized = true
-          }
-          // Then get last available measures
-          let measureSource = new Cesium.GeoJsonDataSource()
-          await measureSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
-          // Then merge with probes
-          const probes = dataSource.entities.values
-          const measures = measureSource.entities.values
-          for (let i = 0; i < probes.length; i++) {
-            const probe = probes[i]
-            const probeProperties = probe.properties
-            for (let j = 0; j < measures.length; j++) {
-              const measure = measures[j]
-              // When we found a measure for a probe we update it
-              if (_.get(probeProperties, featureId).getValue() === _.get(measure.properties, featureId).getValue()) {
-                probe.properties = measure.properties
-                probe.description = measure.description
-              }
-            }
-          }
-        } else if (options.service) { // Check for feature service layers only, in this case update in place
-          // If no probe reference, nothing to be initialized
-          await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
-        } else {
-          // Assume source is an URL or a promise returning GeoJson
-          await dataSource.load(source, cesiumOptions)
-        }
-      }
-      // Required to be aware of the newly added source
-      this.viewer.dataSources.dataSourceAdded.addEventListener(async (collection, newSource) => {
-        if (newSource === dataSource) {
-          // Setup update timer
-          dataSource.updateTimer = setInterval(async () => {
-            await updateData()
-            this.applyStyle(dataSource.entities, options)
-          }, cesiumOptions.interval)
-        }
-      })
       // Required to be aware of the removed source
       this.viewer.dataSources.dataSourceRemoved.addEventListener((collection, oldSource) => {
         // Remove update timer
         if (oldSource === dataSource) {
-          clearTimeout(dataSource.updateTimer)
-          dataSource.updateTimer = null
+          this.stopRealtimeGeoJsonDataUpdate(dataSource)
         }
       })
-      // Launch first update
-      await updateData()
+      // Launch first update if required
+      if (start) await this.startRealtimeGeoJsonDataUpdate(dataSource, options)
     },
     async createCesiumGeoJsonLayer (options) {
       const cesiumOptions = options.cesium
@@ -100,7 +108,7 @@ let geojsonLayersMixin = {
           }
         }
         // If we already have a source we simply use it otherwise we create/load it
-        if (!dataSource.name) {
+        if (!dataSource || !dataSource.name) {
           dataSource = new Cesium.GeoJsonDataSource()
           dataSource.notFromDrop = true
           // Check for feature service layers
@@ -243,10 +251,14 @@ let geojsonLayersMixin = {
       return style
     },
     getDefaultEntityStyle (entity, options) {
+      const properties = (entity.properties ? entity.properties.getValue(0) : null)
       let cesiumOptions = options.cesium || options
-      return _.merge({},
+      let style = _.merge({},
         this.options.entityStyle || {},
         cesiumOptions.entityStyle || {})
+      // We allow to template style properties according to feature properties, because it can be slow on large we have an option
+      if (cesiumOptions.templateStyle) style = templateObject({ properties }, style)
+      return style
     },
     getDefaultClusterStyle (entities, cluster, options) {
       let cesiumOptions = options.cesium || options
@@ -388,6 +400,18 @@ let geojsonLayersMixin = {
       if (popup) {
         const position = this.getPositionForEntity(this.clickedEntity)
         this.popupEntity = this.viewer.entities.add({ position, label: popup })
+      }
+    },
+    async updateLayer (name, geoJson) {
+      // Retrieve the layer
+      const layer = this.getLayerByName(name)
+      if (!layer) return // Cannot update invisible layer
+      const dataSource = this.getCesiumLayerByName(name)
+      if (!dataSource) return // Cannot update invisible layer
+      if (typeof dataSource.load === 'function') {
+        await this.updateRealtimeGeoJsonData(dataSource, layer, geoJson)
+        this.applyStyle(dataSource.entities, layer)
+        this.applyTooltips(dataSource.entities, layer)
       }
     }
   },

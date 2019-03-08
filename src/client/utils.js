@@ -48,6 +48,7 @@ export const LeafletStyleMappings = {
   'icon-html': 'icon.options.html',
   'icon-class': 'icon.options.className'
 }
+export const LeafletStyleOptions = _.values(LeafletStyleMappings)
 
 // Bind a set of events on given Leaflet object to a vue component
 export function bindLeafletEvents (object, events, component, options) {
@@ -82,6 +83,7 @@ export const CesiumStyleMappings = {
   'marker-symbol': 'markerSymbol',
   'marker-color': 'markerColor'
 }
+export const CesiumStyleOptions = _.values(CesiumStyleMappings)
 
 export function convertCesiumHandlerEvent(type) {
   const buttonMapping = {

@@ -135,12 +135,6 @@ let geojsonLayersMixin = {
         // Parse icon options to get icon object if any
         if (icon) {
           let options = icon.options
-          // We allow to template some properties
-          if (feature.properties && options) {
-            const properties = feature.properties
-            // Avoid updating in place and loose template(s)
-            options = Object.assign({}, templateObject({ properties, feature }, options, ['iconUrl', 'html']))
-          }
           icon = _.get(L, icon.type)(options)
           return _.get(L, markerStyle.type || 'marker')(latlng, { icon })
         } else {
@@ -199,22 +193,26 @@ let geojsonLayersMixin = {
       return style
     },
     getDefaultMarker (feature, latlng, options) {
+      const properties = feature.properties
       let leafletOptions = options.leaflet || options
-      return this.createMarkerFromStyle(latlng, Object.assign({}, this.options.pointStyle,
-        leafletOptions.layerStyle,
-        this.convertFromSimpleStyleSpec(feature.style || feature.properties)), feature)
-    },
-    getDefaultStyle (feature, options) {
-      let leafletOptions = options.leaflet || options
-      return Object.assign({}, this.options.featureStyle || {
-        opacity: 1,
-        radius: 6,
-        color: 'red',
-        fillOpacity: 0.5,
-        fillColor: 'green'
-      },
+      let style = Object.assign({}, this.options.pointStyle,
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
+
+      // We allow to template style properties according to feature, because it can be slow on large we have an option
+      if (leafletOptions.templateStyle) style = templateObject({ properties, feature }, style)
+      return this.createMarkerFromStyle(latlng, style)
+    },
+    getDefaultStyle (feature, options) {
+      const properties = feature.properties
+      let leafletOptions = options.leaflet || options
+      let style = Object.assign({}, this.options.featureStyle,
+        leafletOptions.layerStyle,
+        this.convertFromSimpleStyleSpec(feature.style || feature.properties))
+
+      // We allow to template style properties according to feature, because it can be slow on large we have an option
+      if (leafletOptions.templateStyle) style = templateObject({ properties, feature }, style)
+      return style
     },
     getDefaultPopup (feature, layer, options) {
       let leafletOptions = options.leaflet || options
