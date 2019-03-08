@@ -78,6 +78,8 @@ let forecastLayersMixin = {
       else throw new Error('Cannot find valid forecast at location')
     },
     async getForecastProbe (name) {
+      // Not yet ready
+      if (!this.forecastModel) return
       // Avoid reloading probe when not necessary
       if (this.probe && (this.probe.name === name) && (this.probe.forecast === this.forecastModel.name)) {
         return this.probe
@@ -98,6 +100,8 @@ let forecastLayersMixin = {
       }
     },
     async getForecastForFeature (featureId, startTime, endTime) {
+      // Not yet ready
+      if (!this.forecastModel) return
       // Check if probe is available
       if (!this.probe) return
 
