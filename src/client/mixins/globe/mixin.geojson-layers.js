@@ -22,13 +22,19 @@ let geojsonLayersMixin = {
       dataSource.updateTimer = null
     },
     async updateRealtimeGeoJsonData (dataSource, options, geoJson) {
+      const featureId = _.get(options, 'featureId')
       const cesiumOptions = options.cesium
-      const source = _.get(cesiumOptions, 'source')
+      let source = _.get(cesiumOptions, 'source')
+      let queryInterval
+      if (cesiumOptions.queryInterval) queryInterval = cesiumOptions.queryInterval
+      // If query interval not given use 2 x refresh interval as default value
+      // this ensures we cover last interval if server/client update processes are not in sync
+      if (!queryInterval && cesiumOptions.interval) queryInterval = 2 * cesiumOptions.interval
+      // Update function to fetch for new data and update Cesium data source
       if (options.probeService) {
         // If the probe location is given by another service use it on initialization
-        if (!initialized) {
+        if (dataSource.entities.values.length === 0) {
           await dataSource.load(this.getProbeFeatures(options), cesiumOptions)
-          initialized = true
         }
         // Then get last available measures
         let measureSource = new Cesium.GeoJsonDataSource()
@@ -51,23 +57,20 @@ let geojsonLayersMixin = {
       } else if (options.service) { // Check for feature service layers only, in this case update in place
         // If no probe reference, nothing to be initialized
         await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
-      } else if (source || geoJson) {
+      } else if (geoJson) {
+        await dataSource.load(geoJson, cesiumOptions)
+      } else {
+        if (_.isNil(source)) {
+          // Empty valid GeoJson
+          source = { type: 'FeatureCollection', features: [] }
+        }
         // Assume source is an URL or a promise returning GeoJson
-        await dataSource.load(geoJson ? geoJson : source, cesiumOptions)
+        await dataSource.load(source, cesiumOptions)
       }
     },
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
-      const featureId = _.get(options, 'featureId')
       const cesiumOptions = options.cesium
-      const source = _.get(cesiumOptions, 'source')
       const start = _.get(cesiumOptions, 'start', true) // Default is to start fetching
-      let queryInterval
-      if (cesiumOptions.queryInterval) queryInterval = cesiumOptions.queryInterval
-      // If query interval not given use 2 x refresh interval as default value
-      // this ensures we cover last interval if server/client update processes are not in sync
-      if (!queryInterval && cesiumOptions.interval) queryInterval = 2 * cesiumOptions.interval
-      // Update function to fetch for new data and update Cesium data source
-      let initialized = !options.probeService // If no probe reference, nothing to be initialized
       // Required to be aware of the removed source
       this.viewer.dataSources.dataSourceRemoved.addEventListener((collection, oldSource) => {
         // Remove update timer
