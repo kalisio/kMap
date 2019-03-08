@@ -32,6 +32,23 @@ export function getTimeInterval (times, mode = 'minimum') {
   return interval
 }
 
+export const LeafletStyleMappings = {
+  'stroke': 'color',
+  'stroke-opacity': 'opacity',
+  'stroke-width': 'weight',
+  'fill-opacity': 'fillOpacity',
+  'fill-color': 'fillColor',
+  'marker-size': 'icon.options.iconSize',
+  'marker-symbol': 'icon.options.iconUrl',
+  'marker-color': 'icon.options.markerColor',
+  'icon-color': 'icon.options.iconColor',
+  'icon-size': 'icon.options.iconSize',
+  'icon-anchor': 'icon.options.iconAnchor',
+  'icon-classes': 'icon.options.iconClasses',
+  'icon-html': 'icon.options.html',
+  'icon-class': 'icon.options.className'
+}
+
 // Bind a set of events on given Leaflet object to a vue component
 export function bindLeafletEvents (object, events, component, options) {
   events.forEach(eventName => {
@@ -55,6 +72,15 @@ export const LeafletEvents = {
   Layer: ['add', 'remove', 'popupopen', 'popupclose', 'tooltipopen', 'tooltipclose'],
   Marker: ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'contextmenu',
     'dragstart', 'dragend', 'drag', 'movestart', 'moveend', 'move']
+}
+
+export const CesiumStyleMappings = {
+  'stroke': 'stroke',
+  'stroke-width': 'strokeWidth',
+  'fill-color': 'fill',
+  'marker-size': 'markerSize',
+  'marker-symbol': 'markerSymbol',
+  'marker-color': 'markerColor'
 }
 
 export function convertCesiumHandlerEvent(type) {

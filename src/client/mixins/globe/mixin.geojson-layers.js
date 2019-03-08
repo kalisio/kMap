@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { getTextTable } from '../../utils'
+import { CesiumStyleMappings, getTextTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -174,17 +174,9 @@ let geojsonLayersMixin = {
     convertFromSimpleStyleSpec (style, inPlace = false) {
       if (!style) return {}
       let convertedStyle = (inPlace ? style : {})
-      const mappings = {
-        'stroke': 'stroke',
-        'stroke-width': 'strokeWidth',
-        'fill-color': 'fill',
-        'marker-size': 'markerSize',
-        'marker-symbol': 'markerSymbol',
-        'marker-color': 'markerColor'
-      }
       _.forOwn(style, (value, key) => {
-        if (_.has(mappings, key)) {
-          const mapping = _.get(mappings, key)
+        if (_.has(CesiumStyleMappings, key)) {
+          const mapping = _.get(CesiumStyleMappings, key)
           _.set(convertedStyle, mapping, value)
           if (inPlace) _.unset(style, key)
           // Convert from string to color object as required by cesium

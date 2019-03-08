@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
-import { LeafletEvents, bindLeafletEvents, getHtmlTable, templateObject } from '../../utils'
+import { LeafletEvents, LeafletStyleMappings, bindLeafletEvents, getHtmlTable, templateObject } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -153,25 +153,9 @@ let geojsonLayersMixin = {
     convertFromSimpleStyleSpec (style, inPlace) {
       if (!style) return {}
       let convertedStyle = (inPlace ? style : {})
-      const mappings = {
-        'stroke': 'color',
-        'stroke-opacity': 'opacity',
-        'stroke-width': 'weight',
-        'fill-opacity': 'fillOpacity',
-        'fill-color': 'fillColor',
-        'marker-size': 'icon.options.iconSize',
-        'marker-symbol': 'icon.options.iconUrl',
-        'marker-color': 'icon.options.markerColor',
-        'icon-color': 'icon.options.iconColor',
-        'icon-size': 'icon.options.iconSize',
-        'icon-anchor': 'icon.options.iconAnchor',
-        'icon-classes': 'icon.options.iconClasses',
-        'icon-html': 'icon.options.html',
-        'icon-class': 'icon.options.className'
-      }
       _.forOwn(style, (value, key) => {
-        if (_.has(mappings, key)) {
-          const mapping = _.get(mappings, key)
+        if (_.has(LeafletStyleMappings, key)) {
+          const mapping = _.get(LeafletStyleMappings, key)
           // Specific options
           switch (key) {
             case 'icon-size':
