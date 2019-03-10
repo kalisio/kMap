@@ -148,30 +148,15 @@ export function getTextTable(properties) {
   return text
 }
 
-// Template a string or array of strings property according to a given item
-export function template (context, property) {
-  const isArray = Array.isArray(property)
-  // Recurse
-  if (!isArray && (typeof property === 'object')) return templateObject(context, property)
-  let values = (isArray ? property : [property])
-  values = values.map(value => {
-    if (typeof value === 'string') {
-      let compiler = _.template(value)
-      return compiler(context)
-    } else if (typeof value === 'object') {
-      return templateObject(context, value)
-    } else {
-      return value
+// Utility function used to template strings from a fixed set of property pathes on a given object
+// Returns a new object does not template in place
+export function templateObject (context, object, properties) {
+  let result = _.cloneDeep(object)
+  properties.forEach(property => {
+    if (_.has(object, property)) {
+      const compiler = _.template(_.get(object, property))
+      _.set(result, property, compiler(context))
     }
   })
-
-  const result = (isArray ? values : values[0])
   return result
-}
-
-// Utility function used to template strings from a fixed set of properties on a given object (recursive)
-export function templateObject (context, object, properties) {
-  // Restrict to some properties only ?
-  let keys = (properties || _.keys(object))
-  return _.mapValues(object, (value, key) => (keys.includes(key) ? template(context, value) : value))
 }

@@ -199,8 +199,9 @@ let geojsonLayersMixin = {
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
 
-      // We allow to template style properties according to feature, because it can be slow on large we have an option
-      if (leafletOptions.templateStyle) style = templateObject({ properties, feature }, style)
+      // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
+      if (leafletOptions.template) style = templateObject({ properties, feature }, style,
+        leafletOptions.template.map(property => _.has(LeafletStyleMappings, property) ? _.get(LeafletStyleMappings, property) : property))
       return this.createMarkerFromStyle(latlng, style)
     },
     getDefaultStyle (feature, options) {
@@ -210,8 +211,9 @@ let geojsonLayersMixin = {
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
 
-      // We allow to template style properties according to feature, because it can be slow on large we have an option
-      if (leafletOptions.templateStyle) style = templateObject({ properties, feature }, style)
+      // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
+      if (leafletOptions.template) style = templateObject({ properties, feature }, style,
+        leafletOptions.template.map(property => _.has(LeafletStyleMappings, property) ? _.get(LeafletStyleMappings, property) : property))
       return style
     },
     getDefaultPopup (feature, layer, options) {
@@ -221,15 +223,20 @@ let geojsonLayersMixin = {
         const popupStyle = leafletOptions.popup || this.options.popup
         // Default content
         let properties = feature.properties
+        let html
         // Custom list given ?
         if (popupStyle) {
           if (popupStyle.pick) {
             properties = _.pick(properties, popupStyle.pick)
           } else if (popupStyle.omit) {
             properties = _.omit(properties, popupStyle.omit)
+          } else if (popupStyle.template) {
+            let compiler = _.template(popupStyle.template)
+            html = compiler({ properties, feature })
           }
         }
-        let html = getHtmlTable(properties)
+        // Default HTML table if no template
+        if (!html) html = getHtmlTable(properties)
         // Configured or default style
         if (popupStyle && popupStyle.options) {
           popup = L.popup(popupStyle.options, layer)

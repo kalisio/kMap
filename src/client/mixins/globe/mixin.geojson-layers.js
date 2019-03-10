@@ -260,7 +260,8 @@ let geojsonLayersMixin = {
         this.options.entityStyle || {},
         cesiumOptions.entityStyle || {})
       // We allow to template style properties according to feature properties, because it can be slow on large we have an option
-      if (cesiumOptions.templateStyle) style = templateObject({ properties }, style)
+      if (cesiumOptions.template) style = templateObject({ properties, feature }, style,
+        cesiumOptions.template.map(property => _.has(CesiumStyleMappings, property) ? _.get(CesiumStyleMappings, property) : property))
       return style
     },
     getDefaultClusterStyle (entities, cluster, options) {
@@ -287,17 +288,21 @@ let geojsonLayersMixin = {
           cesiumOptions.popup || {})
         // Default content
         let properties = entity.properties.getValue(0)
+        let text
         // Custom list given ?
         if (popupStyle) {
           if (popupStyle.pick) {
             properties = _.pick(properties, popupStyle.pick)
           } else if (popupStyle.omit) {
             properties = _.omit(properties, popupStyle.omit)
+          } else if (popupStyle.template) {
+            let compiler = _.template(popupStyle.template)
+            text = compiler({ properties })
           }
         }
         // Cesium does not support HTML
-        //let html = getHtmlTable(properties)
-        let text = getTextTable(properties)
+        //if (!html) html = getHtmlTable(properties)
+        if (!text) text = getTextTable(properties)
         popup = Object.assign({
           text: text,
           show : true,
@@ -314,17 +319,16 @@ let geojsonLayersMixin = {
           cesiumOptions.tooltip || {})
         // Default content
         let properties = entity.properties.getValue(0)
-        let html
+        let text
         if (tooltipStyle.property) {
-          html = (_.has(properties, tooltipStyle.property)
-          ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
+          text = _.get(properties, tooltipStyle.property)
         } else if (tooltipStyle.template) {
           let compiler = _.template(tooltipStyle.template)
-          html = compiler({ properties, feature })
+          text = compiler({ properties })
         }
-        if (html) {
+        if (text) {
           tooltip = Object.assign({
-            text: html,
+            text,
             show : (tooltipStyle.permanent ? true : false)
           }, tooltipStyle.options)
         }
