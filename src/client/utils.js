@@ -147,16 +147,3 @@ export function getTextTable(properties) {
   }
   return text
 }
-
-// Utility function used to template strings from a fixed set of property pathes on a given object
-// Returns a new object does not template in place
-export function templateObject (context, object, properties) {
-  let result = _.cloneDeep(object)
-  properties.forEach(property => {
-    if (_.has(object, property)) {
-      const compiler = _.template(_.get(object, property))
-      _.set(result, property, compiler(context))
-    }
-  })
-  return result
-}

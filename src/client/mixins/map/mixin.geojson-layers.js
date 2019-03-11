@@ -99,6 +99,20 @@ let geojsonLayersMixin = {
         if (leafletOptions.cluster) {
           this.processClusterLayerOptions(options)
         }
+        // Optimize templating by creating compilers up-front
+        let layerStyleTemplate = _.get(leafletOptions, 'template')
+        if (layerStyleTemplate) {
+          // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
+          leafletOptions.template = layerStyleTemplate.map(property => ({ property, compiler: _.template(_.get(leafletOptions, property)) }))
+        }
+        const popupTemplate = _.get(leafletOptions, 'popup.template')
+        if (popupTemplate) {
+          leafletOptions.popup.compiler = _.template(popupTemplate)
+        }
+        const tooltipTemplate = _.get(leafletOptions, 'tooltip.template')
+        if (tooltipTemplate) {
+          leafletOptions.tooltip.compiler = _.template(tooltipTemplate)
+        }
         // Merge generic GeoJson options and layer options
         let geoJsonOptions = this.getGeoJsonOptions(options)
         Object.keys(geoJsonOptions).forEach(key => {
@@ -199,9 +213,14 @@ let geojsonLayersMixin = {
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
 
-      // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
-      if (leafletOptions.template) style = templateObject({ properties, feature }, style,
-        leafletOptions.template.map(property => _.has(LeafletStyleMappings, property) ? _.get(LeafletStyleMappings, property) : property))
+      // We allow to template style properties according to feature,
+      // because it can be slow you have to specify a subset of properties
+      if (leafletOptions.template) {
+        leafletOptions.template.forEach(entry => {
+          // Perform templating
+          _.set(style, _.get(LeafletStyleMappings, entry.property), entry.compiler({ properties, feature }))
+        })
+      }
       return this.createMarkerFromStyle(latlng, style)
     },
     getDefaultStyle (feature, options) {
@@ -211,9 +230,14 @@ let geojsonLayersMixin = {
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
 
-      // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
-      if (leafletOptions.template) style = templateObject({ properties, feature }, style,
-        leafletOptions.template.map(property => _.has(LeafletStyleMappings, property) ? _.get(LeafletStyleMappings, property) : property))
+      // We allow to template style properties according to feature,
+      // because it can be slow you have to specify a subset of properties
+      if (leafletOptions.template) {
+        leafletOptions.template.forEach(entry => {
+          // Perform templating
+          _.set(style, _.get(LeafletStyleMappings, entry.property), entry.compiler({ properties, feature }))
+        })
+      }
       return style
     },
     getDefaultPopup (feature, layer, options) {
@@ -231,7 +255,7 @@ let geojsonLayersMixin = {
           } else if (popupStyle.omit) {
             properties = _.omit(properties, popupStyle.omit)
           } else if (popupStyle.template) {
-            let compiler = _.template(popupStyle.template)
+            const compiler = popupStyle.compiler
             html = compiler({ properties, feature })
           }
         }
@@ -263,7 +287,7 @@ let geojsonLayersMixin = {
           html = (_.has(properties, tooltipStyle.property)
           ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
         } else if (tooltipStyle.template) {
-          let compiler = _.template(tooltipStyle.template)
+          const compiler = tooltipStyle.compiler
           html = compiler({ properties, feature })
         }
         if (html) {

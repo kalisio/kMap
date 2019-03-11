@@ -8,11 +8,7 @@ let geojsonLayersMixin = {
     async startRealtimeGeoJsonDataUpdate (dataSource, options) {
       const cesiumOptions = options.cesium
       // Setup update timer
-      dataSource.updateTimer = setInterval(async () => {
-        await this.updateRealtimeGeoJsonData(dataSource, options)
-        this.applyStyle(dataSource.entities, options)
-        this.applyTooltips(dataSource.entities, options)
-      }, cesiumOptions.interval)
+      dataSource.updateTimer = setInterval(() => dataSource.updateGeoJson(), cesiumOptions.interval)
       // Launch first update
       await this.updateRealtimeGeoJsonData(dataSource, options)
     },
@@ -71,6 +67,12 @@ let geojsonLayersMixin = {
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
       const cesiumOptions = options.cesium
       const start = _.get(cesiumOptions, 'start', true) // Default is to start fetching
+      // Add update capabilities
+      dataSource.updateGeoJson = async (geoJson) => {
+        await this.updateRealtimeGeoJsonData(dataSource, options, geoJson)
+        this.applyStyle(dataSource.entities, options)
+        this.applyTooltips(dataSource.entities, options)
+      }
       // Required to be aware of the removed source
       this.viewer.dataSources.dataSourceRemoved.addEventListener((collection, oldSource) => {
         // Remove update timer
@@ -96,6 +98,21 @@ let geojsonLayersMixin = {
       if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(cesiumOptions.entityStyle)
       if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
       if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
+      if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
+      // Optimize templating by creating compilers up-front
+      let layerStyleTemplate = _.get(cesiumOptions, 'template')
+      if (layerStyleTemplate) {
+        // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
+        cesiumOptions.template = layerStyleTemplate.map(property => ({ property, compiler: _.template(_.get(leafletOptions, property)) }))
+      }
+      const popupTemplate = _.get(cesiumOptions, 'popup.template')
+      if (popupTemplate) {
+        cesiumOptions.popup.compiler = _.template(popupTemplate)
+      }
+      const tooltipTemplate = _.get(cesiumOptions, 'tooltip.template')
+      if (tooltipTemplate) {
+        cesiumOptions.tooltip.compiler = _.template(tooltipTemplate)
+      }
 
       try {
         const source = _.get(cesiumOptions, 'source')
@@ -259,9 +276,14 @@ let geojsonLayersMixin = {
       let style = _.merge({},
         this.options.entityStyle || {},
         cesiumOptions.entityStyle || {})
-      // We allow to template style properties according to feature properties, because it can be slow on large we have an option
-      if (cesiumOptions.template) style = templateObject({ properties, feature }, style,
-        cesiumOptions.template.map(property => _.has(CesiumStyleMappings, property) ? _.get(CesiumStyleMappings, property) : property))
+      // We allow to template style properties according to feature,
+      // because it can be slow you have to specify a subset of properties
+      if (cesiumOptions.template) {
+        cesiumOptions.template.forEach(entry => {
+          // Perform templating
+          _.set(style, _.get(CesiumStyleMappings, entry.property), entry.compiler({ properties }))
+        })
+      }
       return style
     },
     getDefaultClusterStyle (entities, cluster, options) {
@@ -296,7 +318,7 @@ let geojsonLayersMixin = {
           } else if (popupStyle.omit) {
             properties = _.omit(properties, popupStyle.omit)
           } else if (popupStyle.template) {
-            let compiler = _.template(popupStyle.template)
+            const compiler = popupStyle.compiler
             text = compiler({ properties })
           }
         }
@@ -323,7 +345,7 @@ let geojsonLayersMixin = {
         if (tooltipStyle.property) {
           text = _.get(properties, tooltipStyle.property)
         } else if (tooltipStyle.template) {
-          let compiler = _.template(tooltipStyle.template)
+          const compiler = tooltipStyle.compiler
           text = compiler({ properties })
         }
         if (text) {
@@ -411,15 +433,9 @@ let geojsonLayersMixin = {
     },
     async updateLayer (name, geoJson) {
       // Retrieve the layer
-      const layer = this.getLayerByName(name)
+      const layer = this.getCesiumLayerByName(name)
       if (!layer) return // Cannot update invisible layer
-      const dataSource = this.getCesiumLayerByName(name)
-      if (!dataSource) return // Cannot update invisible layer
-      if (typeof dataSource.load === 'function') {
-        await this.updateRealtimeGeoJsonData(dataSource, layer, geoJson)
-        this.applyStyle(dataSource.entities, layer)
-        this.applyTooltips(dataSource.entities, layer)
-      }
+      if (typeof layer.updateGeoJson === 'function') layer.updateGeoJson(geoJson)
     }
   },
   created () {
