@@ -87,7 +87,10 @@ let baseGlobeMixin = {
         if (layer) break
       }
       // Use default Cesium layer constructor if none found
-      return (layer || this.createCesiumLayer(processedOptions))
+      layer = layer || this.createCesiumLayer(processedOptions)
+      // Keep track of processed options
+      layer.processedOptions = processedOptions
+      return layer
     },
     hasLayer (name) {
       return _.has(this.layers, name)
@@ -188,11 +191,11 @@ let baseGlobeMixin = {
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
       else this.viewer.camera.setView(target)
     },
-    getLayerForEntity (entity) {
+    getLayerNameForEntity (entity) {
       let layerName
       _.forOwn(this.cesiumLayers, (value, key) => {
         if (!layerName && value.entities) {
-          if (value.entities.contains(entity)) layerName = this.getLayerByName(key)
+          if (value.entities.contains(entity)) layerName = key
         }
       })
       return layerName
@@ -210,7 +213,11 @@ let baseGlobeMixin = {
       const pickedObject = this.viewer.scene.pick(event.endPosition || event.position)
       if (pickedObject) {
         emittedEvent.target = pickedObject.id || pickedObject.primitive.id
-        if (emittedEvent.target instanceof Cesium.Entity) options = this.getLayerForEntity(emittedEvent.target)
+        if (emittedEvent.target instanceof Cesium.Entity) {
+          let layer = this.getLayerNameForEntity(emittedEvent.target)
+          if (layer) layer = this.getCesiumLayerByName(layer)
+          if (layer) options = layer.processedOptions
+        }
       }
       // Mimic Leaflet events
       this.$emit(event.originalEvent.name, options, emittedEvent)
