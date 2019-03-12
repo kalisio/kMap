@@ -47,7 +47,6 @@
 
 <script>
 import _ from 'lodash'
-import sift from 'sift'
 import { QBtn, QIcon, QPopover, QList, QItem, QItemSide, QItemTile, QItemMain, QTooltip } from 'quasar'
 
 export default {
