@@ -1,7 +1,7 @@
 <template>
   <div class="row justify-center">
     <q-list dense no-border>
-      <template v-for="layer in selection">
+      <template v-for="layer in layers">
         <!--q-btn v-if="options.buttons"
           :id ="layer.name" 
           :key="layer.name" 
@@ -15,7 +15,7 @@
             {{layer.name}}
           </q-tooltip>
         </q-btn-->
-        <q-item :class="{ selected: layer.isVisible }" :id="layer.name | kebabCase" :key="layer.name" inset-separator link @click="onLayerClicked(layer, selection)">
+        <q-item :class="{ selected: layer.isVisible }" :id="layer.name | kebabCase" :key="layer.name" inset-separator link @click="onLayerClicked(layer, layers)">
           <q-item-side v-if="!layer.iconUrl" :icon="layer.icon" left>
           </q-item-side>
           <q-item-side v-else :avatar="layer.iconUrl" left>
@@ -77,12 +77,6 @@ export default {
       default: () => {}
     }
   },
-  computed: {
-    selection () {
-      let selection = sift(this.options.filter || {}, _.values(this.layers))
-      return selection
-    }
-  },
   methods: {
     key (layer, action) {
       return layer.name + '-' + action
@@ -90,9 +84,9 @@ export default {
     callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)
     },
-    onLayerClicked (layer, selection) {
+    onLayerClicked (layer, layers) {
       if (this.options.exclusive) {
-        let selectedLayer = _.find(selection, { isVisible: true })
+        let selectedLayer = _.find(layers, { isVisible: true })
         if (selectedLayer) this.callHandler({ name: 'toggle' }, selectedLayer)
         if (layer === selectedLayer) return
       }
