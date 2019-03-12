@@ -64,8 +64,8 @@ export default {
   },
   props: {
     layers: {
-      type: Object,
-      default: () => {}
+      type: Array,
+      default: () => []
     },
     layerHandlers: {
       type: Object,
