@@ -173,13 +173,19 @@ let baseGlobeMixin = {
       delete this.cesiumLayers[name]
       this.$emit('layer-removed', layer)
     },
+    zoomToBounds (bounds) {
+      this.viewer.camera.flyTo({
+        duration: 0,
+        destination : Cesium.Rectangle.fromDegrees(bounds[0][1], bounds[0][0], bounds[1][1], bounds[1][0])
+      })
+    },
     zoomToLayer (name) {
       const layer = this.getCesiumLayerByName(name)
       if (!layer || !layer.entities) return
 
       this.viewer.flyTo(layer.entities, { duration: 0 })
     },
-    center (longitude, latitude, altitude = 0, heading = 0, pitch = -90, roll = 0) {
+    center (longitude, latitude, altitude = 10000, heading = 0, pitch = -90, roll = 0) {
       const target = {
         destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
         orientation: {
@@ -190,6 +196,12 @@ let baseGlobeMixin = {
       }
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
       else this.viewer.camera.setView(target)
+    },
+    setCursor (className) {
+      this.viewer.container.classList.add(className)
+    },
+    unsetCursor (className) {
+      this.viewer.container.classList.remove(className)
     },
     getLayerNameForEntity (entity) {
       let layerName

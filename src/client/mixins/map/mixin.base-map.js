@@ -162,13 +162,16 @@ let baseMapMixin = {
 
       this.map.fitBounds(layer.getBounds(), options)
     },
+    zoomToBounds (bounds) {
+      this.map.fitBounds(bounds)
+    },
     center (longitude, latitude, zoomLevel, options) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12, options)
     },
-    setMapCursor (className) {
+    setCursor (className) {
       L.DomUtil.addClass(this.map._container, className)
     },
-    unsetMapCursor (className) {
+    unsetCursor (className) {
       L.DomUtil.removeClass(this.map._container, className)
     },
     onCurrentMapTimeChanged (datetime) {

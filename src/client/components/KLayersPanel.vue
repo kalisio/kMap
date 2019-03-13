@@ -1,5 +1,6 @@
 <template>
   <q-list>
+    <slot name="panel-header"/>
     <template v-for="category in categories">
       <q-collapsible
         v-if="layersByCategory[category.name].length > 0"
@@ -12,6 +13,7 @@
           :options="category.options || {}" />
       </q-collapsible>
     </template>
+    <slot name="panel-footer"/>
   </q-list>
 </template>
 
