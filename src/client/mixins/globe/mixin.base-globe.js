@@ -134,6 +134,7 @@ let baseGlobeMixin = {
       } else {
         this.viewer.dataSources.add(cesiumLayer)
       }
+      this.$emit('layer-shown', layer, cesiumLayer)
     },
     hideLayer (name) {
       // retrieve the layer
@@ -151,6 +152,7 @@ let baseGlobeMixin = {
       } else {
         this.viewer.dataSources.remove(cesiumLayer, false)
       }
+      this.$emit('layer-hidden', layer, cesiumLayer)
     },
     async addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
@@ -176,7 +178,7 @@ let baseGlobeMixin = {
     zoomToBounds (bounds) {
       this.viewer.camera.flyTo({
         duration: 0,
-        destination : Cesium.Rectangle.fromDegrees(bounds[0][1], bounds[0][0], bounds[1][1], bounds[1][0])
+        destination: Cesium.Rectangle.fromDegrees(bounds[0][1], bounds[0][0], bounds[1][1], bounds[1][0])
       })
     },
     zoomToLayer (name) {
@@ -212,7 +214,7 @@ let baseGlobeMixin = {
       })
       return layerName
     },
-    getDefaultPickHandler(event) {
+    getDefaultPickHandler (event) {
       let emittedEvent = {}
       let options
       let pickedPosition = this.viewer.camera.pickEllipsoid(event.endPosition || event.position, this.viewer.scene.globe.ellipsoid)

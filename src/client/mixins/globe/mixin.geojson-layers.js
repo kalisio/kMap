@@ -103,7 +103,7 @@ let geojsonLayersMixin = {
       let layerStyleTemplate = _.get(cesiumOptions, 'template')
       if (layerStyleTemplate) {
         // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
-        cesiumOptions.template = layerStyleTemplate.map(property => ({ property, compiler: _.template(_.get(leafletOptions, property)) }))
+        cesiumOptions.template = layerStyleTemplate.map(property => ({ property, compiler: _.template(_.get(cesiumOptions, property)) }))
       }
       const popupTemplate = _.get(cesiumOptions, 'popup.template')
       if (popupTemplate) {
@@ -197,10 +197,10 @@ let geojsonLayersMixin = {
           const position = this.getPositionForEntity(entity)
           // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child
           // Similarly ff entity already has a label we need a separated entity anyway
-          //if (entity.label) {
-            this.viewer.entities.add({ parent: entity, position, label: tooltip })
-          //}
-          //else entity.label = new Cesium.LabelGraphics(tooltip)
+          // if (entity.label) {
+          this.viewer.entities.add({ parent: entity, position, label: tooltip })
+          // }
+          // else entity.label = new Cesium.LabelGraphics(tooltip)
         }
       }
     },
@@ -226,13 +226,12 @@ let geojsonLayersMixin = {
         let args = Array.from(arguments)
         const constructor = args[0]
         args.shift()
-        let object = _.get(Cesium, constructor)
+        let Class = _.get(Cesium, constructor)
         // Can be constant, constructable or callable
-        if (typeof object === 'function') {
-          try { return object(...args) }
-          catch (error) { /* Simply avoid raising any error */ }
-          try { return new object(...args) } catch (error) { /* Simply avoid raising any error */ }
-        } else return object
+        if (typeof Class === 'function') {
+          try { return Class(...args) } catch (error) { /* Simply avoid raising any error */ }
+          try { return new Class(...args) } catch (error) { /* Simply avoid raising any error */ }
+        } else return Class
       }
       const mapValue = (value) => {
         if (typeof value === 'object') {
@@ -242,8 +241,7 @@ let geojsonLayersMixin = {
             const constructor = type.replace('Cesium.', '')
             if (Array.isArray(options)) return createCesiumObject(constructor, ...this.convertToCesiumObjects(options))
             else return createCesiumObject(constructor, this.convertToCesiumObjects(options))
-          }
-          else return this.convertToCesiumObjects(value)
+          } else return this.convertToCesiumObjects(value)
         } else if (typeof value === 'string') {
           if (value.startsWith('Cesium.')) {
             const constructor = value.replace('Cesium.', '')
@@ -328,11 +326,11 @@ let geojsonLayersMixin = {
           }
         }
         // Cesium does not support HTML
-        //if (!html) html = getHtmlTable(properties)
+        // if (!html) html = getHtmlTable(properties)
         if (!text) text = getTextTable(properties)
         popup = Object.assign({
           text: text,
-          show : true,
+          show: true
         }, popupStyle.options)
       }
       return popup
@@ -356,7 +354,7 @@ let geojsonLayersMixin = {
         if (text) {
           tooltip = Object.assign({
             text,
-            show : (tooltipStyle.permanent ? true : false)
+            show: (!!tooltipStyle.permanent)
           }, tooltipStyle.options)
         }
       }

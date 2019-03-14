@@ -17,7 +17,7 @@ export default function (name, app, options) {
     geocoders.push(NodeGeocoder(options))
   }
   return {
-    async geocode(geocoder, address) {
+    async geocode (geocoder, address) {
       let results = []
       try {
         results = await geocoder.geocode(address)

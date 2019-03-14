@@ -85,7 +85,7 @@ export const CesiumStyleMappings = {
 }
 export const CesiumStyleOptions = _.values(CesiumStyleMappings)
 
-export function convertCesiumHandlerEvent(type) {
+export function convertCesiumHandlerEvent (type) {
   const buttonMapping = {
     left: 0,
     middle: 1,
@@ -116,7 +116,7 @@ export function convertCesiumHandlerEvent(type) {
   return { name, button }
 }
 
-export function getHtmlTable(properties) {
+export function getHtmlTable (properties) {
   properties = _.pickBy(properties, value => !_.isNil(value))
   const keys = _.keys(properties)
   let html
@@ -134,7 +134,7 @@ export function getHtmlTable(properties) {
   return html
 }
 
-export function getTextTable(properties) {
+export function getTextTable (properties) {
   properties = _.pickBy(properties, value => !_.isNil(value))
   const keys = _.keys(properties)
   let text

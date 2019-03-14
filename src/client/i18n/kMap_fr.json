@@ -14,6 +14,23 @@
     },
     "fileLayers": {
       "IMPORTED_DATA_NAME": "Mes données"
+    },
+    "legend": {
+      "CONVERT_UNITS": "{{layer}}: convertir en {{unit}}"
+    },
+    "activity": {
+      "REMOVE_LABEL": "Supprimer",
+      "REMOVE_DIALOG_TITLE": "Supprimer {{layer}} ?",
+      "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloier supprimer {{layer}} de votre espace de travail ?",
+      "ZOOM_TO_LABEL": "Zoomer sur",
+      "TOGGLE_FULLSCREEN": "Plein écran",
+      "GEOLOCATE": "Ma position",
+      "GEOCODE": "Rechercher",
+      "GEOCODING": "Rechercher un lieu",
+      "GEOCODE_BUTTON": "Géocoder",
+      "CLOSE_GEOCODING_ACTION": "Fermer",
+      "PROBE": "Sonder",
+      "PROBED_LOCATION": "Sonde"
     }
   },
   "KLocationField": {

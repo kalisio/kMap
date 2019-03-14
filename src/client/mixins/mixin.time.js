@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import moment from 'moment'
 import { Events } from 'quasar'
 
@@ -43,7 +44,7 @@ let timeMixin = {
     }
   },
   methods: {
-    convertToMoment(datetime) {
+    convertToMoment (datetime) {
       if (moment.isMoment(datetime)) {
         return datetime
       } else { // Covert from Date, string or milliseconds (ie EPOCH)
@@ -57,7 +58,7 @@ let timeMixin = {
     setTimeFormat (format) {
       this.currentTimeFormat = format
     },
-    formatTime(format, datetime) {
+    formatTime (format, datetime) {
       let currentTime = (datetime ? this.convertToMoment(datetime) : this.currentTime)
       if (!this.currentTimeFormat.utc) {
         // Convert to local time

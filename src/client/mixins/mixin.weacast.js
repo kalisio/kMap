@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import L from 'leaflet'
+import logger from 'loglevel'
 import moment from 'moment'
 import { weacast } from 'weacast-core/client'
 import { getNearestTime } from '../utils'
@@ -30,7 +31,7 @@ let weacastMixin = {
         if (weacastAccessToken) await this.weacastApi.authenticate()
         else await this.weacastApi.authenticate({ strategy: 'jwt', accessToken })
         this.setupForecastModels()
-      } catch(error) {
+      } catch (error) {
         logger.error('Cannot initialize weacast API', error)
       }
     },

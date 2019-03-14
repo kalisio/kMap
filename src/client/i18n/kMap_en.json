@@ -14,6 +14,23 @@
     },
     "fileLayers": {
       "IMPORTED_DATA_NAME": "My data"
+    },
+    "legend": {
+      "CONVERT_UNITS": "{{layer}}: convert to {{unit}}"
+    },
+    "activity": {
+      "REMOVE_LABEL": "Remove",
+      "REMOVE_DIALOG_TITLE": "Remove {{layer}} ?",
+      "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",
+      "ZOOM_TO_LABEL": "Zoom to",
+      "TOGGLE_FULLSCREEN": "Fullscreen",
+      "GEOLOCATE": "My position",
+      "GEOCODE": "Find",
+      "GEOCODING": "Find a location",
+      "GEOCODE_BUTTON": "Geocode",
+      "CLOSE_GEOCODING_ACTION": "Close",
+      "PROBE": "Probe",
+      "PROBED_LOCATION": "Probe"
     }
   },
   "KLocationField": {

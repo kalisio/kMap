@@ -39,7 +39,7 @@ export default {
       // We filter one value out of N according to decimation factor
       return (index % this.decimationFactor) === 0
     },
-    setupTimeTicks() {
+    setupTimeTicks () {
       const size = this.$el.getBoundingClientRect()
       if (!this.times || !size.width) return
       // Choose the right step size to ensure we have almost 100px between hour ticks
@@ -78,7 +78,7 @@ export default {
       this.datasets = []
       const time = this.feature.time || this.feature.forecastTime
       const properties = this.feature.properties
-      
+
       this.variables.forEach(variable => {
         const unit = variable.units[0]
         const label = this.$t(variable.label) || variable.label
@@ -134,7 +134,7 @@ export default {
       }
 
       // Check if there is another variable using the same unit axis
-      let yAxis = _.find(this.config.options.scales.yAxes, axis => axis.id === dataset.yAxisID) 
+      let yAxis = _.find(this.config.options.scales.yAxes, axis => axis.id === dataset.yAxisID)
       if (metadata.hidden) {
         let hideYAxis = true
         datasetsWithYAxis.forEach(otherDataset => {
@@ -160,7 +160,7 @@ export default {
         this.chart.destroy()
         this.chart = null
       }
-      
+
       this.setupAvailableTimes()
       this.setupTimeTicks()
       this.setupAvailableDatasets()
@@ -231,7 +231,7 @@ export default {
               },
               onClick: (event) => {
                 // The annotation is bound to the `this` variable
-                //console.log('Annotation', event.type, this)
+                // console.log('Annotation', event.type, this)
               }
             }]
           }

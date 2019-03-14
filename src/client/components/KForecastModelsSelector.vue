@@ -57,7 +57,7 @@ export default {
     }
   },
   methods: {
-    callHandler(action, layer) {
+    callHandler (action, layer) {
       if (this.forecastModelHandlers[action]) this.forecastModelHandlers[action](layer)
     },
     onModelClicked (model) {

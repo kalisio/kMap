@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
-import { LeafletEvents, LeafletStyleMappings, bindLeafletEvents, getHtmlTable, templateObject } from '../../utils'
+import { LeafletEvents, LeafletStyleMappings, bindLeafletEvents, getHtmlTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -178,8 +178,8 @@ let geojsonLayersMixin = {
           if (inPlace) _.unset(style, key)
           // In this case we have a marker spec
           if (key.startsWith('icon') || key.startsWith('marker')) {
-            _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes') ?
-              'icon.fontAwesome' : _.has(style, 'icon-html') ? 'divIcon' : 'icon'))
+            _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes')
+              ? 'icon.fontAwesome' : _.has(style, 'icon-html') ? 'divIcon' : 'icon'))
             _.set(convertedStyle, 'type', 'marker')
           }
         }

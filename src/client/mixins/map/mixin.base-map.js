@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import moment from 'moment'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
@@ -98,28 +97,18 @@ let baseMapMixin = {
 
       // Create the leaflet layer on first show
       let leafletLayer = this.getLeafletLayerByName(name)
-      let createdLeafletLayer = false
-
       if (!leafletLayer) {
-        createdLeafletLayer = true
         leafletLayer = await this.createLayer(layer)
       }
-
       // Add the leaflet layer to the map
       this.leafletLayers[name] = leafletLayer
-
       this.map.addLayer(leafletLayer)
+
       // Ensure base layer will not pop on top of others
       if (layer.type === 'BaseLayer') leafletLayer.bringToBack()
-
       // Apply the current time if needed
       if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(this.currentTime)
-
-      // emit event
-      if (createdLeafletLayer) {
-        this.$emit('leaflet-layer-added', {leafletLayer, layer})
-      }
-      this.$emit('leaflet-layer-shown', {leafletLayer, layer})
+      this.$emit('layer-shown', layer, leafletLayer)
     },
     hideLayer (name) {
       // Retrieve the layer
@@ -131,9 +120,7 @@ let baseMapMixin = {
       // Remove the leaflet layer from map
       let leafletLayer = this.leafletLayers[name]
       this.map.removeLayer(leafletLayer)
-
-      // emit event
-      this.$emit('leaflet-layer-hidden', {leafletLayer, layer})
+      this.$emit('layer-hidden', layer, leafletLayer)
     },
     async addLayer (layer) {
       if (layer && !this.hasLayer(layer.name)) {
