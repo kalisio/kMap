@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import _ from 'lodash'
 import { QCollapsible, QBtn, QIcon, QTooltip, QList, QItem, QItemSide, QItemTile, QItemMain } from 'quasar'
 
 export default {

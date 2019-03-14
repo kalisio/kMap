@@ -76,7 +76,6 @@ export default {
     },
     setupAvailableDatasets () {
       this.datasets = []
-      const color = Chart.helpers.color
       const time = this.feature.time || this.feature.forecastTime
       const properties = this.feature.properties
       
@@ -119,7 +118,6 @@ export default {
     toggleVariable (variableItem) {
       const dataset = this.datasets[variableItem.datasetIndex]
       let metadata = this.chart.getDatasetMeta(variableItem.datasetIndex)
-      const variable = this.variables[variableItem.datasetIndex]
       // Check if there is others variables using the same unit axis
       let datasetsWithYAxis = []
       this.datasets.forEach((otherDataset, index) => {
