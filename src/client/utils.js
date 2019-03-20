@@ -46,7 +46,9 @@ export const LeafletStyleMappings = {
   'icon-anchor': 'icon.options.iconAnchor',
   'icon-classes': 'icon.options.iconClasses',
   'icon-html': 'icon.options.html',
-  'icon-class': 'icon.options.className'
+  'icon-class': 'icon.options.className',
+  'icon-x-offset': 'icon.options.iconXOffset',
+  'icon-y-offset': 'icon.options.iconYOffset'
 }
 export const LeafletStyleOptions = _.values(LeafletStyleMappings)
 

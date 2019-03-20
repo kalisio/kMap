@@ -72,11 +72,18 @@ let geojsonLayersMixin = {
         // Empty valid GeoJson
         _.set(leafletOptions, 'source', { type: 'FeatureCollection', features: [] })
       } else if (typeof dataSource === 'string') { // URL ? If so load data
-        let response = await fetch(dataSource)
-        if (response.status !== 200) {
-          throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
+        let data
+        // Check for feature service layers
+        if (options.service) {
+          data = await this.getFeatures(options)
+        } else { // Otherwise standard HTTP
+          let response = await fetch(dataSource)
+          if (response.status !== 200) {
+            throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
+          }
+          data = await response.json()
         }
-        _.set(leafletOptions, 'source', await response.json())
+        _.set(leafletOptions, 'source', data)
       }
     },
     processClusterLayerOptions (options) {
