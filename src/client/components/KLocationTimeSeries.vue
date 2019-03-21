@@ -68,10 +68,17 @@ export default {
       // Make union of all available times for x-axis
       this.times = _.union(...this.times).map(time => moment.utc(time)).sort((a, b) => a - b).filter(this.filter)
       // Compute min time interval
-      this.timeInterval = 1 // 1h by default
       if (this.times.length > 1) {
         // Convert to hours
         this.timeInterval = getTimeInterval(this.times) / (3600 * 1000)
+      } else {
+        this.timeInterval = 1 // 1h by default
+      }
+      // Then range
+      if (this.times.length > 1) {
+        this.timeRange = [this.times[0], this.times[this.times.length - 1]]
+      } else {
+        this.timeRange = null
       }
     },
     setupAvailableDatasets () {
@@ -211,32 +218,37 @@ export default {
           },
           legend: {
             onClick: (event, legendItem) => this.toggleVariable(legendItem)
-          },
-          annotation: {
-            drawTime: 'afterDatasetsDraw',
-            events: ['click'],
-            annotations: [{
-              id: 'current-time',
-              type: 'line',
-              mode: 'vertical',
-              scaleID: 'time',
-              value: new Date(this.currentFormattedTime.iso),
-              borderColor: 'grey',
-              borderWidth: 2,
-              label: {
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                content: `${date} - ${time}`,
-                position: 'top',
-                enabled: true
-              },
-              onClick: (event) => {
-                // The annotation is bound to the `this` variable
-                // console.log('Annotation', event.type, this)
-              }
-            }]
           }
         }
       }
+      // Is current time visible in data time range ?
+      const currentTime = moment.utc(this.currentFormattedTime.iso)
+      if (this.timeRange && currentTime.isBetween(...this.timeRange)) {
+        this.config.options.annotation = {
+          drawTime: 'afterDatasetsDraw',
+          events: ['click'],
+          annotations: [{
+            id: 'current-time',
+            type: 'line',
+            mode: 'vertical',
+            scaleID: 'time',
+            value: currentTime.toDate(),
+            borderColor: 'grey',
+            borderWidth: 2,
+            label: {
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              content: `${date} - ${time}`,
+              position: 'top',
+              enabled: true
+            },
+            onClick: (event) => {
+              // The annotation is bound to the `this` variable
+              // console.log('Annotation', event.type, this)
+            }
+          }]
+        }
+      }
+
       this.chart = new Chart(this.$refs.chart.getContext('2d'), this.config)
     }
   }
