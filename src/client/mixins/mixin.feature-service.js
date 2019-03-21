@@ -9,6 +9,12 @@ let featureServiceMixin = {
       let response = await this.$api.getService(options.probeService).find({})
       return response
     },
+    async getProbeFeaturesFromLayer (name) {
+      // Retrieve the layer
+      let layer = this.getLayerByName(name)
+      if (!layer) return
+      return this.getProbeFeatures(layer)
+    },
     async getFeatures (options, queryInterval) {
       // Any base query to process ?
       let baseQuery = {}
@@ -53,6 +59,12 @@ let featureServiceMixin = {
       }
       let response = await this.$api.getService(options.service).find({ query })
       return response
+    },
+    async getFeaturesFromLayer (name, queryInterval) {
+      // Retrieve the layer
+      let layer = this.getLayerByName(name)
+      if (!layer) return
+      return this.getFeatures(layer, queryInterval)
     },
     getMeasureValueAtCurrentTime (times, values) {
       // Check for the right value at time

@@ -24,8 +24,22 @@ let geojsonLayersMixin = {
           if (!oldLayer) return
           // An existing one is found, simply update styling, etc.
           leafletOptions.onEachFeature(feature, oldLayer)
-          if (oldLayer.setStyle) oldLayer.setStyle(leafletOptions.style(feature))
-          if (oldLayer.setIcon) oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature), 'options.icon'))
+          if (oldLayer.setStyle) {
+            // Some vector layers can be used for points, eg circleMarker,
+            // in this case we use marker styling instead of lines/polygons styling
+            if (feature.geometry.type === 'Point') {
+              // FIXME: updating style in place does not seem to work, so for now we recreate the whole marker
+              //oldLayer.setStyle(leafletOptions.pointToLayer(feature))
+              return 
+            } else {
+              oldLayer.setStyle(leafletOptions.style(feature))
+            }
+          }
+          if (oldLayer.setIcon) {
+            // FIXME: updating icon in place requires to recreate it anyway, so for now we recreate the whole marker
+            //oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature, oldLayer.getLatLng()), 'options.icon'))
+            return
+          }
           // And coordinates for points
           // FIXME: support others geometry types ?
           if (feature.geometry.type === 'Point') {
@@ -61,8 +75,11 @@ let geojsonLayersMixin = {
             errorCallback(error)
           }
         })
-      } else if (!_.has(leafletOptions, 'source')) { // Even for manual update leaflet realtime require a src
+      } else if (!_.has(leafletOptions, 'source')) {
+        // Even for manual update leaflet realtime require a src
         _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {})
+        // But in this case do not try to start update automatically
+        _.set(leafletOptions, 'start', false)
       }
     },
     async processGeoJsonLayerOptions (options) {
@@ -159,7 +176,7 @@ let geojsonLayersMixin = {
           icon = _.get(L, icon.type)(options)
           return _.get(L, markerStyle.type || 'marker')(latlng, { icon })
         } else {
-          return _.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options)
+          return _.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options || markerStyle)
         }
       } else {
         return L.marker(latlng)
@@ -168,6 +185,7 @@ let geojsonLayersMixin = {
     convertFromSimpleStyleSpec (style, inPlace) {
       if (!style) return {}
       let convertedStyle = (inPlace ? style : {})
+      let isIconSpec = false
       _.forOwn(style, (value, key) => {
         if (_.has(LeafletStyleMappings, key)) {
           const mapping = _.get(LeafletStyleMappings, key)
@@ -184,13 +202,15 @@ let geojsonLayersMixin = {
           }
           if (inPlace) _.unset(style, key)
           // In this case we have a marker spec
-          if (key.startsWith('icon') || key.startsWith('marker')) {
-            _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes')
-              ? 'icon.fontAwesome' : _.has(style, 'icon-html') ? 'divIcon' : 'icon'))
-            _.set(convertedStyle, 'type', 'marker')
-          }
+          if (key.startsWith('icon')) isIconSpec = true
         }
       })
+      // Select the right icon type based on options
+      if (isIconSpec) {
+        _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes')
+              ? 'icon.fontAwesome' : _.has(style, 'icon-html') ? 'divIcon' : 'icon'))
+        _.set(convertedStyle, 'type', 'marker')
+      }
       return convertedStyle
     },
     registerLeafletStyle (type, generator) {
@@ -228,7 +248,7 @@ let geojsonLayersMixin = {
           _.set(style, _.get(LeafletStyleMappings, entry.property), entry.compiler({ properties, feature }))
         })
       }
-      return this.createMarkerFromStyle(latlng, style)
+      return (latlng ? this.createMarkerFromStyle(latlng, style) : style)
     },
     getDefaultStyle (feature, options) {
       const properties = feature.properties
@@ -336,7 +356,7 @@ let geojsonLayersMixin = {
         },
         pointToLayer: (feature, latlng) => {
           let marker = this.generateLeafletStyle('markerStyle', feature, latlng, options)
-          if (marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
+          if (latlng && marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
           return marker
         }
       }

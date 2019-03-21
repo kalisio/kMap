@@ -66,7 +66,9 @@ let geojsonLayersMixin = {
     },
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
       const cesiumOptions = options.cesium
-      const start = _.get(cesiumOptions, 'start', true) // Default is to start fetching
+      // Default is to start fetching except if qe don't have a source => manual update
+      const source = _.get(cesiumOptions, 'source')
+      const start = _.get(cesiumOptions, 'start', source ? true : false)
       // Add update capabilities
       dataSource.updateGeoJson = async (geoJson) => {
         await this.updateRealtimeGeoJsonData(dataSource, options, geoJson)
@@ -136,7 +138,9 @@ let geojsonLayersMixin = {
             await this.createCesiumRealtimeGeoJsonLayer(dataSource, options)
           } else {
             // Assume source is an URL or a promise returning GeoJson
-            await dataSource.load(source, cesiumOptions)
+            // Check for feature service layers
+            if (options.service) await dataSource.load(this.getFeatures(options), cesiumOptions)
+            else await dataSource.load(source, cesiumOptions)
           }
         }
         this.applyStyle(dataSource.entities, options)
