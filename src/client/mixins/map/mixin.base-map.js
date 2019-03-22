@@ -143,6 +143,11 @@ let baseMapMixin = {
       delete this.leafletLayers[name]
       this.$emit('layer-removed', layer)
     },
+    toGeoJson (name) {
+      const layer = this.getLeafletLayerByName(name)
+      if (!layer || (typeof layer.toGeoJSON !== 'function')) return
+      return layer.toGeoJSON()
+    },
     zoomToLayer (name, options) {
       const layer = this.getLeafletLayerByName(name)
       if (!layer) return

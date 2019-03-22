@@ -19,6 +19,7 @@
       "CONVERT_UNITS": "{{layer}}: convertir en {{unit}}"
     },
     "activity": {
+      "SAVE_LABEL": "Sauvegarder",
       "REMOVE_LABEL": "Supprimer",
       "REMOVE_DIALOG_TITLE": "Supprimer {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloier supprimer {{layer}} de votre espace de travail ?",

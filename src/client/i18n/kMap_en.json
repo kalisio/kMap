@@ -19,6 +19,7 @@
       "CONVERT_UNITS": "{{layer}}: convert to {{unit}}"
     },
     "activity": {
+      "SAVE_LABEL": "Save",
       "REMOVE_LABEL": "Remove",
       "REMOVE_DIALOG_TITLE": "Remove {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",

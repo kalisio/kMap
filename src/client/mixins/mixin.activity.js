@@ -66,6 +66,7 @@ export default {
       this.layerHandlers = {
         toggle: (layer) => this.onTriggerLayer(layer),
         zoomTo: (layer) => this.onZoomToLayer(layer),
+        save: (layer) => this.onSaveLayer(layer),
         remove: (layer) => this.onRemoveLayer(layer)
       }
       const catalogService = this.$api.getService('catalog')
@@ -87,14 +88,18 @@ export default {
           label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
           icon: 'zoom_out_map'
         }]
-        // For now we can only remove temporary layers
-        if (!layer._id) {
+        if (!layer._id && (typeof this.toGeoJson === 'function')) {
           layer.actions.push({
-            name: 'remove',
-            label: this.$t('mixins.activity.REMOVE_LABEL'),
-            icon: 'remove_circle'
+            name: 'save',
+            label: this.$t('mixins.activity.SAVE_LABEL'),
+            icon: 'save'
           })
         }
+        layer.actions.push({
+          name: 'remove',
+          label: this.$t('mixins.activity.REMOVE_LABEL'),
+          icon: 'remove_circle'
+        })
       }
     },
     onTriggerLayer (layer) {
@@ -107,14 +112,29 @@ export default {
     onZoomToLayer (layer) {
       this.zoomToLayer(layer.name)
     },
-    onRemoveLayer (layer) {
+    async onSaveLayer (layer) {
+      // Because we save all features in a single service use filtering to separate layers
+      let geoJson = this.toGeoJson(layer.name)
+      geoJson.features.forEach(feature => feature.layer = layer.name)
+      await this.$api.getService('features').create(geoJson.features)
+      _.merge(layer, { service: 'features', baseQuery: { layer: layer.name }, leaflet: { source: '/api/features' } })
+      layer = await this.$api.getService('catalog').create(_.omit(layer, ['actions', 'isVisible']))
+    },
+    async onRemoveLayer (layer) {
       Dialog.create({
         title: this.$t('mixins.activity.REMOVE_DIALOG_TITLE', { layer: layer.name }),
         message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
         buttons: [
           {
             label: this.$t('OK'),
-            handler: () => { this.removeLayer(layer.name) }
+            handler: async () => {
+              // If persistent layer remove features as well
+              if (_.has(layer, 'baseQuery.layer')) {
+                await this.$api.getService('features').remove(null, { query: { layer: layer.name } })
+                await this.$api.getService('catalog').remove(layer._id)
+              }
+              this.removeLayer(layer.name)
+            }
           }, {
             label: this.$t('CANCEL')
           }
