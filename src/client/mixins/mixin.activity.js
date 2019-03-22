@@ -86,11 +86,15 @@ export default {
           name: 'zoomTo',
           label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
           icon: 'zoom_out_map'
-        }, {
-          name: 'remove',
-          label: this.$t('mixins.activity.REMOVE_LABEL'),
-          icon: 'remove_circle'
         }]
+        // For now we can only remove temporary layers
+        if (!layer._id) {
+          layer.actions.push({
+            name: 'remove',
+            label: this.$t('mixins.activity.REMOVE_LABEL'),
+            icon: 'remove_circle'
+          })
+        }
       }
     },
     onTriggerLayer (layer) {
@@ -205,19 +209,13 @@ export default {
             type: 'geoJson',
             isVisible: true,
             realtime: true,
-            start: false,
-            popup: {
-              
-            }
+            popup: { pick: [] }
           },
           cesium: {
             type: 'geoJson',
             isVisible: true,
             realtime: true,
-            start: false,
-            popup: {
-              
-            }
+            popup: { pick: [] }
           }
         })
       }

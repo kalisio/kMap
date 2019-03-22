@@ -288,6 +288,7 @@ let geojsonLayersMixin = {
         }
         // Default HTML table if no template
         if (!html) html = getHtmlTable(properties)
+        if (!html) return null // Nothing to be displayed
         // Configured or default style
         if (popupStyle && popupStyle.options) {
           popup = L.popup(popupStyle.options, layer)
