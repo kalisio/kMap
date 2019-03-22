@@ -88,6 +88,7 @@ export default {
           label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
           icon: 'zoom_out_map'
         }]
+        // Only possible when export as GeoJson is possible
         if (!layer._id && (typeof this.toGeoJson === 'function')) {
           layer.actions.push({
             name: 'save',
@@ -95,11 +96,14 @@ export default {
             icon: 'save'
           })
         }
-        layer.actions.push({
-          name: 'remove',
-          label: this.$t('mixins.activity.REMOVE_LABEL'),
-          icon: 'remove_circle'
-        })
+        // Only possible on user-defined layers
+        if (layer._id && _.has(layer, 'baseQuery.layer')) {
+          layer.actions.push({
+            name: 'remove',
+            label: this.$t('mixins.activity.REMOVE_LABEL'),
+            icon: 'remove_circle'
+          })
+        }
       }
     },
     onTriggerLayer (layer) {
