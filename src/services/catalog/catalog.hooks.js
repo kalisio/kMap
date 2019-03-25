@@ -1,3 +1,5 @@
+import { hooks as coreHooks } from '@kalisio/kdk-core'
+
 module.exports = {
   before: {
     all: [],
@@ -17,9 +19,9 @@ module.exports = {
       }
     }],
     get: [],
-    create: [],
-    update: [],
-    patch: [],
+    create: [ coreHooks.convertObjectIDs(['baseQuery.layer']) ],
+    update: [ coreHooks.convertObjectIDs(['baseQuery.layer']) ],
+    patch: [ coreHooks.convertObjectIDs(['baseQuery.layer']) ],
     remove: []
   },
 

@@ -97,7 +97,7 @@ export default {
           })
         }
         // Only possible on user-defined layers
-        if (layer._id && _.has(layer, 'baseQuery.layer')) {
+        if (!layer._id || (layer.service === 'features')) {
           layer.actions.push({
             name: 'remove',
             label: this.$t('mixins.activity.REMOVE_LABEL'),
@@ -117,12 +117,20 @@ export default {
       this.zoomToLayer(layer.name)
     },
     async onSaveLayer (layer) {
+      _.merge(layer, {
+        service: 'features',
+        leaflet: { source: '/api/features' },
+        cesium: { source: '/api/features' }
+      })
+      const createdLayer = await this.$api.getService('catalog').create(_.omit(layer, ['actions', 'isVisible']))
+      layer._id = createdLayer._id
       // Because we save all features in a single service use filtering to separate layers
+      // We use the generated DB ID as layer ID on features
       let geoJson = this.toGeoJson(layer.name)
-      geoJson.features.forEach(feature => feature.layer = layer.name)
+      geoJson.features.forEach(feature => feature.layer = createdLayer._id)
       await this.$api.getService('features').create(geoJson.features)
-      _.merge(layer, { service: 'features', baseQuery: { layer: layer.name }, leaflet: { source: '/api/features' } })
-      layer = await this.$api.getService('catalog').create(_.omit(layer, ['actions', 'isVisible']))
+      // Update filter in layer as well
+      await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
     },
     async onRemoveLayer (layer) {
       Dialog.create({
@@ -134,7 +142,7 @@ export default {
             handler: async () => {
               // If persistent layer remove features as well
               if (_.has(layer, 'baseQuery.layer')) {
-                await this.$api.getService('features').remove(null, { query: { layer: layer.name } })
+                await this.$api.getService('features').remove(null, { query: { layer: layer._id } })
                 await this.$api.getService('catalog').remove(layer._id)
               }
               this.removeLayer(layer.name)
