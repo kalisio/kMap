@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "http://www.kalisio.xyz/schemas/geocoding.json#",
+  "title": "Geocoding form",
+  "description": "Geocoding schema",
+  "type": "object",
+  "properties": {
+    "location": {
+      "type": "object", 
+      "field": {
+        "component": "KLocationField",
+        "helper": "schemas.ACTIVITY_LOCATION_FIELD_HELPER"
+      }
+    }
+  },
+  "required": ["location"]
+}
+

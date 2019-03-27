@@ -20,6 +20,8 @@
     },
     "activity": {
       "SAVE_LABEL": "Sauvegarder",
+      "EDIT_LABEL": "Editer",
+      "EDIT_DATA_LABEL": "Editer les données",
       "REMOVE_LABEL": "Supprimer",
       "REMOVE_DIALOG_TITLE": "Supprimer {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloier supprimer {{layer}} de votre espace de travail ?",
@@ -29,10 +31,15 @@
       "GEOCODE": "Rechercher",
       "GEOCODING": "Rechercher un lieu",
       "GEOCODE_BUTTON": "Géocoder",
-      "CLOSE_GEOCODING_ACTION": "Fermer",
+      "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
       "PROBE": "Sonder",
       "PROBED_LOCATION": "Sonde"
     }
+  },
+  "schemas": {
+    "OBJECT_NAME": "{{ object.name }}",
+    "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
+    "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description"
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)"

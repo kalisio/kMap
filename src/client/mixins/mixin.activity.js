@@ -11,30 +11,12 @@ export default {
   data () {
     return {
       forecastModelHandlers: {},
-      layerCategories: {},
+      layerCategories: [],
       layerHandlers: {},
       engine: null
     }
   },
   methods: {
-    getGeocodingSchema () {
-      return {
-        '$schema': 'http://json-schema.org/draft-06/schema#',
-        '$id': 'http://kalisio.xyz/schemas/geocoding#',
-        'title': 'Geocoding Form',
-        'type': 'object',
-        'properties': {
-          "location": {
-            "type": "object", 
-            "field": {
-              "component": "KLocationField",
-              "helper": "schemas.ACTIVITY_LOCATION_FIELD_HELPER"
-            }
-          }
-        },
-        'required': ['user', 'role']
-      }
-    },
     getGeocodingToolbar () {
       return [
         { name: 'close-action', label: this.$t('mixins.activity.CLOSE_GEOCODING_ACTION'), icon: 'close', handler: this.onCloseGeocoding }
@@ -67,6 +49,8 @@ export default {
         toggle: (layer) => this.onTriggerLayer(layer),
         zoomTo: (layer) => this.onZoomToLayer(layer),
         save: (layer) => this.onSaveLayer(layer),
+        edit: (layer) => this.onEditLayer(layer),
+        editData: (layer) => this.onEditLayerData(layer),
         remove: (layer) => this.onRemoveLayer(layer)
       }
       const catalogService = this.$api.getService('catalog')
@@ -98,6 +82,16 @@ export default {
         }
         // Only possible on user-defined layers
         if (!layer._id || (layer.service === 'features')) {
+          layer.actions.push({
+            name: 'edit',
+            label: this.$t('mixins.activity.EDIT_LABEL'),
+            icon: 'description'
+          })
+          layer.actions.push({
+            name: 'editData',
+            label: this.$t('mixins.activity.EDIT_DATA_LABEL'),
+            icon: 'edit_location'
+          })
           layer.actions.push({
             name: 'remove',
             label: this.$t('mixins.activity.REMOVE_LABEL'),
@@ -131,6 +125,24 @@ export default {
       await this.$api.getService('features').create(geoJson.features)
       // Update filter in layer as well
       await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
+    },
+    async onEditLayer (layer) {
+      this.editModal = await this.$createComponent('editor/KModalEditor', {
+        propsData: {
+          service: 'catalog',
+          objectId: layer._id
+        }
+      })
+      this.editModal.$mount()
+      this.editModal.open()
+      this.editModal.$on('applied', updatedLayer => {
+        Object.assign(layer, updatedLayer)
+        this.editModal.close()
+        this.editModal = null
+      })
+    },
+    onEditLayerData (layer) {
+      
     },
     async onRemoveLayer (layer) {
       Dialog.create({
@@ -168,18 +180,36 @@ export default {
       this.updatePosition()
     },
     onCloseGeocoding (done) {
-      this.$refs.geocodingModal.close(done)
+      this.geocodingModal.close(done)
+      this.geocodingModal = null
     },
-    onGeocoding () {
-      this.$refs.geocodingModal.open()
+    async onGeocoding () {
+      const schema = await this.$load('geocoding', 'schema')
+      this.geocodingModal = await this.$createComponent('frame/KModal', {
+        propsData: {
+          title: this.$t('mixins.activity.GEOCODING'),
+          toolbar: this.getGeocodingToolbar(),
+          buttons: this.getGeocodingButtons(),
+          route: false
+        }
+      })
+      // Slots require VNodes not components
+      this.geocodingModal.$slots['modal-content'] = [
+        await this.$createComponentVNode('form/KForm', { props: { schema } })
+      ]
+      this.geocodingModal.$mount()
+      this.geocodingModal.open()
     },
     onGeocode (done) {
       this.onCloseGeocoding(() => {
-        let result = this.$refs.geocodingForm.validate()
-        const longitude = _.get(result, 'values.location.longitude')
-        const latitude = _.get(result, 'values.location.latitude')
-        if (longitude && latitude) {
-          this.center(longitude, latitude)
+        const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
+        if (geocodingForm) {
+          let result = geocodingForm.validate()
+          const longitude = _.get(result, 'values.location.longitude')
+          const latitude = _.get(result, 'values.location.latitude')
+          if (longitude && latitude) {
+            this.center(longitude, latitude)
+          }
         }
         done()
       })

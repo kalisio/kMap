@@ -20,6 +20,8 @@
     },
     "activity": {
       "SAVE_LABEL": "Save",
+      "EDIT_LABEL": "Edit",
+      "EDIT_DATA_LABEL": "Edit data",
       "REMOVE_LABEL": "Remove",
       "REMOVE_DIALOG_TITLE": "Remove {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",
@@ -29,10 +31,15 @@
       "GEOCODE": "Find",
       "GEOCODING": "Find a location",
       "GEOCODE_BUTTON": "Geocode",
-      "CLOSE_GEOCODING_ACTION": "Close",
+      "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
       "PROBE": "Probe",
       "PROBED_LOCATION": "Probe"
     }
+  },
+  "schemas": {
+    "OBJECT_NAME": "{{ object.name }}",
+    "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
+    "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description"
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)"
