@@ -62,7 +62,8 @@ export const LeafletStyleOptions = _.values(LeafletStyleMappings)
 export function bindLeafletEvents (object, events, component, options) {
   events.forEach(eventName => {
     object.on(eventName, (...args) => {
-      component.$emit(eventName, options, ...args)
+      if (options) component.$emit(eventName, options, ...args)
+      else component.$emit(eventName, ...args)
     })
   })
 }

@@ -22,6 +22,7 @@
       "SAVE_LABEL": "Sauvegarder",
       "EDIT_LABEL": "Editer",
       "EDIT_DATA_LABEL": "Editer les données",
+      "SAVE_DATA_LABEL": "Sauver les données",
       "REMOVE_LABEL": "Supprimer",
       "REMOVE_DIALOG_TITLE": "Supprimer {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloier supprimer {{layer}} de votre espace de travail ?",
@@ -34,12 +35,119 @@
       "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
       "PROBE": "Sonder",
       "PROBED_LOCATION": "Sonde"
+    },
+    "editLayers": {
+      "draw": {
+        "toolbar": {
+          "actions": {
+            "title": "Annuler l'édition",
+            "text": "Annuler"
+          },
+          "finish": {
+            "title": "Terminer l'édition",
+            "text": "Terminer"
+          },
+          "undo": {
+            "title": "Effacer le dernier point",
+            "text": "Effacer dernier point"
+          },
+          "buttons": {
+            "polyline": "Créer un polyligne",
+            "polygon": "Créer un polygone",
+            "rectangle": "Créer un rectangle",
+            "circle": "Créer un cercle",
+            "marker": "Créer un point",
+            "circlemarker": "Créer un marqueur circulaire"
+          }
+        },
+        "handlers": {
+          "circle": {
+            "tooltip": {
+              "start": "Cliquez et glissez pour tracer un cercle."
+            },
+            "radius": "Radius"
+          },
+          "circlemarker": {
+            "tooltip": {
+              "start": "Cliquez pour placer un cercle."
+            }
+          },
+          "marker": {
+            "tooltip": {
+              "start": "Cliquez pour placer un point."
+            }
+          },
+          "polygon": {
+            "tooltip": {
+              "start": "Cliquez pour démarrer le tracé.",
+              "cont": "Cliquez pour continuer le tracé.",
+              "end": "Cliquez sur le premier point pour clôturer le tracé."
+            }
+          },
+          "polyline": {
+            "error": "<strong>Auto-intersection non autorisée</strong>",
+            "tooltip": {
+              "start": "Cliquez pour démarrer le tracé.",
+              "cont": "Cliquez pour continuer le tracé.",
+              "end": "Cliquez sur le dernier point pour clôturer le tracé."
+            }
+          },
+          "rectangle": {
+            "tooltip": {
+              "start": "Cliquez et glissez pour tracer un rectangle."
+            }
+          },
+          "simpleshape": {
+            "tooltip": {
+              "end": "Relacher pour clôturer le tracé."
+            }
+          }
+        }
+      },
+      "edit": {
+        "toolbar": {
+          "actions": {
+            "save": {
+              "title": "Sauvegarder les modifications",
+              "text": "Sauvegarder"
+            },
+            "cancel": {
+              "title": "Annuler les modifications",
+              "text": "Annuler"
+            },
+            "clearAll": {
+              "title": "Supprimer tout",
+              "text": "Nettoyer"
+            }
+          },
+          "buttons": {
+            "edit": "Editer",
+            "editDisabled": "Il n'y a rien à éditer pour l'instant",
+            "remove": "Effacer des éléments",
+            "removeDisabled": "Il n'y a rien à effacer pour l'instant"
+          }
+        },
+        "handlers": {
+          "edit": {
+            "tooltip": {
+              "text": "Glissez les poignées ou les points pour éditer.",
+              "subtext": "Cliquez sur annuler pour ignorer les modifications."
+            }
+          },
+          "remove": {
+            "tooltip": {
+              "text": "Cliquez sur un élément pour l'effacer."
+            }
+          }
+        }
+      }
     }
   },
   "schemas": {
     "OBJECT_NAME": "{{ object.name }}",
     "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
-    "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description"
+    "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description",
+    "SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)"

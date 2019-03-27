@@ -21,8 +21,20 @@
         "component": "form/KTextField",
         "helper": "schemas.CATALOG_DESCRIPTION_FIELD_HELPER"
       }
+    },
+    "schema": { 
+      "type": "object",
+      "field": {
+        "component": "form/KAttachmentField",
+        "helper": "schemas.SCHEMA_FIELD_HELPER",
+        "service": "storage",
+        "acceptedFiles": "application/json",
+        "maxFilesize": 0.5,
+        "autoProcessQueue": false,
+        "storagePath": "schemas/<%= id %>.json"
+      }
     }
   },
-  "required": ["name", "description"]
+  "required": ["name", "description", "schema"]
 }
 

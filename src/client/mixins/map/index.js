@@ -5,6 +5,7 @@ import serviceLayers from './mixin.service-layers'
 import collectionLayer from './mixin.collection-layer'
 import forecastLayers from './mixin.forecast-layers'
 import geotiffLayers from './mixin.geotiff-layers'
+import editLayers from './mixin.edit-layers'
 
 export default {
   baseMap,
@@ -13,5 +14,6 @@ export default {
   serviceLayers,
   collectionLayer,
   forecastLayers,
-  geotiffLayers
+  geotiffLayers,
+  editLayers
 }
