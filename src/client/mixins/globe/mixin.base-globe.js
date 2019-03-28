@@ -108,11 +108,9 @@ let baseGlobeMixin = {
       }
     },
     getLayerByName (name) {
-      if (!this.hasLayer(name)) return null
       return this.layers[name]
     },
     getCesiumLayerByName (name) {
-      if (!this.hasLayer(name)) return null
       return this.cesiumLayers[name]
     },
     async showLayer (name) {
@@ -164,6 +162,19 @@ let baseGlobeMixin = {
         if (_.get(layer, 'cesium.isVisible', false)) await this.showLayer(layer.name)
       }
       return layer
+    },
+    renameLayer (previousName, newName) {
+      const layer = this.getLayerByName(previousName)
+      const cesiumLayer = this.getCesiumLayerByName(previousName)
+      if (!layer) return
+      // Update underlying layer map if layer has been already shown
+      if (cesiumLayer) {
+        this.cesiumLayers[newName] = cesiumLayer
+        delete this.cesiumLayers[previousName]
+      }
+      // Update underlying layer map, this one is reactive
+      this.$set(this.layers, newName, layer)
+      this.$delete(this.layers, previousName)
     },
     removeLayer (name) {
       const layer = this.getLayerByName(name)

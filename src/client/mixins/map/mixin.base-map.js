@@ -80,11 +80,9 @@ let baseMapMixin = {
       return leafetLayer && this.map.hasLayer(leafetLayer)
     },
     getLayerByName (name) {
-      if (!this.hasLayer(name)) return null
       return this.layers[name]
     },
     getLeafletLayerByName (name) {
-      if (!this.hasLayer(name)) return null
       return this.leafletLayers[name]
     },
     async showLayer (name) {
@@ -132,6 +130,19 @@ let baseMapMixin = {
         if (_.get(layer, 'leaflet.isVisible', false)) await this.showLayer(layer.name)
       }
       return layer
+    },
+    renameLayer (previousName, newName) {
+      const layer = this.getLayerByName(previousName)
+      const leafletLayer = this.getLeafletLayerByName(previousName)
+      if (!layer) return
+      // Update underlying layer map if layer has been already shown
+      if (leafletLayer) {
+        this.leafletLayers[newName] = leafletLayer
+        delete this.leafletLayers[previousName]
+      }
+      // Update underlying layer map, this one is reactive
+      this.$set(this.layers, newName, layer)
+      this.$delete(this.layers, previousName)
     },
     removeLayer (name) {
       const layer = this.getLayerByName(name)

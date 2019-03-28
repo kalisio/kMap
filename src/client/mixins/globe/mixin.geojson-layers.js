@@ -7,6 +7,8 @@ let geojsonLayersMixin = {
   methods: {
     async startRealtimeGeoJsonDataUpdate (dataSource, options) {
       const cesiumOptions = options.cesium
+      // If no interval given this is a manual update
+      if (!_.has(cesiumOptions, 'interval')) return
       // Setup update timer
       dataSource.updateTimer = setInterval(() => dataSource.updateGeoJson(), cesiumOptions.interval)
       // Launch first update

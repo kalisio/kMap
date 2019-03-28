@@ -154,6 +154,10 @@ export default {
       this.editModal.$mount()
       this.editModal.open()
       this.editModal.$on('applied', updatedLayer => {
+        // If renamed need to update the layer map accordingly
+        if (layer.name !== updatedLayer.name) {
+          this.renameLayer(layer.name, updatedLayer.name)
+        }
         Object.assign(layer, updatedLayer)
         this.editModal.close()
         this.editModal = null

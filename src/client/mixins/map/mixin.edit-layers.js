@@ -19,10 +19,9 @@ let editLayersMixin = {
         // Remove UI
         this.map.removeControl(this.editControl)
         this.editControl = null
-        // Set back edited layers to source layer
-        this.editableLayers.getLayers().forEach(layer => leafletLayer.addLayer(layer))
-        // Required on clusters to apply changes ?
-        //if (typeof leafletLayer.refreshClusters === 'function') leafletLayer.refreshClusters()
+        // Set back edited layers to source layer, use bulk add if it exists
+        if (typeof leafletLayer.addLayers === 'function') leafletLayer.addLayers(this.editableLayers.getLayers())
+        else this.editableLayers.getLayers().forEach(layer => leafletLayer.addLayer(layer))
         this.editableLayers.clearLayers()
         this.map.removeLayer(this.editableLayers)
         this.editedLayer = null

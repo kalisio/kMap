@@ -75,6 +75,8 @@ let geojsonLayersMixin = {
             errorCallback(error)
           }
         })
+        // If no interval given this is a manual update
+        _.set(leafletOptions, 'start', _.has(leafletOptions, 'interval'))
       } else if (!_.has(leafletOptions, 'source')) {
         // Even for manual update leaflet realtime require a src
         _.set(leafletOptions, 'source', async (successCallback, errorCallback) => {})
