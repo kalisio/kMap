@@ -1,6 +1,9 @@
 {
   "CLOSE": "Fermer",
   "SEARCH": "Rechercher",
+  "errors": {
+    "CANNOT_PROCESS_SCHEMA_DATA": "Schéma de données invalide ou incomplet"
+  },
   "mixins": {
     "geolocation": {
       "ERROR_MESSAGE": "Il nous est impossible de déterminer votre position, cela peut affecter certaines fonctionnalités de l'application.",
@@ -21,8 +24,8 @@
     "activity": {
       "SAVE_LABEL": "Sauvegarder",
       "EDIT_LABEL": "Editer",
-      "EDIT_DATA_LABEL": "Editer les données",
-      "SAVE_DATA_LABEL": "Sauver les données",
+      "START_EDIT_DATA_LABEL": "Editer les données",
+      "STOP_EDIT_DATA_LABEL": "Clôturer l'édition des données",
       "REMOVE_LABEL": "Supprimer",
       "REMOVE_DIALOG_TITLE": "Supprimer {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloier supprimer {{layer}} de votre espace de travail ?",
@@ -145,6 +148,7 @@
   },
   "schemas": {
     "OBJECT_NAME": "{{ object.name }}",
+    "CATALOG_CREATE_TITLE": "Créer une nouvelles couche de données",
     "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
     "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description",
     "SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"

@@ -26,6 +26,7 @@ let editLayersMixin = {
         this.editableLayers.clearLayers()
         this.map.removeLayer(this.editableLayers)
         this.editedLayer = null
+        this.deleteInProgress = false
       } else { // Start edition
         this.editedLayer = options
         // Move source layers to edition layers, required as eg clusters are not supported
@@ -48,19 +49,69 @@ let editLayersMixin = {
         this.deletedFeatures = []
       }
     },
-    onFeatureCreated (event) {
-      this.editableLayers.addLayer(event.layer)
-      this.createdFeatures.push(event.layer.toGeoJSON())
+    async onUpdateFeatureProperties (layer, event) {
+      const feature = _.get(event, 'target.feature')
+      if (!feature || !this.isLayerEdited(layer.name)) return
+      if (!layer.schema) return // No edition schema
+      // Check if not currently in the edition workspace for removal
+      if (this.deleteInProgress) return
+      // Avoid default popup
+      const popup = event.target.getPopup()
+      if (popup) event.target.unbindPopup(popup)
+      const data = await this.$api.getService('storage', '').get(`schemas/${layer._id}.json`)
+      if (!data.uri) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
+      const typeAndData = data.uri.split(',')
+      if (typeAndData.length <= 1) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
+      // We get data as a data URI
+      const schema = atob(typeAndData[1])
+      this.editFeatureModal = await this.$createComponent('editor/KModalEditor', {
+        propsData: {
+          service: 'features',
+          objectId: feature._id,
+          schemaJson: schema,
+          perspective: 'properties'
+        }
+      })
+      this.editFeatureModal.$mount()
+      this.editFeatureModal.open()
+      this.editFeatureModal.$on('applied', async updatedFeature => {
+        // Restore popup
+        if (popup) event.target.bindPopup(popup)
+        await this.$api.getService('features').patch(feature._id, _.pick(updatedFeature, ['properties']))
+        this.editFeatureModal.close()
+        this.editFeatureModal = null
+      })
     },
-    onFeaturesEdited (event) {
-      const geoJson = event.layers.toGeoJSON()
-      if (geoJson.type === 'FeatureCollection') this.editedFeatures = this.editedFeatures.concat(geoJson.features)
-      else this.editedFeatures.push(geoJson)
+    async onFeatureCreated (event) {
+      let geoJson = event.layer.toGeoJSON()
+      // Save changes to DB, we use the layer DB ID as layer ID on features
+      geoJson.layer = this.editedLayer._id
+      geoJson = await this.$api.getService('features').create(geoJson)
+      this.editableLayers.addData(geoJson)
     },
-    onFeaturesDeleted (event) {
+    async onFeaturesEdited (event) {
       const geoJson = event.layers.toGeoJSON()
-      if (geoJson.type === 'FeatureCollection') this.deletedFeatures = this.deletedFeatures.concat(geoJson.features)
-      else this.deletedFeatures.push(geoJson)
+      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      // Save changes to DB
+      for (let i = 0; i < features.length; i++) {
+        const feature = features[i]
+        await this.$api.getService('features').patch(feature._id, _.pick(feature, ['properties', 'geometry']))
+      }
+    },
+    async onFeaturesDeleted (event) {
+      const geoJson = event.layers.toGeoJSON()
+      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      // Save changes to DB
+      for (let i = 0; i < features.length; i++) {
+        const feature = features[i]
+        await this.$api.getService('features').remove(feature._id)
+      }
+    },
+    onStartDelete () {
+      this.deleteInProgress = true
+    },
+    onStopDelete () {
+      this.deleteInProgress = false
     }
   },
   beforeCreate () {
@@ -82,11 +133,17 @@ let editLayersMixin = {
       // Setup event binding
       bindLeafletEvents(this.map, _.values(L.Draw.Event), this)
     })
+    this.$on('click', this.onUpdateFeatureProperties)
+    this.$on('draw:deletestart', this.onStartDelete)
+    this.$on('draw:deletestop', this.onStopDelete)
     this.$on('draw:created', this.onFeatureCreated)
     this.$on('draw:edited', this.onFeaturesEdited)
     this.$on('draw:deleted', this.onFeaturesDeleted)
   },
   beforeDestroy () {
+    this.$off('click', this.onUpdateFeatureProperties)
+    this.$off('draw:deletestart', this.onStartDelete)
+    this.$off('draw:deletestop', this.onStopDelete)
     this.$off('draw:created', this.onFeatureCreated)
     this.$off('draw:edited', this.onFeaturesEdited)
     this.$off('draw:deleted', this.onFeaturesDeleted)

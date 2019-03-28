@@ -41,6 +41,9 @@ export default {
       if (this.onProbeLocation) this.registerFabAction({
         name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
       })
+      if (this.onCreateLayer) this.registerFabAction({
+        name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
+      })
     },
     async refreshLayers (engine) {
       this.layers = {}
@@ -101,8 +104,8 @@ export default {
             actions.push({
               name: 'editData',
               label: this.isLayerEdited(layer.name) ?
-                this.$t('mixins.activity.SAVE_DATA_LABEL') :
-                this.$t('mixins.activity.EDIT_DATA_LABEL'),
+                this.$t('mixins.activity.STOP_EDIT_DATA_LABEL') :
+                this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
               icon: 'edit_location'
             })
           }
@@ -156,51 +159,7 @@ export default {
         this.editModal = null
       })
     },
-    async onUpdateFeatureData (layer, event) {
-      const feature = _.get(event, 'target.feature')
-      if (!feature || !this.isLayerEdited(layer.name)) return
-      if (!layer.schema) return // No edition schema
-      // Avoid default popup
-      const popup = event.target.getPopup()
-      if (popup) event.target.unbindPopup(popup)
-      const data = await this.$api.getService('storage', '').get(`schemas/${layer._id}.json`)
-      // We get data as a data URI
-      const schema = atob(data.uri.split(',')[1])
-      this.editFeatureModal = await this.$createComponent('editor/KModalEditor', {
-        propsData: {
-          service: 'features',
-          objectId: feature._id,
-          schemaJson: schema,
-          perspective: 'properties'
-        }
-      })
-      this.editFeatureModal.$mount()
-      this.editFeatureModal.open()
-      this.editFeatureModal.$on('applied', async updatedFeature => {
-        // Restore popup
-        if (popup) event.target.bindPopup(popup)
-        await this.$api.getService('features').patch(feature._id, _.pick(updatedFeature, ['properties']))
-        this.editFeatureModal.close()
-        this.editFeatureModal = null
-      })
-    },
     async onEditLayerData (layer) {
-      if (this.isLayerEdited(layer.name)) {
-        this.$off('click', this.onUpdateFeatureData)
-        // Save changes to DB, we use the layer DB ID as layer ID on features
-        this.createdFeatures.forEach(feature => feature.layer = layer._id)
-        if (this.createdFeatures.length > 0) await this.$api.getService('features').create(this.createdFeatures)
-        for (let i = 0; i < this.editedFeatures.length; i++) {
-          const feature = this.editedFeatures[i]
-          await this.$api.getService('features').patch(feature._id, _.pick(feature, ['properties', 'geometry']))
-        }
-        for (let i = 0; i < this.deletedFeatures.length; i++) {
-          const feature = this.deletedFeatures[i]
-          await this.$api.getService('features').remove(feature._id)
-        }
-      } else {
-        this.$on('click', this.onUpdateFeatureData)
-      }
       // Start/Stop edition
       this.editLayer(layer.name)
       this.setupLayerActions(layer) // Refresh actions due to state change

@@ -1,6 +1,9 @@
 {
   "CLOSE": "Close",
   "SEARCH": "Search",
+  "errors": {
+    "CANNOT_PROCESS_SCHEMA_DATA": "Invalid or incomplete data scheme"
+  },
   "mixins": {
     "geolocation": {
       "ERROR_MESSAGE": "We are not able to locate your position, this might affect some features of the application.",
@@ -21,8 +24,8 @@
     "activity": {
       "SAVE_LABEL": "Save",
       "EDIT_LABEL": "Edit",
-      "EDIT_DATA_LABEL": "Edit data",
-      "SAVE_DATA_LABEL": "Save data",
+      "START_EDIT_DATA_LABEL": "Start data edit",
+      "STOP_EDIT_DATA_LABEL": "Stop data edit",
       "REMOVE_LABEL": "Remove",
       "REMOVE_DIALOG_TITLE": "Remove {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",
@@ -145,6 +148,7 @@
   },
   "schemas": {
     "OBJECT_NAME": "{{ object.name }}",
+    "CATALOG_CREATE_TITLE": "Create a new data layer",
     "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
     "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description",
     "SCHEMA_FIELD_HELPER": "Select a data scheme"
