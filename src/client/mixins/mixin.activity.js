@@ -2,12 +2,8 @@ import _ from 'lodash'
 import logger from 'loglevel'
 import moment from 'moment'
 import { Events, Dialog } from 'quasar'
-import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
-  mixins: [
-    kCoreMixins.refsResolver(['geocodingForm'])
-  ],
   data () {
     return {
       forecastModelHandlers: {},
@@ -66,6 +62,12 @@ export default {
           this.addLayer(layer)
         }
       })
+      // We need at least an active background
+      const hasVisibleBaseLayer = response.data.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
+      if (!hasVisibleBaseLayer) {
+        const baseLayer = response.data.find((layer) => (layer.type === 'BaseLayer'))
+        if (baseLayer) this.showLayer(baseLayer.name)
+      }
     },
     setupLayerActions (layer) {
       let actions = []
@@ -127,11 +129,13 @@ export default {
       this.zoomToLayer(layer.name)
     },
     async onSaveLayer (layer) {
+      // Chenge data source from in-memory to service
       _.merge(layer, {
         service: 'features',
-        leaflet: { source: '/api/features' },
-        cesium: { source: '/api/features' }
+        [this.engine]: { source: '/api/features' }
       })
+      // When saving from one engine copy options to the other one so that it will be available in both of them
+      _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
       const createdLayer = await this.$api.getService('catalog')
       .create(_.omit(layer, ['actions', 'isVisible']))
       layer._id = createdLayer._id
