@@ -370,8 +370,18 @@ let geojsonLayersMixin = {
       // Retrieve the layer
       let layer = this.getLeafletLayerByName(name)
       if (!layer) return // Cannot update invisible layer
+      // Check if clustering on top of a realtime layer, in this case we have a top-level container
+      let container
+      if (typeof layer.getLayers === 'function') {
+        container = layer
+        layer = container.getLayers().find(layer => layer._container === container)
+      }
       if (remove && (typeof layer.remove === 'function')) layer.remove(geoJson)
       else if (typeof layer.update === 'function') layer.update(geoJson)
+      if (container) {
+        //container.clearLayers()
+        //container.addLayer(layer)
+      }
     }
   },
   created () {
