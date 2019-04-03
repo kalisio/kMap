@@ -39,6 +39,7 @@
               <q-icon color="grey-7" name="more_vert"></q-icon>
             </q-btn>
           </q-item-side>
+          <q-tooltip v-if="layer.tooltip" :delay="1000">{{layer.tooltip}}</q-tooltip>
         </q-item>
       </template>
     </q-list>
