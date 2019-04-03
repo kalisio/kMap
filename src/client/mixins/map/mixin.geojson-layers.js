@@ -30,7 +30,7 @@ let geojsonLayersMixin = {
             if (feature.geometry.type === 'Point') {
               // FIXME: updating style in place does not seem to work, so for now we recreate the whole marker
               //oldLayer.setStyle(leafletOptions.pointToLayer(feature))
-              return 
+              return
             } else {
               oldLayer.setStyle(leafletOptions.style(feature))
             }
@@ -40,10 +40,22 @@ let geojsonLayersMixin = {
             //oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature, oldLayer.getLatLng()), 'options.icon'))
             return
           }
-          // And coordinates for points
+          // And coordinates
+          const type = feature.geometry.type
+          const coordinates = feature.geometry.coordinates
           // FIXME: support others geometry types ?
-          if (feature.geometry.type === 'Point') {
-            oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+          switch (type) {
+            case 'Point':
+              oldLayer.setLatLng(L.GeoJSON.coordsToLatLngs(coordinates))
+              break
+            case 'LineString':
+            case 'MultiLineString':
+              oldLayer.setLatLngs(L.GeoJSON.coordsToLatLngs(coordinates, type === 'LineString' ? 0 : 1))
+              break
+            case 'Polygon':
+            case 'MultiPolygon':
+              oldLayer.setLatLngs(L.GeoJSON.coordsToLatLngs(coordinates, type === 'Polygon' ? 1 : 2))
+              break
           }
           return oldLayer
         }
