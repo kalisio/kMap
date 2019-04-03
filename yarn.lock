@@ -33,24 +33,6 @@
     debug "^4.0.0"
     lodash.merge "^4.6.1"
 
-"@feathersjs/authentication@^2.1.7":
-  version "2.1.7"
-  resolved "https://registry.yarnpkg.com/@feathersjs/authentication/-/authentication-2.1.7.tgz#5ba6013640a30756438166c29548215b408a895b"
-  dependencies:
-    "@feathersjs/commons" "^1.2.0"
-    "@feathersjs/errors" "^3.0.0"
-    "@feathersjs/socket-commons" "^3.1.2"
-    debug "^3.1.0"
-    jsonwebtoken "^8.0.0"
-    lodash.clone "^4.5.0"
-    lodash.merge "^4.6.0"
-    lodash.omit "^4.5.0"
-    lodash.pick "^4.4.0"
-    long-timeout "^0.1.1"
-    ms "^2.0.0"
-    passport "^0.4.0"
-    uuid "^3.1.0"
-
 "@feathersjs/authentication@https://github.com/kalisio/authentication.git":
   version "2.1.7"
   resolved "https://github.com/kalisio/authentication.git#b730e0624b112e9be372dea168702dc740037396"
@@ -73,7 +55,7 @@
   version "3.7.3"
   resolved "https://registry.yarnpkg.com/@feathersjs/client/-/client-3.7.3.tgz#a106545ec04d6d6185449a8a863060b2902b425d"
 
-"@feathersjs/commons@^1.2.0", "@feathersjs/commons@^1.4.1":
+"@feathersjs/commons@^1.4.1":
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/@feathersjs/commons/-/commons-1.4.1.tgz#81f19ffb83eac6afd33c629d4d0cad57441fbede"
 
