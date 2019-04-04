@@ -57,11 +57,7 @@ let geojsonLayersMixin = {
         await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
       } else if (geoJson) {
         await dataSource.load(geoJson, cesiumOptions)
-      } else {
-        if (_.isNil(source)) {
-          // Empty valid GeoJson
-          source = { type: 'FeatureCollection', features: [] }
-        }
+      } else if (!_.isNil(source)) {
         // Assume source is an URL or a promise returning GeoJson
         await dataSource.load(source, cesiumOptions)
       }
@@ -97,7 +93,6 @@ let geojsonLayersMixin = {
         // If layer provided do not override
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
-      this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
       // Optimize templating by creating compilers up-front
       let layerStyleTemplate = _.get(cesiumOptions, 'template')
       if (layerStyleTemplate) {
@@ -112,6 +107,7 @@ let geojsonLayersMixin = {
       if (tooltipTemplate) {
         cesiumOptions.tooltip.compiler = _.template(tooltipTemplate)
       }
+      this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
       // Perform required conversion from JSON to Cesium objects
       if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(_.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup']))
       if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
