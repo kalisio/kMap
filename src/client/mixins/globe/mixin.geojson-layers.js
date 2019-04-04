@@ -98,11 +98,6 @@ let geojsonLayersMixin = {
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
       this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
-      // Perform required conversion from JSON to Cesium objects
-      if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(cesiumOptions.entityStyle)
-      if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
-      if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
-      if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
       // Optimize templating by creating compilers up-front
       let layerStyleTemplate = _.get(cesiumOptions, 'template')
       if (layerStyleTemplate) {
@@ -117,6 +112,11 @@ let geojsonLayersMixin = {
       if (tooltipTemplate) {
         cesiumOptions.tooltip.compiler = _.template(tooltipTemplate)
       }
+      // Perform required conversion from JSON to Cesium objects
+      if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(_.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup']))
+      if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
+      if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
+      if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
 
       try {
         const source = _.get(cesiumOptions, 'source')
@@ -282,16 +282,18 @@ let geojsonLayersMixin = {
     getDefaultEntityStyle (entity, options) {
       const properties = (entity.properties ? entity.properties.getValue(0) : null)
       let cesiumOptions = options.cesium || options
-      let style = _.merge({},
-        this.options.entityStyle || {},
-        cesiumOptions.entityStyle || {})
+      let style = _.merge({}, this.options.entityStyle || {})
       // We allow to template style properties according to feature,
       // because it can be slow you have to specify a subset of properties
       if (cesiumOptions.template) {
+        let entityStyle = _.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup'])
         cesiumOptions.template.forEach(entry => {
-          // Perform templating
-          _.set(style, _.get(CesiumStyleMappings, entry.property), entry.compiler({ properties }))
+          // Perform templating, using simple spec mapping first then raw if property not found
+          _.set(entityStyle, _.get(CesiumStyleMappings, entry.property, entry.property), entry.compiler({ properties }))
         })
+        style = _.merge(style, this.convertToCesiumObjects(entityStyle))
+      } else {
+        style = _.merge(style, cesiumOptions.entityStyle || {})
       }
       return style
     },
