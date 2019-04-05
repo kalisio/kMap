@@ -69,6 +69,21 @@ export default {
         if (baseLayer) this.showLayer(baseLayer.name)
       }
     },
+    isLayerStorable (layer) {
+      if (_.has(layer, 'isStorable')) return _.get(layer, 'isStorable')
+      // Only possible when export as GeoJson is possible by default
+      else return (!layer._id && (typeof this.toGeoJson === 'function'))
+    },
+    isLayerEditable (layer) {
+      if (_.has(layer, 'isEditable')) return _.get(layer, 'isEditable')
+      // Only possible on user-defined and saved layers by default
+      else return (layer._id && (layer.service === 'features'))
+    },
+    isLayerRemovable (layer) {
+      if (_.has(layer, 'isRemovable')) return _.get(layer, 'isRemovable')
+      // Only possible on user-defined layers by default
+      else return (!layer._id && (layer.service === 'features'))
+    },
     setupLayerActions (layer) {
       let actions = []
       // Add supported actions
@@ -78,24 +93,14 @@ export default {
           label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
           icon: 'zoom_out_map'
         })
-        // Only possible when export as GeoJson is possible
-        if (!layer._id && (typeof this.toGeoJson === 'function')) {
+        if (this.isLayerStorable(layer)) {
           actions.push({
             name: 'save',
             label: this.$t('mixins.activity.SAVE_LABEL'),
             icon: 'save'
           })
         }
-        // Only possible on user-defined layers
-        if (!layer._id || (layer.service === 'features')) {
-          actions.push({
-            name: 'remove',
-            label: this.$t('mixins.activity.REMOVE_LABEL'),
-            icon: 'remove_circle'
-          })
-        }
-        // Only possible on user-defined and saved layers
-        if (layer._id && (layer.service === 'features')) {
+        if (this.isLayerEditable(layer)) {
           actions.push({
             name: 'edit',
             label: this.$t('mixins.activity.EDIT_LABEL'),
@@ -111,6 +116,13 @@ export default {
               icon: 'edit_location'
             })
           }
+        }
+        if (this.isLayerRemovable(layer)) {
+          actions.push({
+            name: 'remove',
+            label: this.$t('mixins.activity.REMOVE_LABEL'),
+            icon: 'remove_circle'
+          })
         }
       }
       this.$set(layer, 'actions', actions)
@@ -129,9 +141,11 @@ export default {
       this.zoomToLayer(layer.name)
     },
     async onSaveLayer (layer) {
-      // Chenge data source from in-memory to service
+      // Chenge data source from in-memory to service + editable flag
       _.merge(layer, {
         service: 'features',
+        isEditable: true,
+        isRemovable: true,
         [this.engine]: { source: '/api/features' }
       })
       // When saving from one engine copy options to the other one so that it will be available in both of them
@@ -295,6 +309,9 @@ export default {
           name,
           type: 'OverlayLayer',
           icon: 'colorize',
+          isStorable: false,
+          isEditable: false,
+          isRemovable: true,
           leaflet: {
             type: 'geoJson',
             isVisible: true,

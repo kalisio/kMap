@@ -49,11 +49,11 @@ let fileLayersMixin = {
           name: event.filename || this.$t('mixins.fileLayers.IMPORTED_DATA_NAME'),
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
+          isStorable: true,
+          isRemovable: true,
           leaflet: {
             type: 'geoJson',
-            isVisible: true,
-            popup: this.options.popup,
-            cluster: this.options.cluster
+            isVisible: true
           }
         })
         let fileLayer = this.getLeafletLayerByName(event.filename)

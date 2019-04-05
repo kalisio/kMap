@@ -18,10 +18,11 @@ let fileLayersMixin = {
           name: source.name,
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
+          isStorable: true,
+          isRemovable: true,
           cesium: {
             type: 'geoJson',
             isVisible: true,
-            cluster: this.options.cluster,
             source: source.name // Set the data source name instead of URL in this case
           }
         })

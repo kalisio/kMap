@@ -390,10 +390,6 @@ let geojsonLayersMixin = {
       }
       if (remove && (typeof layer.remove === 'function')) layer.remove(geoJson)
       else if (typeof layer.update === 'function') layer.update(geoJson)
-      if (container) {
-        //container.clearLayers()
-        //container.addLayer(layer)
-      }
     }
   },
   created () {
