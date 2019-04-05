@@ -258,7 +258,7 @@ let geojsonLayersMixin = {
       // because it can be slow you have to specify a subset of properties
       if (leafletOptions.template) {
         leafletOptions.template.forEach(entry => {
-          // Perform templating, using simple spec mapping first then raw if property not found
+          // Perform templating, set using simple spec mapping first then raw if property not found
           _.set(style, _.get(LeafletStyleMappings, entry.property, entry.property), entry.compiler({ properties, feature }))
         })
       }
@@ -275,7 +275,7 @@ let geojsonLayersMixin = {
       // because it can be slow you have to specify a subset of properties
       if (leafletOptions.template) {
         leafletOptions.template.forEach(entry => {
-          // Perform templating, using simple spec mapping first then raw if property not found
+          // Perform templating, set using simple spec mapping first then raw if property not found
           _.set(style, _.get(LeafletStyleMappings, entry.property, entry.property), entry.compiler({ properties, feature }))
         })
       }

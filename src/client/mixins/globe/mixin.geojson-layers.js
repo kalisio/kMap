@@ -164,6 +164,8 @@ let geojsonLayersMixin = {
       }
     },
     applyStyle (entities, options) {
+      let cesiumOptions = options.cesium || options
+
       for (let i = 0; i < entities.values.length; i++) {
         let entity = entities.values[i]
         const style = this.generateCesiumStyle('entityStyle', entity, options)
@@ -179,6 +181,8 @@ let geojsonLayersMixin = {
           entity.billboard = undefined
           entity.model = style.model
         }
+        // Handle specific case of orientation
+        if (style.orientation) entity.orientation = style.orientation
       }
     },
     applyClusterStyle (entities, cluster, options) {
@@ -284,8 +288,21 @@ let geojsonLayersMixin = {
       if (cesiumOptions.template) {
         let entityStyle = _.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup'])
         cesiumOptions.template.forEach(entry => {
-          // Perform templating, using simple spec mapping first then raw if property not found
-          _.set(entityStyle, _.get(CesiumStyleMappings, entry.property, entry.property), entry.compiler({ properties }))
+          // Perform templating, set using simple spec mapping first then raw if property not found
+          let value = entry.compiler({ properties })
+          const property = _.get(CesiumStyleMappings, entry.property, entry.property)
+          // Handle specific case of orientation
+          if ((entry.property === 'orientation') && entity.position) {
+            const localFrameAxes = _.get(options, 'cesium.localFrameAxes', ['east', 'north'])
+            const localFrame = Cesium.Transforms.localFrameToFixedFrameGenerator(...localFrameAxes)
+            const position = entity.position.getValue(this.viewer.clock.currentTime)
+            // From heading, pitch, roll as templated string to quaternion
+            value = value.split(',').map(angle => Cesium.Math.toRadians(parseFloat(angle)))
+            value = new Cesium.HeadingPitchRoll(...value)
+            // Then from local to position frame
+            value = Cesium.Transforms.headingPitchRollQuaternion(position, value, Cesium.Ellipsoid.WGS84, localFrame)
+          }
+          _.set(entityStyle, property, value)
         })
         style = _.merge(style, this.convertToCesiumObjects(entityStyle))
       } else {
