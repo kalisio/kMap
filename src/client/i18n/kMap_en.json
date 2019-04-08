@@ -37,6 +37,7 @@
       "GEOCODING": "Find a location",
       "GEOCODE_BUTTON": "Geocode",
       "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
+      "TRACK_LOCATION": "Track location",
       "PROBE": "Probe",
       "PROBED_LOCATION": "Probe"
     },

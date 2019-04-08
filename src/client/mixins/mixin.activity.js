@@ -34,6 +34,9 @@ export default {
       if (this.onGeocoding) this.registerFabAction({
         name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
       })
+      if (this.createLocationIndicator) this.registerFabAction({
+        name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
+      })
       if (this.onProbeLocation) this.registerFabAction({
         name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
       })
@@ -288,6 +291,10 @@ export default {
         }
         done()
       })
+    },
+    onTrackLocation () {
+      if (!this.locationIndicator) this.createLocationIndicator()
+      else this.removeLocationIndicator()
     },
     geolocate () {
       if (!this.engine) {

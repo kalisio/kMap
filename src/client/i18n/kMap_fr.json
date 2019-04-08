@@ -37,6 +37,7 @@
       "GEOCODING": "Rechercher un lieu",
       "GEOCODE_BUTTON": "Géocoder",
       "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
+      "TRACK_LOCATION": "Suivi de coordonnées",
       "PROBE": "Sonder",
       "PROBED_LOCATION": "Sonde"
     },
