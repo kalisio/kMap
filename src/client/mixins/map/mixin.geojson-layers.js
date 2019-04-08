@@ -32,7 +32,8 @@ let geojsonLayersMixin = {
               //oldLayer.setStyle(leafletOptions.pointToLayer(feature))
               return
             } else {
-              oldLayer.setStyle(leafletOptions.style(feature))
+              // It seems the Leaflet realtime plugin takes care of it for us
+              //oldLayer.setStyle(leafletOptions.style(feature))
             }
           }
           if (oldLayer.setIcon) {
