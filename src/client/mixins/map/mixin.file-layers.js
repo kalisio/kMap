@@ -50,6 +50,7 @@ let fileLayersMixin = {
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
           isStorable: true,
+          isEditable: true,
           isRemovable: true,
           leaflet: {
             type: 'geoJson',

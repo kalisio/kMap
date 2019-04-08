@@ -22,6 +22,7 @@
       "CONVERT_UNITS": "{{layer}}: convertir en {{unit}}"
     },
     "activity": {
+      "CREATE_LAYER": "Créer une nouvelle couche",
       "SAVE_LABEL": "Sauvegarder",
       "EDIT_LABEL": "Editer",
       "START_EDIT_DATA_LABEL": "Editer les données",

@@ -19,6 +19,7 @@ let fileLayersMixin = {
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
           isStorable: true,
+          isEditable: true,
           isRemovable: true,
           cesium: {
             type: 'geoJson',

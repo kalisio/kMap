@@ -141,11 +141,9 @@ export default {
       this.zoomToLayer(layer.name)
     },
     async onSaveLayer (layer) {
-      // Chenge data source from in-memory to service + editable flag
+      // Change data source from in-memory to features service
       _.merge(layer, {
         service: 'features',
-        isEditable: true,
-        isRemovable: true,
         [this.engine]: { source: '/api/features' }
       })
       // When saving from one engine copy options to the other one so that it will be available in both of them
@@ -194,9 +192,13 @@ export default {
           {
             label: this.$t('OK'),
             handler: async () => {
-              // If persistent layer remove features as well
-              if (_.has(layer, 'baseQuery.layer')) {
-                await this.$api.getService('features').remove(null, { query: { layer: layer._id } })
+              // Stop any running edition
+              if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
+              if (layer._id) {
+                // If persistent feature layer remove features as well
+                if (layer.service === 'features') {
+                  await this.$api.getService('features').remove(null, { query: { layer: layer._id } })
+                }
                 await this.$api.getService('catalog').remove(layer._id)
               }
               this.removeLayer(layer.name)
@@ -215,6 +217,37 @@ export default {
     },
     onGlobeReady () {
       this.engine = 'cesium'
+    },
+    async onCreateLayer () {
+      // Set layer data source to features service
+      this.createModal = await this.$createComponent('editor/KModalEditor', {
+        propsData: {
+          service: 'catalog',
+          baseObject: {
+            type: 'OverlayLayer',
+            icon: 'insert_drive_file',
+            service: 'features',
+            isStorable: true,
+            isEditable: true,
+            isRemovable: true,
+            [this.engine]: {
+              type: 'geoJson',
+              isVisible: true,
+              source: '/api/features'
+            }
+          }
+        }
+      })
+      this.createModal.$mount()
+      this.createModal.open()
+      this.createModal.$on('applied', async createdLayer => {
+        this.createModal.close()
+        this.createModal = null
+        // Create an empty layer used as a container
+        await this.addLayer(createdLayer)
+        // Start editing
+        await this.onEditLayerData(createdLayer)
+      })
     },
     onGeolocate () {
       // Force a refresh

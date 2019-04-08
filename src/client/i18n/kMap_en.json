@@ -22,6 +22,7 @@
       "CONVERT_UNITS": "{{layer}}: convert to {{unit}}"
     },
     "activity": {
+      "CREATE_LAYER": "Create a new layer",
       "SAVE_LABEL": "Save",
       "EDIT_LABEL": "Edit",
       "START_EDIT_DATA_LABEL": "Start data edit",
