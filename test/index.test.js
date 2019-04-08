@@ -210,6 +210,8 @@ describe('kMap', () => {
     expect(response[0].latitude).toExist()
     expect(response[0].longitude).toExist()
   })
+  // Let enough time to process
+  .timeout(5000)
 
   it('clears the layers', async () => {
     for (let i = 0; i < layersArray.length; ++i) {
