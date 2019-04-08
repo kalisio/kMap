@@ -49,8 +49,9 @@ let editLayersMixin = {
       }
     },
     async loadLayerSchema (layer) {
-      if (!layer.schema) return null
-      const data = await this.$api.getService('storage', '').get(`schemas/${layer._id}.json`)
+      const schemaId = _.get(layer, 'schema._id')
+      if (!schemaId) return null
+      const data = await this.$api.getService('storage', '').get(schemaId)
       if (!data.uri) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
       const typeAndData = data.uri.split(',')
       if (typeAndData.length <= 1) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))

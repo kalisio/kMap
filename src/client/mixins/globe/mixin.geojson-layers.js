@@ -57,11 +57,7 @@ let geojsonLayersMixin = {
         await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
       } else if (geoJson) {
         await dataSource.load(geoJson, cesiumOptions)
-      } else {
-        if (_.isNil(source)) {
-          // Empty valid GeoJson
-          source = { type: 'FeatureCollection', features: [] }
-        }
+      } else if (!_.isNil(source)) {
         // Assume source is an URL or a promise returning GeoJson
         await dataSource.load(source, cesiumOptions)
       }
@@ -97,12 +93,6 @@ let geojsonLayersMixin = {
         // If layer provided do not override
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
-      this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
-      // Perform required conversion from JSON to Cesium objects
-      if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(cesiumOptions.entityStyle)
-      if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
-      if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
-      if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
       // Optimize templating by creating compilers up-front
       let layerStyleTemplate = _.get(cesiumOptions, 'template')
       if (layerStyleTemplate) {
@@ -117,6 +107,12 @@ let geojsonLayersMixin = {
       if (tooltipTemplate) {
         cesiumOptions.tooltip.compiler = _.template(tooltipTemplate)
       }
+      this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
+      // Perform required conversion from JSON to Cesium objects
+      if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(_.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup']))
+      if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
+      if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
+      if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
 
       try {
         const source = _.get(cesiumOptions, 'source')
@@ -168,6 +164,8 @@ let geojsonLayersMixin = {
       }
     },
     applyStyle (entities, options) {
+      let cesiumOptions = options.cesium || options
+
       for (let i = 0; i < entities.values.length; i++) {
         let entity = entities.values[i]
         const style = this.generateCesiumStyle('entityStyle', entity, options)
@@ -183,6 +181,8 @@ let geojsonLayersMixin = {
           entity.billboard = undefined
           entity.model = style.model
         }
+        // Handle specific case of orientation
+        if (style.orientation) entity.orientation = style.orientation
       }
     },
     applyClusterStyle (entities, cluster, options) {
@@ -282,16 +282,31 @@ let geojsonLayersMixin = {
     getDefaultEntityStyle (entity, options) {
       const properties = (entity.properties ? entity.properties.getValue(0) : null)
       let cesiumOptions = options.cesium || options
-      let style = _.merge({},
-        this.options.entityStyle || {},
-        cesiumOptions.entityStyle || {})
+      let style = _.merge({}, this.options.entityStyle || {})
       // We allow to template style properties according to feature,
       // because it can be slow you have to specify a subset of properties
       if (cesiumOptions.template) {
+        let entityStyle = _.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup'])
         cesiumOptions.template.forEach(entry => {
-          // Perform templating
-          _.set(style, _.get(CesiumStyleMappings, entry.property), entry.compiler({ properties }))
+          // Perform templating, set using simple spec mapping first then raw if property not found
+          let value = entry.compiler({ properties })
+          const property = _.get(CesiumStyleMappings, entry.property, entry.property)
+          // Handle specific case of orientation
+          if ((entry.property === 'orientation') && entity.position) {
+            const localFrameAxes = _.get(options, 'cesium.localFrameAxes', ['east', 'north'])
+            const localFrame = Cesium.Transforms.localFrameToFixedFrameGenerator(...localFrameAxes)
+            const position = entity.position.getValue(this.viewer.clock.currentTime)
+            // From heading, pitch, roll as templated string to quaternion
+            value = value.split(',').map(angle => Cesium.Math.toRadians(parseFloat(angle)))
+            value = new Cesium.HeadingPitchRoll(...value)
+            // Then from local to position frame
+            value = Cesium.Transforms.headingPitchRollQuaternion(position, value, Cesium.Ellipsoid.WGS84, localFrame)
+          }
+          _.set(entityStyle, property, value)
         })
+        style = _.merge(style, this.convertToCesiumObjects(entityStyle))
+      } else {
+        style = _.merge(style, cesiumOptions.entityStyle || {})
       }
       return style
     },

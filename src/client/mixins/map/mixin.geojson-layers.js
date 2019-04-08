@@ -30,9 +30,10 @@ let geojsonLayersMixin = {
             if (feature.geometry.type === 'Point') {
               // FIXME: updating style in place does not seem to work, so for now we recreate the whole marker
               //oldLayer.setStyle(leafletOptions.pointToLayer(feature))
-              return 
+              return
             } else {
-              oldLayer.setStyle(leafletOptions.style(feature))
+              // It seems the Leaflet realtime plugin takes care of it for us
+              //oldLayer.setStyle(leafletOptions.style(feature))
             }
           }
           if (oldLayer.setIcon) {
@@ -40,10 +41,22 @@ let geojsonLayersMixin = {
             //oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature, oldLayer.getLatLng()), 'options.icon'))
             return
           }
-          // And coordinates for points
+          // And coordinates
+          const type = feature.geometry.type
+          const coordinates = feature.geometry.coordinates
           // FIXME: support others geometry types ?
-          if (feature.geometry.type === 'Point') {
-            oldLayer.setLatLng([feature.geometry.coordinates[1], feature.geometry.coordinates[0]])
+          switch (type) {
+            case 'Point':
+              oldLayer.setLatLng(L.GeoJSON.coordsToLatLngs(coordinates))
+              break
+            case 'LineString':
+            case 'MultiLineString':
+              oldLayer.setLatLngs(L.GeoJSON.coordsToLatLngs(coordinates, type === 'LineString' ? 0 : 1))
+              break
+            case 'Polygon':
+            case 'MultiPolygon':
+              oldLayer.setLatLngs(L.GeoJSON.coordsToLatLngs(coordinates, type === 'Polygon' ? 1 : 2))
+              break
           }
           return oldLayer
         }
@@ -246,8 +259,8 @@ let geojsonLayersMixin = {
       // because it can be slow you have to specify a subset of properties
       if (leafletOptions.template) {
         leafletOptions.template.forEach(entry => {
-          // Perform templating
-          _.set(style, _.get(LeafletStyleMappings, entry.property), entry.compiler({ properties, feature }))
+          // Perform templating, set using simple spec mapping first then raw if property not found
+          _.set(style, _.get(LeafletStyleMappings, entry.property, entry.property), entry.compiler({ properties, feature }))
         })
       }
       return (latlng ? this.createMarkerFromStyle(latlng, style) : style)
@@ -263,8 +276,8 @@ let geojsonLayersMixin = {
       // because it can be slow you have to specify a subset of properties
       if (leafletOptions.template) {
         leafletOptions.template.forEach(entry => {
-          // Perform templating
-          _.set(style, _.get(LeafletStyleMappings, entry.property), entry.compiler({ properties, feature }))
+          // Perform templating, set using simple spec mapping first then raw if property not found
+          _.set(style, _.get(LeafletStyleMappings, entry.property, entry.property), entry.compiler({ properties, feature }))
         })
       }
       return style
@@ -370,6 +383,12 @@ let geojsonLayersMixin = {
       // Retrieve the layer
       let layer = this.getLeafletLayerByName(name)
       if (!layer) return // Cannot update invisible layer
+      // Check if clustering on top of a realtime layer, in this case we have a top-level container
+      let container
+      if (typeof layer.getLayers === 'function') {
+        container = layer
+        layer = container.getLayers().find(layer => layer._container === container)
+      }
       if (remove && (typeof layer.remove === 'function')) layer.remove(geoJson)
       else if (typeof layer.update === 'function') layer.update(geoJson)
     }
