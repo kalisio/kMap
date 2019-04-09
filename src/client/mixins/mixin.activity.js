@@ -279,18 +279,16 @@ export default {
       this.geocodingModal.open()
     },
     onGeocode (done) {
-      this.onCloseGeocoding(() => {
-        const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
-        if (geocodingForm) {
-          let result = geocodingForm.validate()
-          const longitude = _.get(result, 'values.location.longitude')
-          const latitude = _.get(result, 'values.location.latitude')
-          if (longitude && latitude) {
-            this.center(longitude, latitude)
-          }
+      const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
+      if (geocodingForm) {
+        let result = geocodingForm.validate()
+        const longitude = _.get(result, 'values.location.longitude')
+        const latitude = _.get(result, 'values.location.latitude')
+        if (longitude && latitude) {
+          this.center(longitude, latitude)
         }
-        done()
-      })
+      }
+      this.onCloseGeocoding(done)
     },
     onTrackLocation () {
       if (!this.locationIndicator) this.createLocationIndicator()
