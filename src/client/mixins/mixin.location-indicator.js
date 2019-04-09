@@ -22,9 +22,11 @@ let locationIndicatorMixin = {
       this.locationIndicator.$on('close', this.removeLocationIndicator)
       this.locationIndicator.$mount()
       this.$el.appendChild(this.locationIndicator.$el)
+      this.$on('mousemove', this.updateLocationIndicator)
     },
     removeLocationIndicator () {
       if (!this.locationIndicator) return
+      this.$off('mousemove', this.updateLocationIndicator)
       this.locationIndicator.$off('close', this.removeLocationIndicator)
       this.$el.removeChild(this.locationIndicator.$el)
       this.locationIndicator = null
@@ -44,11 +46,9 @@ let locationIndicatorMixin = {
   created () {
     // Whenever the location format is updated, update indicator as well
     Events.$on('location-format-changed', this.setLocationFormat)
-    this.$on('mousemove', this.updateLocationIndicator)
   },
   beforeDestroy () {
     Events.$off('location-format-changed', this.setLocationFormat)
-    this.$off('mousemove', this.updateLocationIndicator)
   }
 }
 
