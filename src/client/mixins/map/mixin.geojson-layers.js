@@ -217,7 +217,7 @@ let geojsonLayersMixin = {
           }
           if (inPlace) _.unset(style, key)
           // In this case we have a marker spec
-          if (key.startsWith('icon')) isIconSpec = true
+          if (mapping.startsWith('icon')) isIconSpec = true
         }
       })
       // Select the right icon type based on options
