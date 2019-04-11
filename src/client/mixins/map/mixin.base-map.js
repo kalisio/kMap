@@ -171,6 +171,15 @@ let baseMapMixin = {
     center (longitude, latitude, zoomLevel, options) {
       this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 12, options)
     },
+    getCenter () {
+      const center = this.map.getCenter()
+      const zoom = this.map.getZoom()
+      return {
+        longitude: center.lng,
+        latitude: center.lat,
+        zoomLevel: zoom
+      }
+    },
     setCursor (className) {
       L.DomUtil.addClass(this.map._container, className)
     },

@@ -210,6 +210,14 @@ let baseGlobeMixin = {
       if (this.viewer.clock.shouldAnimate) this.viewer.camera.flyTo(target)
       else this.viewer.camera.setView(target)
     },
+    getCenter () {
+      const center = this.viewer.camera.positionCartographic
+      return {
+        longitude: Cesium.Math.toDegrees(center.longitude),
+        latitude: Cesium.Math.toDegrees(center.latitude),
+        altitude: center.height
+      }
+    },
     setCursor (className) {
       this.viewer.container.classList.add(className)
     },
