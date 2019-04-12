@@ -180,6 +180,14 @@ let baseMapMixin = {
         zoomLevel: zoom
       }
     },
+    getBounds () {
+      this.viewBounds = this.map.getBounds()
+      const south = this.viewBounds.getSouth()
+      const west = this.viewBounds.getWest()
+      const north = this.viewBounds.getNorth()
+      const east = this.viewBounds.getEast()
+      return [ [south, west], [north, east] ]
+    },
     setCursor (className) {
       L.DomUtil.addClass(this.map._container, className)
     },

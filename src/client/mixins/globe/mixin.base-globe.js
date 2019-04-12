@@ -34,6 +34,7 @@ let baseGlobeMixin = {
       // Remove default Cesium handlers
       this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
       this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK)
+      this.viewBounds = new Cesium.Rectangle()
       this.$emit('globe-ready')
     },
     processCesiumLayerOptions (options) {
@@ -217,6 +218,14 @@ let baseGlobeMixin = {
         latitude: Cesium.Math.toDegrees(center.latitude),
         altitude: center.height
       }
+    },
+    getBounds () {
+      const bounds = this.viewer.camera.computeViewRectangle(this.viewer.scene.globe.ellipsoid, this.viewBounds)
+      const south = Cesium.Math.toDegrees(bounds.south)
+      const west = Cesium.Math.toDegrees(bounds.west)
+      const north = Cesium.Math.toDegrees(bounds.north)
+      const east = Cesium.Math.toDegrees(bounds.east)
+      return [ [south, west], [north, east] ]
     },
     setCursor (className) {
       this.viewer.container.classList.add(className)

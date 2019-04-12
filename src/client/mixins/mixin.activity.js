@@ -1,7 +1,10 @@
 import _ from 'lodash'
+import config from 'config'
 import logger from 'loglevel'
 import moment from 'moment'
 import { Events, Dialog } from 'quasar'
+
+const VIEW_KEY = config.appName.toLowerCase() + '-view'
 
 export default {
   data () {
@@ -254,7 +257,7 @@ export default {
     },
     onGeolocate () {
       // Force a refresh
-      this.$router.push({ query: {} })
+      this.clearStoredView()
       this.updatePosition()
     },
     onCloseGeocoding (done) {
@@ -299,21 +302,63 @@ export default {
         //logger.error('Engine not ready to geolocate')
         return
       }
-      if (this.$route.query.south) return
+      if (_.get(this.$route, 'query.south')) return
       const position = this.$store.get('user.position')
       // 3D or 2D centering ?
       if (position) {
         this.center(position.longitude, position.latitude)
       }
     },
-    async initializeView () {
-      if (this.$route.query.south) {
-        const bounds= [ [this.$route.query.south, this.$route.query.west], [this.$route.query.north, this.$route.query.east] ]
+    storeView () {
+      const bounds = this.getBounds()
+      const south = bounds[0][0]
+      const west = bounds[0][1]
+      const north = bounds[1][0]
+      const east = bounds[1][1]
+      // Store both in URL and local storage, except if the user has explicitly revoked restoration
+      const restoreView = this.$store.get('restore.view')
+      if (restoreView) {
+        this.$router.push({ query: { south, west, north, east } })
+        window.localStorage.setItem(VIEW_KEY, JSON.stringify(bounds))
+      }
+    },
+    restoreView () {
+      let bounds
+      const restoreView = this.$store.get('restore.view')
+      if (restoreView) {
+        const savedBounds = window.localStorage.getItem(VIEW_KEY)
+        if (savedBounds) bounds = JSON.parse(savedBounds)
+      } else if (_.get(this.$route, 'query.south') && _.get(this.$route, 'query.west') &&
+                 _.get(this.$route, 'query.north') && _.get(this.$route, 'query.east')) {
+        bounds = [
+          [_.get(this.$route, 'query.south'), _.get(this.$route, 'query.west')],
+          [_.get(this.$route, 'query.north'), _.get(this.$route, 'query.east')]
+        ]
+      }
+      // Restore state if required
+      if (bounds) {
+        const south = bounds[0][0]
+        const west = bounds[0][1]
+        const north = bounds[1][0]
+        const east = bounds[1][1]
+        this.$router.push({ query: { south, west, north, east } })
         this.zoomToBounds(bounds)
-      } else {
+      }
+      return bounds
+    },
+    clearStoredView () {
+      this.$router.push({ query: {} })
+      window.localStorage.removeItem(VIEW_KEY)
+    },
+    updateViewSettings () {
+      this.clearStoredView()
+      this.restoreView()
+    },
+    async initializeView () {
+      // Geolocate by default if view has not been restored
+      if (!this.restoreView()) {
         if (this.$store.get('user.position')) this.geolocate()
       }
-
       // Retrieve the layers
       try {
         await this.refreshLayers(this.engine)
@@ -452,11 +497,14 @@ export default {
     this.$on('globe-ready', this.onGlobeReady)
     this.$on('layer-added', this.onLayerAdded)
     Events.$on('user-position-changed', this.geolocate)
+    // Whenever restore view settings are updated, update view as well
+    Events.$on('restore-view-changed', this.updateViewSettings)
   },
   beforeDestroy () {
     this.$off('map-ready', this.onMapReady)
     this.$off('globe-ready', this.onGlobeReady)
     this.$off('layer-added', this.onLayerAdded)
     Events.$off('user-position-changed', this.geolocate)
+    Events.$off('restore-view-changed', this.updateViewSettings)
   }
 }
