@@ -1,5 +1,14 @@
 import _ from 'lodash'
 
+export async function fetchGeoJson (dataSource) {
+  const response = await fetch(dataSource)
+  if (response.status !== 200) {
+    throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
+  }
+  const data = await response.json()
+  return data
+}
+
 // Find the nearest time of a given one in a given moment time list
 export function getNearestTime (time, times) {
   // Look for the nearest time

@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { CesiumStyleMappings, getTextTable } from '../../utils'
+import { fetchGeoJson, CesiumStyleMappings, getTextTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -58,8 +58,8 @@ let geojsonLayersMixin = {
       } else if (geoJson) {
         await dataSource.load(geoJson, cesiumOptions)
       } else if (!_.isNil(source)) {
-        // Assume source is an URL or a promise returning GeoJson
-        await dataSource.load(source, cesiumOptions)
+        // Assume source is an URL returning GeoJson
+        await dataSource.load(fetchGeoJson(source), cesiumOptions)
       }
     },
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
@@ -94,10 +94,12 @@ let geojsonLayersMixin = {
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
       // Optimize templating by creating compilers up-front
-      let layerStyleTemplate = _.get(cesiumOptions, 'template')
-      if (layerStyleTemplate) {
+      let entityStyleTemplate = _.get(cesiumOptions, 'entityStyle.template')
+      if (entityStyleTemplate) {
         // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
-        cesiumOptions.template = layerStyleTemplate.map(property => ({ property, compiler: _.template(_.get(cesiumOptions, property)) }))
+        _.set(cesiumOptions, 'entityStyleTemplate', entityStyleTemplate.map(property => ({
+          property, compiler: _.template(_.get(cesiumOptions, `entityStyle.${property}`))
+        })))
       }
       const popupTemplate = _.get(cesiumOptions, 'popup.template')
       if (popupTemplate) {
@@ -109,7 +111,8 @@ let geojsonLayersMixin = {
       }
       this.convertFromSimpleStyleSpec(cesiumOptions, 'update-in-place')
       // Perform required conversion from JSON to Cesium objects
-      if (cesiumOptions.entityStyle) cesiumOptions.entityStyle = this.convertToCesiumObjects(_.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup']))
+      // If templating occurs we need to wait until it is performed to convert to Cesium objects
+      if (cesiumOptions.entityStyle && !entityStyleTemplate) cesiumOptions.entityStyle = this.convertToCesiumObjects(cesiumOptions.entityStyle)
       if (cesiumOptions.clusterStyle) cesiumOptions.clusterStyle = this.convertToCesiumObjects(cesiumOptions.clusterStyle)
       if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
       if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
@@ -135,10 +138,10 @@ let geojsonLayersMixin = {
           if (cesiumOptions.realtime) {
             await this.createCesiumRealtimeGeoJsonLayer(dataSource, options)
           } else {
-            // Assume source is an URL or a promise returning GeoJson
             // Check for feature service layers
             if (options.service) await dataSource.load(this.getFeatures(options), cesiumOptions)
-            else await dataSource.load(source, cesiumOptions)
+            // Assume source is an URL returning GeoJson
+            else await dataSource.load(fetchGeoJson(source), cesiumOptions)
           }
         }
         this.applyStyle(dataSource.entities, options)
@@ -283,17 +286,18 @@ let geojsonLayersMixin = {
       const properties = (entity.properties ? entity.properties.getValue(0) : null)
       let cesiumOptions = options.cesium || options
       let style = _.merge({}, this.options.entityStyle || {})
-      // We allow to template style properties according to feature,
+      // We allow to template entity style properties according to feature,
       // because it can be slow you have to specify a subset of properties
-      if (cesiumOptions.template) {
-        let entityStyle = _.omit(cesiumOptions, ['clusterStyle', 'tooltip', 'popup'])
-        cesiumOptions.template.forEach(entry => {
+      const entityStyleTemplate = _.get(cesiumOptions, 'entityStyleTemplate')
+      if (entityStyleTemplate) {
+        let entityStyle = _.cloneDeep(cesiumOptions.entityStyle)
+        entityStyleTemplate.forEach(entry => {
           // Perform templating, set using simple spec mapping first then raw if property not found
           let value = entry.compiler({ properties })
-          const property = _.get(CesiumStyleMappings, entry.property, entry.property)
+          const property = entry.property
           // Handle specific case of orientation
-          if ((entry.property === 'orientation') && entity.position) {
-            const localFrameAxes = _.get(options, 'cesium.localFrameAxes', ['east', 'north'])
+          if ((property === 'orientation') && entity.position) {
+            const localFrameAxes = _.get(entityStyle, 'localFrameAxes', ['east', 'north'])
             const localFrame = Cesium.Transforms.localFrameToFixedFrameGenerator(...localFrameAxes)
             const position = entity.position.getValue(this.viewer.clock.currentTime)
             // From heading, pitch, roll as templated string to quaternion
@@ -304,8 +308,10 @@ let geojsonLayersMixin = {
           }
           _.set(entityStyle, property, value)
         })
+        // In this case we perform conversion to Cesium objects once templating has occured
         style = _.merge(style, this.convertToCesiumObjects(entityStyle))
       } else {
+        // In this case the conversion to Cesium objects has already occured on layer creation
         style = _.merge(style, cesiumOptions.entityStyle || {})
       }
       return style

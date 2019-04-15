@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
-import { LeafletEvents, LeafletStyleMappings, bindLeafletEvents, getHtmlTable } from '../../utils'
+import { fetchGeoJson, LeafletEvents, LeafletStyleMappings, bindLeafletEvents, getHtmlTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
@@ -109,11 +109,7 @@ let geojsonLayersMixin = {
         if (options.service) {
           data = await this.getFeatures(options)
         } else { // Otherwise standard HTTP
-          let response = await fetch(dataSource)
-          if (response.status !== 200) {
-            throw new Error(`Impossible to fetch ${dataSource}: ` + response.status)
-          }
-          data = await response.json()
+          data = await fetchGeoJson(dataSource)
         }
         _.set(leafletOptions, 'source', data)
       }
@@ -142,7 +138,9 @@ let geojsonLayersMixin = {
         let layerStyleTemplate = _.get(leafletOptions, 'template')
         if (layerStyleTemplate) {
           // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
-          leafletOptions.template = layerStyleTemplate.map(property => ({ property, compiler: _.template(_.get(leafletOptions, property)) }))
+          leafletOptions.template = layerStyleTemplate.map(property => ({
+            property, compiler: _.template(_.get(leafletOptions, property))
+          }))
         }
         const popupTemplate = _.get(leafletOptions, 'popup.template')
         if (popupTemplate) {
