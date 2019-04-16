@@ -39,15 +39,6 @@ export default {
     modalStyle: {
       type: Object,
       default: () => {
-        return {
-          minWidth: '60%',
-          minHeight: '60%'
-        }
-      }
-    },
-    modalStyle: {
-      type: Object,
-      default: () => {
         return { 
           minWidth: '60%', 
           minHeight: '60%' 
