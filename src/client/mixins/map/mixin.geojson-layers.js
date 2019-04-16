@@ -11,8 +11,8 @@ let geojsonLayersMixin = {
       // Alter type as required by the plugin
       leafletOptions.type = 'realtime'
       // We first need to create an underlying container or setup Id function
-      const id = _.get(options, 'featureId', _.get(leafletOptions, 'id'))
-      if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id))
+      const id = _.get(options, 'featureId', _.get(leafletOptions, 'id', '_id'))
+      if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id, _.get(feature, id)))
       let container = _.get(leafletOptions, 'container')
       if (container) {
         leafletOptions.container = this.createLeafletLayer({ type: container })
