@@ -1,12 +1,19 @@
 import geolocation from './mixin.geolocation'
 import navigator from './mixin.navigator'
-import * as map from './map'
-// FIXME: for now avoid using Cesium to create a light package
-// import * as globe from './globe'
+import featureService from './mixin.feature-service'
+import time from './mixin.time'
+import weacast from './mixin.weacast'
+import activity from './mixin.activity'
+import legend from './mixin.legend'
+import locationIndicator from './mixin.location-indicator'
 
 export default {
-  map,
-  // globe,
   geolocation,
-  navigator
+  navigator,
+  featureService,
+  time,
+  weacast,
+  activity,
+  legend,
+  locationIndicator
 }

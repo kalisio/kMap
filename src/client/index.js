@@ -1,27 +1,12 @@
-import logger from 'loglevel'
-import { Platform } from 'quasar'
-export * as mixins from './mixins'
+import * as commonMixins from './mixins'
+import * as mapMixins from './mixins/map'
+import * as globeMixins from './mixins/globe'
+import init from './init'
+
 export * as utils from './utils'
 export * from '../common'
 
-export default function init () {
-  const api = this
+let mixins = Object.assign({}, commonMixins, { map: mapMixins, globe: globeMixins })
+export { mixins }
 
-  logger.debug('Initializing kalisio map')
-
-  // Declare the services
-  api.declareService('geocoder')
-
-  if (!Platform.is.cordova) return
-  window.navigationApps = []
-
-  document.addEventListener('deviceready', _ => {
-    // Declare the navigation apps
-    window.launchnavigator.availableApps((result) => {
-      let apps = Object.entries(result)
-      apps.forEach((app) => {
-        if (app[1]) window.navigationApps.push(app[0])
-      })
-    }, (error) => logger.warn('Cannot retrieve installed navigation apps: ' + error))
-  })
-}
+export default init

@@ -1,19 +1,159 @@
 {
   "CLOSE": "Close",
   "SEARCH": "Search",
+  "errors": {
+    "CANNOT_PROCESS_SCHEMA_DATA": "Invalid or incomplete data scheme"
+  },
   "mixins": {
     "geolocation": {
-      "ERROR_MESSAGE": "We are not able to locate your position.",
+      "ERROR_MESSAGE": "We are not able to locate your position, this might affect some features of the application.",
       "PERMISSION_DENIED_MESSAGE": "It seems you did not give permission to locate you.",
       "POSITION_UNAVAILABLE_MESSAGE": "It seems the internal source of position returned an internal error.",
       "POSITION_TIMEOUT_MESSAGE": "It seems the time allowed to acquire it was reached before the information was obtained.",
-      "DIALOG_MESSAGE": "This might affect some features of the application. Would you like to try again ?",
-      "DIALOG_DISMISS_BUTTON": "Dismiss",
-      "DIALOG_RETRY_BUTTON": "Retry"
+      "POSITION_RETRY_BUTTON": "Retry"
     },
     "navigator": {
       "ACTION_SHEET_TITLE": "Select an application"
+    },
+    "fileLayers": {
+      "IMPORTED_DATA_NAME": "My data"
+    },
+    "legend": {
+      "CONVERT_UNITS": "{{layer}}: convert to {{unit}}"
+    },
+    "activity": {
+      "CREATE_LAYER": "Create a new layer",
+      "SAVE_LABEL": "Save",
+      "EDIT_LABEL": "Edit",
+      "START_EDIT_DATA_LABEL": "Start data edit",
+      "STOP_EDIT_DATA_LABEL": "Stop data edit",
+      "REMOVE_LABEL": "Remove",
+      "REMOVE_DIALOG_TITLE": "Remove {{layer}} ?",
+      "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",
+      "ZOOM_TO_LABEL": "Zoom to",
+      "TOGGLE_FULLSCREEN": "Fullscreen",
+      "GEOLOCATE": "My position",
+      "GEOCODE": "Find",
+      "GEOCODING": "Find a location",
+      "GEOCODE_BUTTON": "Geocode",
+      "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
+      "TRACK_LOCATION": "Track location",
+      "PROBE": "Probe",
+      "PROBED_LOCATION": "Probe"
+    },
+    "editLayers": {
+      "draw": {
+        "toolbar": {
+          "actions": {
+            "title": "Cancel drawing",
+            "text": "Cancel"
+          },
+          "finish": {
+            "title": "Finish drawing",
+            "text": "Finish"
+          },
+          "undo": {
+            "title": "Delete last point drawn",
+            "text": "Delete last point"
+          },
+          "buttons": {
+            "polyline": "Draw a polyline",
+            "polygon": "Draw a polygon",
+            "rectangle": "Draw a rectangle",
+            "circle": "Draw a circle",
+            "marker": "Draw a marker",
+            "circlemarker": "Draw a circlemarker"
+          }
+        },
+        "handlers": {
+          "circle": {
+            "tooltip": {
+              "start": "Click and drag to draw circle."
+            },
+            "radius": "Radius"
+          },
+          "circlemarker": {
+            "tooltip": {
+              "start": "Click map to place circle marker."
+            }
+          },
+          "marker": {
+            "tooltip": {
+              "start": "Click map to place marker."
+            }
+          },
+          "polygon": {
+            "tooltip": {
+              "start": "Click to start drawing shape.",
+              "cont": "Click to continue drawing shape.",
+              "end": "Click first point to close this shape."
+            }
+          },
+          "polyline": {
+            "error": "<strong>Error:</strong> shape edges cannot cross!",
+            "tooltip": {
+              "start": "Click to start drawing line.",
+              "cont": "Click to continue drawing line.",
+              "end": "Click last point to finish line."
+            }
+          },
+          "rectangle": {
+            "tooltip": {
+              "start": "Click and drag to draw rectangle."
+            }
+          },
+          "simpleshape": {
+            "tooltip": {
+              "end": "Release mouse to finish drawing."
+            }
+          }
+        }
+      },
+      "edit": {
+        "toolbar": {
+          "actions": {
+            "save": {
+              "title": "Save changes",
+              "text": "Save"
+            },
+            "cancel": {
+              "title": "Cancel editing, discards all changes",
+              "text": "Cancel"
+            },
+            "clearAll": {
+              "title": "Clear all layers",
+              "text": "Clear All"
+            }
+          },
+          "buttons": {
+            "edit": "Edit layers",
+            "editDisabled": "No layers to edit",
+            "remove": "Delete layers",
+            "removeDisabled": "No layers to delete"
+          }
+        },
+        "handlers": {
+          "edit": {
+            "tooltip": {
+              "text": "Drag handles or markers to edit features.",
+              "subtext": "Click cancel to undo changes."
+            }
+          },
+          "remove": {
+            "tooltip": {
+              "text": "Click on a feature to remove."
+            }
+          }
+        }
+      }
     }
+  },
+  "schemas": {
+    "OBJECT_NAME": "{{ object.name }}",
+    "CATALOG_CREATE_TITLE": "Create a new data layer",
+    "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
+    "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description",
+    "SCHEMA_FIELD_HELPER": "Select a data scheme"
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)"

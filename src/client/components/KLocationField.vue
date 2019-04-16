@@ -12,14 +12,13 @@
         <q-autocomplete :min-characters="5" :debounce="1000" @search="onSearch" @selected="onSelected" />
       </q-search>
     </q-field>
-    <k-location-map ref="map" v-bind="properties.field.locationMap" />
+    <k-location-map ref="map" :draggable="properties.draggable" v-bind="properties.field.locationMap" />
   </div>
 </template>
 
 <script>
 import _ from 'lodash'
 import { QField, QSearch, QAutocomplete } from 'quasar'
-import KLocationMap from './KLocationMap.vue'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
@@ -27,10 +26,12 @@ export default {
   components: {
     QField,
     QSearch,
-    QAutocomplete,
-    KLocationMap
+    QAutocomplete
   },
-  mixins: [kCoreMixins.baseField],
+  mixins: [
+    kCoreMixins.refsResolver(['map']),
+    kCoreMixins.baseField
+  ],
   computed: {
     actions () {
       let buttons = [
@@ -78,11 +79,13 @@ export default {
       .then(response => {
         let places = []
         response.forEach(element => {
-          let label = ''
-          if (element.streetNumber) label += (element.streetNumber + ' ')
-          if (element.streetName) label += (element.streetName + ' ')
-          if (element.city) label += (element.city + ' ')
-          if (element.zipcode) label += (' (' + element.zipcode + ')')
+          let label = element.formattedAddress || ''
+          if (!label) {
+            if (element.streetNumber) label += (element.streetNumber + ', ')
+            if (element.streetName) label += (element.streetName + ' ')
+            if (element.city) label += (element.city + ' ')
+            if (element.zipcode) label += (' (' + element.zipcode + ')')
+          }
           let place = {
             value: Object.assign(element, { name: label }),
             label: label
@@ -98,6 +101,13 @@ export default {
     onMapClicked () {
       this.$refs.map.open(this.model)
     }
+  },
+  created () {
+    // load the required components
+    this.$options.components['k-location-map'] = this.$load('KLocationMap')
+  },
+  async mounted () {
+    await this.loadRefs()
   }
 }
 </script>

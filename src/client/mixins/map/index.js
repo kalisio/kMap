@@ -1,23 +1,15 @@
 import baseMap from './mixin.base-map'
-import baseLayers from './mixin.base-layers'
-import overlayLayers from './mixin.overlay-layers'
 import geojsonLayers from './mixin.geojson-layers'
 import fileLayers from './mixin.file-layers'
-import fullscreen from './mixin.fullscreen'
-import measure from './mixin.measure'
-import scalebar from './mixin.scalebar'
-import serviceLayers from './mixin.service-layers'
-import collectionLayer from './mixin.collection-layer'
+import forecastLayers from './mixin.forecast-layers'
+import georasterLayers from './mixin.georaster-layers'
+import editLayers from './mixin.edit-layers'
 
 export default {
   baseMap,
-  baseLayers,
-  overlayLayers,
   geojsonLayers,
   fileLayers,
-  fullscreen,
-  measure,
-  scalebar,
-  serviceLayers,
-  collectionLayer
+  forecastLayers,
+  georasterLayers,
+  editLayers
 }
