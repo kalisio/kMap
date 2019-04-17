@@ -91,6 +91,8 @@
     "sift": "^6.0.0",
     "togeojson": "^0.16.0",
     "vue": "2.5.17",
+    "weacast-core": "^1.0.0",
+    "weacast-leaflet": "^1.0.0",
     "winston": "^2.3.1"
   },
   "devDependencies": {
