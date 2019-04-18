@@ -387,8 +387,13 @@ let geojsonLayersMixin = {
         container = layer
         layer = container.getLayers().find(layer => layer._container === container)
       }
+      /* By default leaflet-realtime only performs add with manual update
+        (see https://github.com/perliedman/leaflet-realtime/issues/136)
+         but we'd like to perform similarly to automated updates
       if (remove && (typeof layer.remove === 'function')) layer.remove(geoJson)
       else if (typeof layer.update === 'function') layer.update(geoJson)
+      */
+      if (typeof layer._onNewData === 'function') layer._onNewData(layer.options.removeMissing, geoJson)
     }
   },
   created () {
