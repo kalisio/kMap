@@ -17,6 +17,10 @@
 - Manage events on globe [\#58](https://github.com/kalisio/kMap/issues/58)
 - Standardize feature styling options \(as much as possible\) [\#20](https://github.com/kalisio/kMap/issues/20)
 - Enhance layer refresh on service update [\#6](https://github.com/kalisio/kMap/issues/6)
+- Allow for custom onEachFeature in Leaflet GeoJson layers [\#53](https://github.com/kalisio/kMap/issues/53)
+- Make the LocationMap draggable using a prop [\#48](https://github.com/kalisio/kMap/issues/48)
+- Remove KMap and KGlobe components [\#46](https://github.com/kalisio/kMap/issues/46)
+- GeoJson layers does not support runtime mode in Globe [\#23](https://github.com/kalisio/kMap/issues/23)
 
 **Fixed bugs:**
 
@@ -25,6 +29,14 @@
 - Styling not correctly updated for path layers on map [\#68](https://github.com/kalisio/kMap/issues/68)
 - Timeseries display stretched when current time is outside visualized data [\#65](https://github.com/kalisio/kMap/issues/65)
 - Tooltip/Popup does not appear on globe for lines or polygons [\#62](https://github.com/kalisio/kMap/issues/62)
+- When aggregating distinct features on multiple elements values are mixed between features [\#54](https://github.com/kalisio/kMap/issues/54)
+- collection-layer mixin is not working anymore [\#50](https://github.com/kalisio/kMap/issues/50)
+- KLocationMap should import map mixins only [\#49](https://github.com/kalisio/kMap/issues/49)
+- On mobile devices, the LocationMap  exceeds from the screen [\#47](https://github.com/kalisio/kMap/issues/47)
+
+**Closed issues:**
+
+- Multiple tooltips are stacked [\#52](https://github.com/kalisio/kMap/issues/52)
 
 ## [v1.0.4](https://github.com/kalisio/kMap/tree/v1.0.4) (2019-02-25)
 
@@ -35,28 +47,6 @@
 - Create a time mixin [\#57](https://github.com/kalisio/kMap/issues/57)
 - Add default clustering options for imported GeoJson layers [\#56](https://github.com/kalisio/kMap/issues/56)
 - Geocoder service should be able to use various providers [\#10](https://github.com/kalisio/kMap/issues/10)
-
-## [airtac-v0.1.0](https://github.com/kalisio/kMap/tree/airtac-v0.1.0) (2019-02-12)
-
-[Full Changelog](https://github.com/kalisio/kMap/compare/v1.0.3...airtac-v0.1.0)
-
-**Implemented enhancements:**
-
-- Allow for custom onEachFeature in Leaflet GeoJson layers [\#53](https://github.com/kalisio/kMap/issues/53)
-- Make the LocationMap draggable using a prop [\#48](https://github.com/kalisio/kMap/issues/48)
-- Remove KMap and KGlobe components [\#46](https://github.com/kalisio/kMap/issues/46)
-- GeoJson layers does not support runtime mode in Globe [\#23](https://github.com/kalisio/kMap/issues/23)
-
-**Fixed bugs:**
-
-- When aggregating distinct features on multiple elements values are mixed between features [\#54](https://github.com/kalisio/kMap/issues/54)
-- collection-layer mixin is not working anymore [\#50](https://github.com/kalisio/kMap/issues/50)
-- KLocationMap should import map mixins only [\#49](https://github.com/kalisio/kMap/issues/49)
-- On mobile devices, the LocationMap  exceeds from the screen [\#47](https://github.com/kalisio/kMap/issues/47)
-
-**Closed issues:**
-
-- Multiple tooltips are stacked [\#52](https://github.com/kalisio/kMap/issues/52)
 
 ## [v1.0.3](https://github.com/kalisio/kMap/tree/v1.0.3) (2019-01-13)
 
