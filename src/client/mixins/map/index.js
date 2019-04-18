@@ -4,6 +4,7 @@ import fileLayers from './mixin.file-layers'
 import forecastLayers from './mixin.forecast-layers'
 import georasterLayers from './mixin.georaster-layers'
 import editLayers from './mixin.edit-layers'
+import pathLayers from './mixin.path-layers'
 
 export default {
   baseMap,
@@ -11,5 +12,6 @@ export default {
   fileLayers,
   forecastLayers,
   georasterLayers,
-  editLayers
+  editLayers,
+  pathLayers
 }
