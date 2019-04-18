@@ -64,52 +64,50 @@ class PathRenderer {
 
   render (utils) {
     const zoom = utils.getMap().getZoom()
-    if (this.pixiContainer.children.length !== this.paths.length || this.currentZoom !== zoom) {
-      let renderer = utils.getRenderer()
-      for (let i=0; i < this.paths.length; i++) {
-        const path = this.paths[i]
-        const points = []
-        let distances = []
-        let length = 0
-        for (let j=0; j < path.coords.length; j++) {
-          const coord = path.coords[j]
-          const point = utils.latLngToLayerPoint([coord[1], coord[0]])
-          if (j!==0) length += distance(point, points[points.length-1])
-          distances.push(length) 
-          points.push(point)
-        }
-        let texture = null
-        // FIXME: how to ensure a pixel constant size when zooming ?
-        let weight = 512 * path.weight / Math.pow(2, zoom)
-        if (Array.isArray(path.gradient)) {
-          // compute the gradient
-          let gradient = []
-          for (let j=0; j < path.coords.length; j++) {
-            gradient.push({ offset: distances[j] / length, color: path.gradient[j] })
-          }
-          texture = this.createGradientTexture(gradient, weight)
-        } else {
-          texture = this.createSolidTexture(path.gradient, weight)
-        }
-        this.pixiContainer.addChild(new PIXI.mesh.Rope(texture, points))
-        /* 
-        Alternative method using Graphics
-
-        const graphicsPath = new PIXI.Graphics()
-        graphicsPath.lineTextureStyle(10, this.createGradient())
-        graphicsPath.lineStyle(1 / scale, 0x3388ff, 1)
-        for (let j=0; j < path.length; j++) {
-          const vertex = path[j]
-          let pos = utils.latLngToLayerPoint([vertex[1], vertex[0]])
-          if (j===0) graphicsPath.moveTo(pos.x, pos.y)
-          else graphicsPath.lineTo(pos.x, pos.y)
-        }
-        this.pixiContainer.addChild(graphicsPath)
-        */
+    let renderer = utils.getRenderer()
+    this.pixiContainer.removeChildren()
+    for (let i=0; i < this.paths.length; i++) {
+      const path = this.paths[i]
+      const points = []
+      let distances = []
+      let length = 0
+      for (let j=0; j < path.coords.length; j++) {
+        const coord = path.coords[j]
+        const point = utils.latLngToLayerPoint([coord[1], coord[0]])
+        if (j!==0) length += distance(point, points[points.length-1])
+        distances.push(length) 
+        points.push(point)
       }
-      renderer.render(this.pixiContainer)
-      this.currentZoom = zoom
+      let texture = null
+      // FIXME: how to ensure a pixel constant size when zooming ?
+      let weight = 1024 * path.weight / Math.pow(2, zoom)
+      if (Array.isArray(path.gradient)) {
+        // compute the gradient
+        let gradient = []
+        for (let j=0; j < path.coords.length; j++) {
+          gradient.push({ offset: distances[j] / length, color: path.gradient[j] })
+        }
+        texture = this.createGradientTexture(gradient, weight)
+      } else {
+        texture = this.createSolidTexture(path.gradient, weight)
+      }
+      this.pixiContainer.addChild(new PIXI.mesh.Rope(texture, points))
+      /* 
+      Alternative method using Graphics
+
+      const graphicsPath = new PIXI.Graphics()
+      graphicsPath.lineTextureStyle(10, this.createGradient())
+      graphicsPath.lineStyle(1 / scale, 0x3388ff, 1)
+      for (let j=0; j < path.length; j++) {
+        const vertex = path[j]
+        let pos = utils.latLngToLayerPoint([vertex[1], vertex[0]])
+        if (j===0) graphicsPath.moveTo(pos.x, pos.y)
+        else graphicsPath.lineTo(pos.x, pos.y)
+      }
+      this.pixiContainer.addChild(graphicsPath)
+      */
     }
+    renderer.render(this.pixiContainer)
   }
 }
 
