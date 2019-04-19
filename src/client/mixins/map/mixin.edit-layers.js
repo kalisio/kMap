@@ -51,7 +51,7 @@ let editLayersMixin = {
     async loadLayerSchema (layer) {
       const schemaId = _.get(layer, 'schema._id')
       if (!schemaId) return null
-      const data = await this.$api.getService('storage', '').get(schemaId)
+      const data = await this.$api.getService('storage', this.contextId).get(schemaId)
       if (!data.uri) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
       const typeAndData = data.uri.split(',')
       if (typeAndData.length <= 1) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
@@ -73,6 +73,7 @@ let editLayersMixin = {
       this.editFeatureModal = await this.$createComponent('editor/KModalEditor', {
         propsData: {
           service: 'features',
+          contextId: this.contextId,
           objectId: feature._id,
           schemaJson: this.editedLayerSchema,
           perspective: 'properties'

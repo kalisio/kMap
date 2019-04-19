@@ -93,7 +93,7 @@ export default {
     },
     async refreshBaseLayer () {
       this.layers = {}
-      const catalogService = this.$api.getService('catalog')
+      const catalogService = this.$api.getService('catalog', '')
       // Get first visible base layer
       let response = await catalogService.find({ query: { type: 'BaseLayer', 'leaflet.isVisible': true } })
       if (response.data.length > 0) this.addLayer(response.data[0])

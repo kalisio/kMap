@@ -172,6 +172,7 @@ export default {
       this.editModal = await this.$createComponent('editor/KModalEditor', {
         propsData: {
           service: 'catalog',
+          contextId: this.contextId,
           objectId: layer._id
         }
       })
@@ -231,6 +232,7 @@ export default {
       this.createModal = await this.$createComponent('editor/KModalEditor', {
         propsData: {
           service: 'catalog',
+          contextId: this.contextId,
           baseObject: {
             type: 'OverlayLayer',
             icon: 'insert_drive_file',

@@ -17,7 +17,8 @@ export function createFeatureService (options) {
     fileName: 'feature',
     servicesPath,
     modelsPath,
-    paginate
+    paginate,
+    events: ['features'] // FIXME: no real-time events for now since we create big batches
   }, options))
 }
 
