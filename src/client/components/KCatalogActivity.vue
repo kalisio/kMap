@@ -16,16 +16,28 @@
 </template>
 
 <script>
-import * as mapMixins from '../mixins/map'
+import config from 'config'
+import { mixins as kMapMixins } from '..'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 import { QResizeObservable, QBtn } from 'quasar'
 
 export default {
   name: 'k-catalog-activity',
   mixins: [
-    kCoreMixins.baseActivity,
     kCoreMixins.refsResolver(['map']),
-    mapMixins.baseMap
+    kCoreMixins.baseActivity,
+    kMapMixins.geolocation,
+    kMapMixins.featureService,
+    kMapMixins.weacast,
+    kMapMixins.time,
+    kMapMixins.activity,
+    kMapMixins.legend,
+    kMapMixins.locationIndicator,
+    kMapMixins.map.baseMap,
+    kMapMixins.map.geojsonLayers,
+    kMapMixins.map.forecastLayers,
+    kMapMixins.map.fileLayers,
+    kMapMixins.map.editLayers
   ],
   inject: ['layout'],
   components: {
@@ -50,33 +62,46 @@ export default {
         onDismiss: { name: 'catalog-activity', params: { contextId: this.contextId } }
       }
     },
-    refreshActivity () {
+    async refreshActivity () {
       this.clearActivity()
       // Title
       this.setTitle(this.$store.get('context.name'))
       // Setup the right pane
-      this.layerCategories = this.$config('mapPanel.categories')
-      console.log(this.layerCategories)
-      this.setRightPanelContent('Panel', this.$data)
+      this.setRightPanelContent('KCatalogPanel', this.$data)
+      this.registerActivityActions()
+      // Ensure DOM ref is here as well
+      await this.loadRefs()
+      this.setupMap(this.$refs.map, this.$config('map.viewer'))
+      // Wait until viewer is ready
+      await this.initializeView()
+    },
+    async getCatalogLayers () {
+      let layers = []
+      // We get layers coming from any global catalog first
+      const catalogService = this.$api.getService('catalog', '')
+      if (catalogService) {
+        let response = await catalogService.find()
+        layers = layers.concat(response.data)
+      }
+      // Then merge layers coming from any contextual catalog
+      const contextualCatalogService = this.$api.getService('catalog')
+      if (contextualCatalogService && (contextualCatalogService !== catalogService)) {
+        let response = await contextualCatalogService.find()
+        layers = layers.concat(response.data)
+      }
+      return layers
+    },
+    getViewKey () {
+      return config.appName.toLowerCase() + '-catalog-view'
     },
     onMapResized () {
       if (this.observe) this.refreshMap()
-    },
-    async refreshBaseLayer () {
-      this.layers = {}
-      const catalogService = this.$api.getService('catalog')
-      // Get first visible base layer
-      let response = await catalogService.find({ query: { type: 'BaseLayer', 'leaflet.isVisible': true } })
-      if (response.data.length > 0) this.addLayer(response.data[0])
     }
   },
   created () {
     this.observe = true
   },
   async mounted () {
-    await this.loadRefs()
-    this.setupMap(this.$refs.map, this.$config('map.viewer'))
-    this.refreshBaseLayer()
   },
   beforeDestroy () {
     this.observe = false

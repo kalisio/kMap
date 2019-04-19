@@ -1,5 +1,6 @@
 import logger from 'loglevel'
 import { Platform } from 'quasar'
+import { Store, utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default function init () {
   const api = this
@@ -8,6 +9,31 @@ export default function init () {
 
   // Declare the services
   api.declareService('geocoder')
+
+  // Default time formatting settings
+  Store.set('timeFormat', {
+    time: {
+      short: 'H[h]',
+      long: 'HH:mm'
+    },
+    date: {
+      short: 'DD/MM',
+      long: 'dddd D'
+    },
+    year: {
+      short: 'YY',
+      long: 'YYYY'
+    },
+    utc: false,
+    locale: kCoreUtils.getLocale()
+  })
+  // Default location formatting settings
+  Store.set('locationFormat', 'f')
+  // Default view settings
+  Store.set('restore', {
+    view: true,
+    layers: false
+  })
 
   if (!Platform.is.cordova) return
   window.navigationApps = []

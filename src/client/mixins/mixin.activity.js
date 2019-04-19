@@ -4,8 +4,6 @@ import logger from 'loglevel'
 import moment from 'moment'
 import { Events, Dialog } from 'quasar'
 
-const VIEW_KEY = config.appName.toLowerCase() + '-view'
-
 export default {
   data () {
     return {
@@ -47,6 +45,11 @@ export default {
         name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
       })
     },
+    async getCatalogLayers () {
+      const catalogService = this.$api.getService('catalog')
+      const response = await catalogService.find()
+      return response.data
+    },
     async refreshLayers (engine) {
       this.layers = {}
       this.layerCategories = (engine === 'leaflet' ? this.$config('mapPanel.categories') : this.$config('globePanel.categories'))
@@ -58,9 +61,8 @@ export default {
         editData: (layer) => this.onEditLayerData(layer),
         remove: (layer) => this.onRemoveLayer(layer)
       }
-      const catalogService = this.$api.getService('catalog')
-      let response = await catalogService.find()
-      _.forEach(response.data, (layer) => {
+      let catalogLayers = await this.getCatalogLayers()
+      _.forEach(catalogLayers, (layer) => {
         if (layer[engine]) {
           // Process i18n
           if (this.$t(layer.name)) layer.name = this.$t(layer.name)
@@ -69,9 +71,9 @@ export default {
         }
       })
       // We need at least an active background
-      const hasVisibleBaseLayer = response.data.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
+      const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
       if (!hasVisibleBaseLayer) {
-        const baseLayer = response.data.find((layer) => (layer.type === 'BaseLayer'))
+        const baseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer'))
         if (baseLayer) this.showLayer(baseLayer.name)
       }
     },
@@ -99,7 +101,7 @@ export default {
           label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
           icon: 'zoom_out_map'
         })
-        if (this.isLayerStorable(layer)) {
+        if (this.isLayerStorable(layer) && !layer._id) {
           actions.push({
             name: 'save',
             label: this.$t('mixins.activity.SAVE_LABEL'),
@@ -309,6 +311,9 @@ export default {
         this.center(position.longitude, position.latitude)
       }
     },
+    getViewKey () {
+      return config.appName.toLowerCase() + '-view'
+    },
     storeView () {
       const bounds = this.getBounds()
       const south = bounds[0][0]
@@ -319,14 +324,14 @@ export default {
       const restoreView = this.$store.get('restore.view')
       if (restoreView) {
         this.$router.push({ query: { south, west, north, east } })
-        window.localStorage.setItem(VIEW_KEY, JSON.stringify(bounds))
+        window.localStorage.setItem(this.getViewKey(), JSON.stringify(bounds))
       }
     },
     restoreView () {
       let bounds
       const restoreView = this.$store.get('restore.view')
       if (restoreView) {
-        const savedBounds = window.localStorage.getItem(VIEW_KEY)
+        const savedBounds = window.localStorage.getItem(this.getViewKey())
         if (savedBounds) bounds = JSON.parse(savedBounds)
       } else if (_.get(this.$route, 'query.south') && _.get(this.$route, 'query.west') &&
                  _.get(this.$route, 'query.north') && _.get(this.$route, 'query.east')) {
@@ -348,7 +353,7 @@ export default {
     },
     clearStoredView () {
       this.$router.push({ query: {} })
-      window.localStorage.removeItem(VIEW_KEY)
+      window.localStorage.removeItem(this.getViewKey())
     },
     updateViewSettings () {
       this.clearStoredView()

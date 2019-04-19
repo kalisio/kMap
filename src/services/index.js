@@ -8,7 +8,7 @@ const debug = makeDebug('kalisio:kMap:services')
 export function createFeatureService (options) {
   const app = this
 
-  debug('feature service created for collection ', options.collection)
+  debug('Creating feature service with options', options)
   let paginate = { default: 5000, max: 10000 }
   if (app.get(options.collection)) {
     Object.assign(paginate, app.get(options.collection).paginate || {})
@@ -21,21 +21,23 @@ export function createFeatureService (options) {
   }, options))
 }
 
-export function createCatalogService (context, db) {
+export function removeFeatureService (options) {
+  // TODO
+}
+
+export function createCatalogService (options) {
   const app = this
 
-  debug('catalog service created for context ', context)
+  debug('Creating catalog service with options', options)
   let paginate = { default: 100, max: 100 }
   if (app.get('catalog')) {
     Object.assign(paginate, app.get('catalog').paginate || {})
   }
-  return app.createService('catalog', {
+  return app.createService('catalog', Object.assign({
     servicesPath,
     modelsPath,
-    context,
-    db,
     paginate
-  })
+  }, options))
 }
 
 export function removeCatalogService (context) {
