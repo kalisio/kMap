@@ -85,7 +85,7 @@ let editLayersMixin = {
         // Restore popup
         if (popup) leafletLayer.bindPopup(popup)
         // Save in DB and in memory
-        await this.$api.getService('features').patch(feature._id, updatedProperties)
+        if (feature._id) await this.$api.getService('features').patch(feature._id, updatedProperties)
         let geoJson = leafletLayer.toGeoJSON()
         Object.assign(geoJson, updatedProperties)
         this.editableLayer.removeLayer(leafletLayer)
@@ -97,8 +97,10 @@ let editLayersMixin = {
     async onFeatureCreated (event) {
       let geoJson = event.layer.toGeoJSON()
       // Save changes to DB, we use the layer DB ID as layer ID on features
-      geoJson.layer = this.editedLayer._id
-      geoJson = await this.$api.getService('features').create(geoJson)
+      if (this.editedLayer._id) {
+        geoJson.layer = this.editedLayer._id
+        geoJson = await this.$api.getService('features').create(geoJson)
+      }
       this.editableLayer.addData(geoJson)
     },
     async onFeaturesEdited (event) {
@@ -107,7 +109,7 @@ let editLayersMixin = {
       // Save changes to DB
       for (let i = 0; i < features.length; i++) {
         const feature = features[i]
-        await this.$api.getService('features').patch(feature._id, _.pick(feature, ['geometry']))
+        if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['geometry']))
       }
     },
     async onFeaturesDeleted (event) {
@@ -116,7 +118,7 @@ let editLayersMixin = {
       // Save changes to DB
       for (let i = 0; i < features.length; i++) {
         const feature = features[i]
-        await this.$api.getService('features').remove(feature._id)
+        if (feature._id) await this.$api.getService('features').remove(feature._id)
       }
     },
     onStartDelete () {
