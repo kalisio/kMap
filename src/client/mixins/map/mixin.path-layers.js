@@ -39,7 +39,7 @@ class PathRenderer {
   createSolidTexture (color, weight) {
     const canvas = document.createElement('canvas')
     canvas.width = 8
-    canvas.height = weight
+    canvas.height = Math.max(weight, 8)
     // use canvas2d API to create the solid texture
     const ctx = canvas.getContext('2d')
     ctx.fillStyle = color
@@ -50,7 +50,7 @@ class PathRenderer {
   createGradientTexture (gradient, weight) {
     const canvas = document.createElement('canvas')
     canvas.width = 1024
-    canvas.height = weight
+    canvas.height = Math.max(weight, 8)
     // use canvas2d API to create the gradient texture
     const ctx = canvas.getContext('2d')
     const grd = ctx.createLinearGradient(0, 0, canvas.width, 1)
@@ -80,7 +80,7 @@ class PathRenderer {
       }
       let texture = null
       // FIXME: how to ensure a pixel constant size when zooming ?
-      let weight = 1024 * path.weight / Math.pow(2, zoom)
+      let weight = 2048 * path.weight / Math.pow(2, zoom)
       if (Array.isArray(path.gradient)) {
         // compute the gradient
         let gradient = []
