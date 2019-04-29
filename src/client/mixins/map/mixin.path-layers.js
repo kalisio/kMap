@@ -3,15 +3,7 @@ import _ from 'lodash'
 import L, { point } from 'leaflet'
 import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
-
-
-function distance (point1, point2) {
-  let v = { 
-    x: point2.x - point1.x,
-    y: point2.y - point1.y
-  }
-  return Math.sqrt(v.x * v.x + v.y * v.y)
-}
+import chroma from 'chroma-js'
 
 class PathRenderer {
   constructor () {
@@ -49,63 +41,44 @@ class PathRenderer {
 
   createGradientTexture (gradient, weight) {
     const canvas = document.createElement('canvas')
-    canvas.width = 1024
+    canvas.width = 4096
     canvas.height = Math.max(weight, 8)
     // use canvas2d API to create the gradient texture
     const ctx = canvas.getContext('2d')
-    const grd = ctx.createLinearGradient(0, 0, canvas.width, 1)
+    const grd = ctx.createLinearGradient(0, 0, canvas.width, 1)    
     for (let i = 0; i < gradient.length; i++) {
-      grd.addColorStop(gradient[i].offset, gradient[i].color)
+      grd.addColorStop(i / gradient.length, gradient[i])
     }
-    ctx.fillStyle = grd;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    return PIXI.Texture.from(canvas);
+    ctx.fillStyle = grd
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    return PIXI.Texture.from(canvas)
   }
 
   render (utils) {
     const zoom = utils.getMap().getZoom()
     let renderer = utils.getRenderer()
     this.pixiContainer.removeChildren()
-    for (let i=0; i < this.paths.length; i++) {
+    for (let i = 0; i < this.paths.length; i++) {
       const path = this.paths[i]
-      const points = []
-      let distances = []
-      let length = 0
-      for (let j=0; j < path.coords.length; j++) {
-        const coord = path.coords[j]
-        const point = utils.latLngToLayerPoint([coord[1], coord[0]])
-        if (j!==0) length += distance(point, points[points.length-1])
-        distances.push(length) 
-        points.push(point)
+      if (!path.points) {
+        // At the first rendering we converts the geo coordinates into layer coordinates
+        const points = []
+        for (let j=0; j < path.coords.length; j++) {
+          const coord = path.coords[j]
+          points.push(utils.latLngToLayerPoint([coord[1], coord[0]]))
+        }
+        // Stores the converted coordinates into the path
+        path['points']=points
       }
       let texture = null
       // FIXME: how to ensure a pixel constant size when zooming ?
       let weight = 2048 * path.weight / Math.pow(2, zoom)
       if (Array.isArray(path.gradient)) {
-        // compute the gradient
-        let gradient = []
-        for (let j=0; j < path.coords.length; j++) {
-          gradient.push({ offset: distances[j] / length, color: path.gradient[j] })
-        }
-        texture = this.createGradientTexture(gradient, weight)
+        texture = this.createGradientTexture(path.gradient, weight)
       } else {
         texture = this.createSolidTexture(path.gradient, weight)
       }
-      this.pixiContainer.addChild(new PIXI.mesh.Rope(texture, points))
-      /* 
-      Alternative method using Graphics
-
-      const graphicsPath = new PIXI.Graphics()
-      graphicsPath.lineTextureStyle(10, this.createGradient())
-      graphicsPath.lineStyle(1 / scale, 0x3388ff, 1)
-      for (let j=0; j < path.length; j++) {
-        const vertex = path[j]
-        let pos = utils.latLngToLayerPoint([vertex[1], vertex[0]])
-        if (j===0) graphicsPath.moveTo(pos.x, pos.y)
-        else graphicsPath.lineTo(pos.x, pos.y)
-      }
-      this.pixiContainer.addChild(graphicsPath)
-      */
+      this.pixiContainer.addChild(new PIXI.mesh.Rope(texture, path.points))
     }
     renderer.render(this.pixiContainer)
   }
@@ -137,7 +110,7 @@ let PathLayer = L.Layer.extend({
         const coords = feature.geometry.coordinates
         if (coords) {
           // Updated the bounds
-          for (let i=0; i< coords.length; ++i) {
+          for (let i=0; i < coords.length; ++i) {
             const coord = coords[i]
             this.pathBounds.extend([coord[1], coord[0]])
           }
@@ -150,7 +123,6 @@ let PathLayer = L.Layer.extend({
     if (paths.length) {
       this.pathRenderer.setPaths(paths)
       this.pathOverlay.redraw()
-      this.fire('data', paths)
     }
   },
 
