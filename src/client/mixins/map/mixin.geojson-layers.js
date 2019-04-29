@@ -261,6 +261,8 @@ let geojsonLayersMixin = {
           _.set(style, _.get(LeafletStyleMappings, entry.property, entry.property), entry.compiler({ properties, feature }))
         })
       }
+      // We manage panes for z-index, so we need to forward it to marker options
+      if (leafletOptions.pane) style.pane = leafletOptions.pane
       return (latlng ? this.createMarkerFromStyle(latlng, style) : style)
     },
     getDefaultStyle (feature, options) {
@@ -278,6 +280,8 @@ let geojsonLayersMixin = {
           _.set(style, _.get(LeafletStyleMappings, entry.property, entry.property), entry.compiler({ properties, feature }))
         })
       }
+      // We manage panes for z-index, so we need to forward it to marker options
+      if (leafletOptions.pane) style.pane = leafletOptions.pane
       return style
     },
     getDefaultPopup (feature, layer, options) {

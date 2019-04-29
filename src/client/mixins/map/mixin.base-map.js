@@ -54,8 +54,32 @@ let baseMapMixin = {
     },
     createLeafletLayer (options) {
       const leafletOptions = options.leaflet || options
-      if (leafletOptions.source) return _.get(L, leafletOptions.type)(leafletOptions.source, leafletOptions)
-      else return _.get(L, leafletOptions.type)(leafletOptions)
+      // Manage panes to make z-index work for all types of layers
+      // Indeed, although DOM-based layers can use setZIndex() to manage rendering order
+      // SVG/Canvas-based layers provide no mean to manage render order except using bringToFront() or bringToBack()
+      // This is why Leaflet 1.0 introduced panes: https://leafletjs.com/reference.html#map-pane & https://leafletjs.com/examples/map-panes/
+      // By implicitely create a pane for each provided z-index makes this transparent for the user
+      let zIndex = _.has(leafletOptions, 'zIndex')
+      if (zIndex) {
+        zIndex = _.get(leafletOptions, 'zIndex')
+        // Create pane if required
+        const paneName = zIndex.toString()
+        let pane = this.map.getPane(paneName)
+        if (!pane) {
+          pane = this.map.createPane(paneName)
+          _.set(pane, 'style.zIndex', zIndex)
+        }
+        // Set layer to use target pane
+        _.set(leafletOptions, 'pane', paneName)
+      }
+      let layer
+      if (leafletOptions.source) {
+        layer = _.get(L, leafletOptions.type)(leafletOptions.source, leafletOptions)
+      }
+      else {
+        layer = _.get(L, leafletOptions.type)(leafletOptions)
+      }
+      return layer
     },
     registerLeafletConstructor (constructor) {
       this.leafletFactory.push(constructor)
