@@ -48,6 +48,7 @@ export const LeafletStyleMappings = {
   'fill-opacity': 'fillOpacity',
   'fill-color': 'fillColor',
   'weight': 'weight',
+  'radius': 'radius',
   'line-cap': 'lineCap',
   'line-join': 'lineJoin',
   'dash-array': 'dashArray',

@@ -185,11 +185,12 @@ let geojsonLayersMixin = {
         let icon = markerStyle.icon
         // Parse icon options to get icon object if any
         if (icon) {
-          let options = icon.options
+          const options = icon.options || icon
           icon = _.get(L, icon.type)(options)
           return _.get(L, markerStyle.type || 'marker')(latlng, { icon })
         } else {
-          return _.get(L, markerStyle.type || 'marker')(latlng, markerStyle.options || markerStyle)
+          const options = markerStyle.options || markerStyle
+          return _.get(L, markerStyle.type || 'marker')(latlng, options)
         }
       } else {
         return L.marker(latlng)
