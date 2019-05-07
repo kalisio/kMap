@@ -1,6 +1,7 @@
 import logger from 'loglevel'
 import { Events, Toast } from 'quasar'
 import { Store, utils } from '@kalisio/kdk-core/client'
+import { errors } from '../../common'
 
 let geolocationMixin = {
   methods: {
@@ -10,7 +11,11 @@ let geolocationMixin = {
         // We need to load the position now
         this.geolocation = utils.createQuerablePromise(new Promise((resolve, reject) => {
           if (!window.navigator.geolocation) {
-            reject(new Error('Geolocation does not seem to be supported on your device or browser'))
+            Events.$emit('error', {
+              message: this.$t('mixins.geolocation.NOT_SUPPORTED_MESSAGE'),
+              // By default we only show geolocation errors, nothing if unsupported
+              ignore: true
+            })
             return
           }
           window.navigator.geolocation.getCurrentPosition((position) => {
@@ -33,29 +38,25 @@ let geolocationMixin = {
         logger.debug('New user position: ', position)
       } catch (error) {
         const code = error.code
-        let message = this.$t('mixins.geolocation.ERROR_MESSAGE')
+        let geolocationError = new errors.KGeolocationError()
+        // Since error codes are not globally available in the geolocation API
+        // and we use it for translation create new ones for our own usage
         if (code === error.PERMISSION_DENIED) {
-          message += '</br>'
-          message += this.$t('mixins.geolocation.PERMISSION_DENIED_MESSAGE')
+          geolocationError.code = 'GEOLOCATION_PERMISSION_DENIED'
         } else if (code === error.POSITION_UNAVAILABLE) {
-          message += '</br>'
-          message += this.$t('mixins.geolocation.POSITION_UNAVAILABLE_MESSAGE')
+          geolocationError.code = 'GEOLOCATION_POSITION_UNAVAILABLE'
         } else if (code === error.TIMEOUT) {
-          message += '</br>'
-          message += this.$t('mixins.geolocation.POSITION_TIMEOUT_MESSAGE')
+          geolocationError.code = 'GEOLOCATION_POSITION_TIMEOUT'
+        } else {
+          geolocationError.code = 'GEOLOCATION_ERROR'
         }
         // It seems there is no message when a code is present, however we cannot alter the original error
-        // with the new message because it is a read-only property so we clone it
-        Toast.create.negative({
-          html: message,
-          timeout: 10000,
-          button: {
-            label: this.$t('mixins.geolocation.POSITION_RETRY_BUTTON'),
-            handler: () => {
-              this.updatePosition()
-            }
-          }
-        })
+        // with the new message because it is a read-only property so we refer to it
+        Events.$emit('error', Object.assign(geolocationError, {
+          // By default we only show geolocation errors, nothing if disabled by user
+          //ignore: (code === error.PERMISSION_DENIED),
+          retryHandler: () => this.updatePosition()
+        }))
       }
     }
   },

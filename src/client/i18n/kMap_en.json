@@ -2,15 +2,16 @@
   "CLOSE": "Close",
   "SEARCH": "Search",
   "errors": {
+    "GEOLOCATION_NOT_SUPPORTED": "Geolocation does not seem to be supported on your device or browser.",
+    "GEOLOCATION_ERROR": "We are not able to locate your position, this might affect some features of the application.",
+    "GEOLOCATION_PERMISSION_DENIED": "$t(errors.GEOLOCATION_ERROR)</br>It seems you did not give permission to locate you.",
+    "GEOLOCATION_POSITION_UNAVAILABLE": "$t(errors.GEOLOCATION_ERROR)</br>It seems the internal source of position returned an internal error.",
+    "GEOLOCATION_POSITION_TIMEOUT": "$t(errors.GEOLOCATION_ERROR)</br>It seems the time allowed to acquire it was reached before the information was obtained.",
     "CANNOT_PROCESS_SCHEMA_DATA": "Invalid or incomplete data scheme"
   },
   "mixins": {
     "geolocation": {
-      "ERROR_MESSAGE": "We are not able to locate your position, this might affect some features of the application.",
-      "PERMISSION_DENIED_MESSAGE": "It seems you did not give permission to locate you.",
-      "POSITION_UNAVAILABLE_MESSAGE": "It seems the internal source of position returned an internal error.",
-      "POSITION_TIMEOUT_MESSAGE": "It seems the time allowed to acquire it was reached before the information was obtained.",
-      "POSITION_RETRY_BUTTON": "Retry"
+      
     },
     "navigator": {
       "ACTION_SHEET_TITLE": "Select an application"

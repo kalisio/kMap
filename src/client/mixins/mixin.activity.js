@@ -3,6 +3,7 @@ import config from 'config'
 import logger from 'loglevel'
 import moment from 'moment'
 import { Events, Dialog } from 'quasar'
+import { errors } from '../../common'
 
 export default {
   data () {
@@ -264,6 +265,12 @@ export default {
       this.clearStoredView()
       this.updatePosition()
     },
+    onGeolocationError (error) {
+      // Remove geolocation action if not allowed by user
+      if (error.code === 'GEOLOCATION_PERMISSION_DENIED') {
+        this.unregisterFabAction('geolocate')
+      }
+    },
     onCloseGeocoding (done) {
       this.geocodingModal.close(done)
       this.geocodingModal = null
@@ -506,6 +513,7 @@ export default {
     Events.$on('user-position-changed', this.geolocate)
     // Whenever restore view settings are updated, update view as well
     Events.$on('restore-view-changed', this.updateViewSettings)
+    Events.$on('error', this.onGeolocationError)
   },
   beforeDestroy () {
     this.$off('map-ready', this.onMapReady)
@@ -513,5 +521,6 @@ export default {
     this.$off('layer-added', this.onLayerAdded)
     Events.$off('user-position-changed', this.geolocate)
     Events.$off('restore-view-changed', this.updateViewSettings)
+    Events.$off('error', this.onGeolocationError)
   }
 }

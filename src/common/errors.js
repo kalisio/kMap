@@ -1,3 +1,3 @@
 import { errors } from '@kalisio/kdk-core/common'
 
-export class KPositionError extends errors.KError {}
+export class KGeolocationError extends errors.KError {}
