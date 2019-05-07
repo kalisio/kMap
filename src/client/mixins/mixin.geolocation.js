@@ -54,7 +54,7 @@ let geolocationMixin = {
         // with the new message because it is a read-only property so we refer to it
         Events.$emit('error', Object.assign(geolocationError, {
           // By default we only show geolocation errors, nothing if disabled by user
-          //ignore: (code === error.PERMISSION_DENIED),
+          ignore: (code === error.PERMISSION_DENIED),
           retryHandler: () => this.updatePosition()
         }))
       }
