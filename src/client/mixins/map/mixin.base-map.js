@@ -10,6 +10,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
+import 'Leaflet.Geodesic'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 // Fix to make Leaflet assets be correctly inserted by webpack

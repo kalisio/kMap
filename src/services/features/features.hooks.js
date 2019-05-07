@@ -28,10 +28,10 @@ module.exports = {
       }
     ],
     get: [],
-    create: [],
-    update: [],
-    patch: [ ],
-    remove: []
+    create: [ coreHooks.skipEvents ], // Avoid emitting events on feature edition
+    update: [ coreHooks.skipEvents ],
+    patch: [ coreHooks.skipEvents ],
+    remove: [ coreHooks.skipEvents ]
   },
 
   error: {

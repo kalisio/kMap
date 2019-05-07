@@ -68,6 +68,7 @@
   "dependencies": {
     "@kalisio/kdk-core": "^1.1.0",
     "@turf/turf": "^5.1.6",
+    "Leaflet.Geodesic": "https://github.com/henrythasler/Leaflet.Geodesic",
     "cesium": "^1.38.0",
     "chart.js": "^2.7.3",
     "chartjs-plugin-annotation": "^0.5.7",

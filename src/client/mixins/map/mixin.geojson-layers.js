@@ -4,6 +4,24 @@ import logger from 'loglevel'
 import 'leaflet-realtime'
 import { fetchGeoJson, LeafletEvents, LeafletStyleMappings, bindLeafletEvents, getHtmlTable } from '../../utils'
 
+// Override default Leaflet GeoJson utility to manage some specific use cases
+const geometryToLayer = L.GeoJSON.geometryToLayer
+L.GeoJSON.geometryToLayer = function (geojson, options) {
+  const geometry = geojson.geometry
+  const properties = geojson.properties
+  if (geometry && properties && properties.geodesic) {
+    if (geometry.type === 'LineString') {
+      return new L.Geodesic([L.GeoJSON.coordsToLatLngs(geometry.coordinates, 0)],
+        Object.assign({ steps: 100 }, options.style(geojson)))
+    } else if (geometry.type === 'Point') {
+      let layer = new L.Geodesic([], Object.assign({ fill: true, steps: 360 }, options.style(geojson)))
+      layer.createCircle(L.GeoJSON.coordsToLatLng(geometry.coordinates), properties.radius)
+      return layer
+    }
+  }
+  return geometryToLayer(geojson, options)
+}
+
 let geojsonLayersMixin = {
   methods: {
     processRealtimeGeoJsonLayerOptions (options) {
@@ -221,8 +239,11 @@ let geojsonLayersMixin = {
       })
       // Select the right icon type based on options
       if (isIconSpec) {
-        _.set(convertedStyle, 'icon.type', (_.has(style, 'icon-classes')
-              ? 'icon.fontAwesome' : _.has(style, 'icon-html') ? 'divIcon' : 'icon'))
+        const isHtml = _.has(style, 'icon-html')
+        const isFontAwesome = _.has(style, 'icon-classes')
+        _.set(convertedStyle, 'icon.type', (isFontAwesome ? 'icon.fontAwesome' : isHtml ? 'divIcon' : 'icon'))
+        // Leaflet adds a default background style but we prefer to remove it
+        if (isHtml && !_.has(style, 'icon-class')) _.set(convertedStyle, 'icon.options.className', '')
         _.set(convertedStyle, 'type', 'marker')
       }
       return convertedStyle

@@ -5,24 +5,26 @@ const servicesPath = path.join(__dirname, '..', 'services')
 
 const debug = makeDebug('kalisio:kMap:services')
 
-export function createFeatureService (options) {
+export function createFeaturesService (options) {
   const app = this
 
-  debug('Creating feature service with options', options)
+  debug('Creating features service with options', options)
   let paginate = { default: 5000, max: 10000 }
   if (app.get(options.collection)) {
     Object.assign(paginate, app.get(options.collection).paginate || {})
   }
   return app.createService(options.collection, Object.assign({
-    fileName: 'feature',
+    fileName: 'features',
     servicesPath,
     modelsPath,
     paginate,
-    events: ['features'] // FIXME: no real-time events for now since we create big batches
+    // FIXME: no real-time events for now since we create big batches,
+    // does not seem to be sufficient also require a hook (see https://github.com/feathersjs/feathers/issues/922)
+    events: ['features']
   }, options))
 }
 
-export function removeFeatureService (options) {
+export function removeFeaturesService (options) {
   // TODO
 }
 
