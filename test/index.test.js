@@ -3,7 +3,7 @@ import chailint from 'chai-lint'
 import _ from 'lodash'
 import fs from 'fs-extra'
 import core, { kalisio, permissions } from '@kalisio/kdk-core'
-import map, { permissions as mapPermissions, createFeatureService, createCatalogService } from '../src'
+import map, { permissions as mapPermissions, createFeaturesService, createCatalogService } from '../src'
 
 describe('kMap', () => {
   let app, server, port, // baseUrl,
@@ -66,7 +66,7 @@ describe('kMap', () => {
     const vigicruesStationsLayer = _.find(layersArray, { name: 'vigicrues-stations' })
     expect(vigicruesStationsLayer).toExist()
     expect(vigicruesStationsLayer.service === 'vigicrues-stations').beTrue()
-    createFeatureService.call(app, {
+    createFeaturesService.call(app, {
       collection: vigicruesStationsLayer.service,
       featureId: vigicruesStationsLayer.featureId,
       history: vigicruesStationsLayer.history
@@ -85,7 +85,7 @@ describe('kMap', () => {
     const vigicruesObsLayer = _.find(layersArray, { name: 'vigicrues-observations' })
     expect(vigicruesObsLayer).toExist()
     expect(vigicruesObsLayer.service === 'vigicrues-observations').beTrue()
-    createFeatureService.call(app, {
+    createFeaturesService.call(app, {
       collection: vigicruesObsLayer.service,
       featureId: vigicruesObsLayer.featureId,
       history: vigicruesObsLayer.history
@@ -102,7 +102,7 @@ describe('kMap', () => {
     const adsbObsLayer = _.find(layersArray, { name: 'adsb-observations' })
     expect(adsbObsLayer).toExist()
     expect(adsbObsLayer.service === 'adsb-observations').beTrue()
-    createFeatureService.call(app, {
+    createFeaturesService.call(app, {
       collection: adsbObsLayer.service,
       featureId: adsbObsLayer.featureId,
       history: adsbObsLayer.history
