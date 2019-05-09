@@ -246,6 +246,9 @@ let geojsonLayersMixin = {
         if (isHtml && !_.has(style, 'icon-class')) _.set(convertedStyle, 'icon.options.className', '')
         _.set(convertedStyle, 'type', 'marker')
       }
+      // Manage panes to make z-index work for all types of layers,
+      // pane name is actually a z-index value
+      if (_.has(convertedStyle, 'pane')) _.set(convertedStyle, 'pane', _.get(convertedStyle, 'pane').toString())
       return convertedStyle
     },
     registerLeafletStyle (type, generator) {
@@ -307,15 +310,16 @@ let geojsonLayersMixin = {
       return style
     },
     getDefaultPopup (feature, layer, options) {
-      let leafletOptions = options.leaflet || options
+      let properties = feature.properties
       let popup
-      if (feature.properties) {
-        const popupStyle = leafletOptions.popup || this.options.popup
+      if (properties) {
+        let leafletOptions = options.leaflet || options
+        const popupStyle = Object.assign({}, this.options.popup,
+          leafletOptions.popup, properties.popup)
         // Default content
-        let properties = feature.properties
-        let html
+        let html = popupStyle.html
         // Custom list given ?
-        if (popupStyle) {
+        if (!html) {
           if (popupStyle.pick) {
             properties = _.pick(properties, popupStyle.pick)
           } else if (popupStyle.omit) {
@@ -329,7 +333,7 @@ let geojsonLayersMixin = {
         if (!html) html = getHtmlTable(properties)
         if (!html) return null // Nothing to be displayed
         // Configured or default style
-        if (popupStyle && popupStyle.options) {
+        if (popupStyle.options) {
           popup = L.popup(popupStyle.options, layer)
         } else {
           popup = L.popup({
@@ -343,19 +347,22 @@ let geojsonLayersMixin = {
       return popup
     },
     getDefaultTooltip (feature, layer, options) {
-      let leafletOptions = options.leaflet || options
+      const properties = feature.properties
       let tooltip
-      const tooltipStyle = leafletOptions.tooltip || this.options.tooltip
-      if (tooltipStyle && feature.properties) {
+      if (properties) {
+        let leafletOptions = options.leaflet || options
+        let tooltipStyle = Object.assign({}, this.options.tooltip,
+          leafletOptions.tooltip, properties.tooltip)
         // Default content
-        let properties = feature.properties
-        let html
-        if (tooltipStyle.property) {
-          html = (_.has(properties, tooltipStyle.property)
-          ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
-        } else if (tooltipStyle.template) {
-          const compiler = tooltipStyle.compiler
-          html = compiler({ properties, feature })
+        let html = tooltipStyle.html
+        if (!html) {
+          if (tooltipStyle.property) {
+            html = (_.has(properties, tooltipStyle.property)
+            ? _.get(properties, tooltipStyle.property) : _.get(feature, tooltipStyle.property))
+          } else if (tooltipStyle.template) {
+            const compiler = tooltipStyle.compiler
+            html = compiler({ properties, feature })
+          }
         }
         if (html) {
           tooltip = L.tooltip(tooltipStyle.options || { permanent: false }, layer)

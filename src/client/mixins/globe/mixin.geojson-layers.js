@@ -334,15 +334,14 @@ let geojsonLayersMixin = {
     getDefaultPopup (entity, options) {
       let popup
       if (entity.properties) {
-        let cesiumOptions = options.cesium || options
-        let popupStyle = _.merge({},
-          this.options.popup || {},
-          cesiumOptions.popup || {})
-        // Default content
         let properties = entity.properties.getValue(0)
-        let text
+        let cesiumOptions = options.cesium || options
+        let popupStyle = _.merge({}, this.options.popup,
+          cesiumOptions.popup, properties.popup)
+        // Default content
+        let text = popupStyle.text
         // Custom list given ?
-        if (popupStyle) {
+        if (!text) {
           if (popupStyle.pick) {
             properties = _.pick(properties, popupStyle.pick)
           } else if (popupStyle.omit) {
@@ -355,6 +354,7 @@ let geojsonLayersMixin = {
         // Cesium does not support HTML
         // if (!html) html = getHtmlTable(properties)
         if (!text) text = getTextTable(properties)
+        if (!text) return null // Nothing to be displayed
         popup = Object.assign({
           text: text,
           show: true
@@ -365,23 +365,24 @@ let geojsonLayersMixin = {
     getDefaultTooltip (entity, options) {
       let tooltip
       if (entity.properties) {
-        let cesiumOptions = options.cesium || options
-        let tooltipStyle = _.merge({},
-          this.options.tooltip || {},
-          cesiumOptions.tooltip || {})
-        // Default content
         let properties = entity.properties.getValue(0)
-        let text
-        if (tooltipStyle.property) {
-          text = _.get(properties, tooltipStyle.property)
-        } else if (tooltipStyle.template) {
-          const compiler = tooltipStyle.compiler
-          text = compiler({ properties })
+        let cesiumOptions = options.cesium || options
+        let tooltipStyle = _.merge({}, this.options.tooltip,
+          cesiumOptions.tooltip, properties.tooltip)
+        // Default content
+        let text = tooltipStyle.text
+        if (!text) {
+          if (tooltipStyle.property) {
+            text = _.get(properties, tooltipStyle.property)
+          } else if (tooltipStyle.template) {
+            const compiler = tooltipStyle.compiler
+            text = compiler({ properties })
+          }
         }
         if (text) {
           tooltip = Object.assign({
             text,
-            show: (!!tooltipStyle.permanent)
+            show: (!!_.get(tooltipStyle, 'options.permanent'))
           }, tooltipStyle.options)
         }
       }

@@ -42,6 +42,7 @@ export function getTimeInterval (times, mode = 'minimum') {
 }
 
 export const LeafletStyleMappings = {
+  'z-index': 'pane',
   'stroke': 'color',
   'stroke-opacity': 'opacity',
   'stroke-width': 'weight',
