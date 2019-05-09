@@ -273,6 +273,9 @@ let baseGlobeMixin = {
     this.cesiumFactory = []
   },
   beforeDestroy () {
+    Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))
+  },
+  destroyed () {
     this.viewer.destroy()
   }
 }

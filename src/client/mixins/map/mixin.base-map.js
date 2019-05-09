@@ -237,8 +237,10 @@ let baseMapMixin = {
   },
   beforeDestroy () {
     Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))
-    this.map.remove()
     this.$off('current-time-changed', this.onCurrentMapTimeChanged)
+  },
+  destroyed () {
+    this.map.remove()
   }
 }
 
