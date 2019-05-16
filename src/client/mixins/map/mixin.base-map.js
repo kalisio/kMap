@@ -53,6 +53,39 @@ let baseMapMixin = {
       leafletOptions.attribution = processedOptions.attribution
       return processedOptions
     },
+    createLeafletPane (paneOrZIndex) {
+      // Create pane if required
+      const paneName = paneOrZIndex.toString()
+      let pane = this.map.getPane(paneName)
+      if (!pane) {
+        pane = this.map.createPane(paneName)
+        if (typeof paneOrZIndex === 'Number') _.set(pane, 'style.zIndex', paneOrZIndex)
+        else _.set(pane, 'style.zIndex', 400) // Defaults for overlay in Leaflet
+      }
+      this.leafletPanes[paneName] = pane
+      return pane
+    },
+    getLeafletPaneByName (paneOrZIndex) {
+      const paneName = paneOrZIndex.toString()
+      return this.leafletPanes[paneName]
+    },
+    removeLeafletPane (paneOrZIndex) {
+      const paneName = paneOrZIndex.toString()
+      const pane = this.getLeafletPaneByName(paneName)
+      if (!pane) return
+      delete this.leafletPanes[paneName]
+    },
+    updateLeafletPanesVisibility (panes) {
+      const zoom = this.map.getZoom()
+      // Check if we need to hide/show some panes based on current zoom level
+      _.forOwn(this.leafletPanes, (pane, paneName) => {
+        // Filter only some panes ?
+        if (panes && panes.includes(paneName)) return
+        _.set(pane, 'style.display', 'block')
+        if (_.has(pane, 'minZoom') && (zoom < _.get(pane, 'minZoom'))) _.set(pane, 'style.display', 'none')
+        if (_.has(pane, 'maxZoom') && (zoom > _.get(pane, 'maxZoom'))) _.set(pane, 'style.display', 'none')
+      })
+    },
     createLeafletLayer (options) {
       const leafletOptions = options.leaflet || options
       // Manage panes to make z-index work for all types of layers
@@ -63,16 +96,20 @@ let baseMapMixin = {
       let zIndex = _.has(leafletOptions, 'zIndex')
       if (zIndex) {
         zIndex = _.get(leafletOptions, 'zIndex')
-        // Create pane if required
-        const paneName = zIndex.toString()
-        let pane = this.map.getPane(paneName)
-        if (!pane) {
-          pane = this.map.createPane(paneName)
-          _.set(pane, 'style.zIndex', zIndex)
-        }
+        this.createLeafletPane(zIndex)
         // Set layer to use target pane
-        _.set(leafletOptions, 'pane', paneName)
+        _.set(leafletOptions, 'pane', zIndex.toString())
       }
+      // Different panes inside a layer can be used to manage visibility according to zoom level
+      let panes = _.get(leafletOptions, 'panes')
+      if (panes) {
+        panes.forEach(paneOptions => {
+          let pane = this.createLeafletPane(paneOptions.name || paneOptions.zIndex)
+          Object.assign(pane, paneOptions)
+        })
+        this.updateLeafletPanesVisibility(panes.map(paneOptions => paneOptions.name || paneOptions.zIndex.toString()))
+      }
+      
       let layer
       if (leafletOptions.source) {
         layer = _.get(L, leafletOptions.type)(leafletOptions.source, leafletOptions)
@@ -143,6 +180,8 @@ let baseMapMixin = {
       // Remove the leaflet layer from map
       let leafletLayer = this.leafletLayers[name]
       this.map.removeLayer(leafletLayer)
+      let panes = _.get(layer, 'leaflet.panes')
+      if (panes) panes.forEach(pane => this.removeLeafletPane(pane.name || pane.zIndex))
       this.$emit('layer-hidden', layer, leafletLayer)
     },
     async addLayer (layer) {
@@ -223,6 +262,9 @@ let baseMapMixin = {
       _.forEach(this.leafletLayers, leafletLayer => {
         if (typeof leafletLayer.setCurrentTime === 'function') leafletLayer.setCurrentTime(datetime)
       })
+    },
+    onMapZoomChanged () {
+      this.updateLeafletPanesVisibility()
     }
   },
   beforeCreate () {
@@ -230,13 +272,16 @@ let baseMapMixin = {
   },
   created () {
     this.leafletLayers = {}
+    this.leafletPanes = {}
     this.leafletFactory = []
     // Default Leaflet layer options requiring conversion from string to actual Leaflet objects
     this.leafletObjectOptions = ['crs', 'rendererFactory']
+    this.$on('zoomend', this.onMapZoomChanged)
     this.$on('current-time-changed', this.onCurrentMapTimeChanged)
   },
   beforeDestroy () {
     Object.keys(this.layers).forEach((layer) => this.removeLayer(layer))
+    this.$off('zoomend', this.onMapZoomChanged)
     this.$off('current-time-changed', this.onCurrentMapTimeChanged)
   },
   destroyed () {

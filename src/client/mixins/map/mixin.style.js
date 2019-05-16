@@ -9,9 +9,10 @@ let styleMixin = {
         let icon = markerStyle.icon
         // Parse icon options to get icon object if any
         if (icon) {
-          const options = icon.options || icon
-          icon = _.get(L, icon.type)(options)
-          return _.get(L, markerStyle.type || 'marker')(latlng, { icon })
+          const iconOptions = icon.options || icon
+          const options = markerStyle.options || markerStyle
+          icon = _.get(L, icon.type)(iconOptions)
+          return _.get(L, markerStyle.type || 'marker')(latlng, Object.assign(_.omit(options, ['icon']), { icon }))
         } else {
           const options = markerStyle.options || markerStyle
           return _.get(L, markerStyle.type || 'marker')(latlng, options)
