@@ -242,6 +242,25 @@ let baseGlobeMixin = {
       })
       return layerName
     },
+    getNbChildrenForEntity (entity) {
+      if (entity._children) return entity._children.length
+      else return 0
+    },
+    getChildForEntity (entity, index) {
+      if (this.getNbChildrenForEntity(entity) > 0) return entity._children[index || 0]
+    },
+    getPositionForEntity (entity) {
+      let position = entity.position
+      if (!position) {
+        if (entity.polygon) {
+          position = Cesium.BoundingSphere.fromPoints(entity.polygon.positions.getValue()).center
+        } else if (entity.polyline) {
+          position = Cesium.BoundingSphere.fromPoints(entity.polyline.positions.getValue()).center
+        }
+        Cesium.Ellipsoid.WGS84.scaleToGeodeticSurface(position, position)
+      }
+      return position
+    },
     getDefaultPickHandler (event) {
       let emittedEvent = {}
       let options
