@@ -37,7 +37,10 @@ export default {
     kMapMixins.map.geojsonLayers,
     kMapMixins.map.forecastLayers,
     kMapMixins.map.fileLayers,
-    kMapMixins.map.editLayers
+    kMapMixins.map.editLayers,
+    kMapMixins.map.style,
+    kMapMixins.map.tooltip,
+    kMapMixins.map.popup
   ],
   inject: ['layout'],
   components: {
