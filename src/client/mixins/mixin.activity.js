@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import config from 'config'
 import logger from 'loglevel'
 import moment from 'moment'
 import { Events, Dialog } from 'quasar'
@@ -11,10 +10,30 @@ export default {
       forecastModelHandlers: {},
       layerCategories: [],
       layerHandlers: {},
-      engine: null
+      engine: 'leaflet',
+      engineReady: false
+    }
+  },
+  computed: {
+    appName () {
+      return this.$config('appName')
+    },
+    sideNavToggle () {
+      const buttons = (this.engine === 'leaflet' ? 'mapActivity.buttons' : 'globeActivity.buttons')
+      return this.$config(buttons, ['side-nav']).includes('side-nav')
+    },
+    panelToggle () {
+      const buttons = (this.engine === 'leaflet' ? 'mapActivity.buttons' : 'globeActivity.buttons')
+      return this.$config(buttons, ['panel']).includes('panel')
+    },
+    viewStyle () {
+      return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
     }
   },
   methods: {
+    setMappingEngine(engine) {
+      this.engine = engine
+    },
     getGeocodingToolbar () {
       return [
         { name: 'close-action', label: this.$t('mixins.activity.CLOSE_GEOCODING_ACTION'), icon: 'close', handler: this.onCloseGeocoding }
@@ -26,23 +45,30 @@ export default {
       ]
     },
     registerActivityActions () {
+      const actions = (this.engine === 'leaflet' ? this.$config('mapActivity.actions') : this.$config('globeActivity.actions'))
+      const hasFullscreenAction = (typeof this.onToggleFullscreen === 'function') && (actions ? actions.includes('fullscreen') : true)
+      const hasGeolocateAction = (typeof this.onGeolocate === 'function') && (actions ? actions.includes('geolocate') : true)
+      const hasGeocodingAction = (typeof this.onGeocoding === 'function') && (actions ? actions.includes('geocode') : true)
+      const hasLocationIndicatorAction = (typeof this.createLocationIndicator === 'function') && (actions ? actions.includes('track-location') : true)
+      const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && (actions ? actions.includes('probe-location') : true)
+      const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && (actions ? actions.includes('create-layer') : true)
       // FAB
-      if (this.onToggleFullscreen) this.registerFabAction({
+      if (hasFullscreenAction) this.registerFabAction({
         name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
       })
-      if (this.onGeolocate) this.registerFabAction({
+      if (hasGeolocateAction) this.registerFabAction({
         name: 'geolocate', label: this.$t('mixins.activity.GEOLOCATE'), icon: 'my_location', handler: this.onGeolocate
       })
-      if (this.onGeocoding) this.registerFabAction({
+      if (hasGeocodingAction) this.registerFabAction({
         name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
       })
-      if (this.createLocationIndicator) this.registerFabAction({
+      if (hasLocationIndicatorAction) this.registerFabAction({
         name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
       })
-      if (this.onProbeLocation) this.registerFabAction({
+      if (hasProbeLocationAction) this.registerFabAction({
         name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
       })
-      if (this.onCreateLayer) this.registerFabAction({
+      if (hasCreateLayerAction) this.registerFabAction({
         name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
       })
     },
@@ -51,9 +77,9 @@ export default {
       const response = await catalogService.find()
       return response.data
     },
-    async refreshLayers (engine) {
+    async refreshLayers () {
       this.layers = {}
-      this.layerCategories = (engine === 'leaflet' ? this.$config('mapPanel.categories') : this.$config('globePanel.categories'))
+      this.layerCategories = (this.engine === 'leaflet' ? this.$config('mapPanel.categories') : this.$config('globePanel.categories'))
       this.layerHandlers = {
         toggle: (layer) => this.onTriggerLayer(layer),
         zoomTo: (layer) => this.onZoomToLayer(layer),
@@ -64,7 +90,7 @@ export default {
       }
       let catalogLayers = await this.getCatalogLayers()
       _.forEach(catalogLayers, (layer) => {
-        if (layer[engine]) {
+        if (layer[this.engine]) {
           // Process i18n
           if (this.$t(layer.name)) layer.name = this.$t(layer.name)
           if (this.$t(layer.description)) layer.description = this.$t(layer.description)
@@ -223,9 +249,11 @@ export default {
       this.forecastModel = model
     },
     onMapReady () {
+      this.engineReady = true
       this.engine = 'leaflet'
     },
     onGlobeReady () {
+      this.engineReady = true
       this.engine = 'cesium'
     },
     async onCreateLayer () {
@@ -309,7 +337,7 @@ export default {
       else this.removeLocationIndicator()
     },
     geolocate () {
-      if (!this.engine) {
+      if (!this.engineReady) {
         //logger.error('Engine not ready to geolocate')
         return
       }
@@ -321,7 +349,7 @@ export default {
       }
     },
     getViewKey () {
-      return config.appName.toLowerCase() + '-view'
+      return this.appName.toLowerCase() + '-view'
     },
     storeView () {
       const bounds = this.getBounds()
@@ -375,7 +403,7 @@ export default {
       }
       // Retrieve the layers
       try {
-        await this.refreshLayers(this.engine)
+        await this.refreshLayers()
       } catch (error) {
         logger.error(error)
       }

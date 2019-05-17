@@ -16,7 +16,6 @@
 </template>
 
 <script>
-import config from 'config'
 import { mixins as kMapMixins } from '..'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 import { QResizeObservable, QBtn } from 'quasar'
@@ -95,7 +94,7 @@ export default {
       return layers
     },
     getViewKey () {
-      return config.appName.toLowerCase() + '-catalog-view'
+      return this.$config('appName').toLowerCase() + '-catalog-view'
     },
     onMapResized () {
       if (this.observe) this.refreshMap()
