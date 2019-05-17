@@ -159,6 +159,8 @@ let styleMixin = {
   created () {
     this.entityStyleFactory = []
     this.clusterStyleFactory = []
+    this.tooltipFactory = []
+    this.popupFactory = []
     this.registerCesiumStyle('entityStyle', this.getDefaultEntityStyle)
     this.registerCesiumStyle('clusterStyle', this.getDefaultClusterStyle)
     // Perform required conversion from JSON to Cesium objects

@@ -57,7 +57,6 @@ let popupMixin = {
     }
   },
   created () {
-    this.popupFactory = []
     this.registerCesiumStyle('popup', this.getDefaultPopup)
     // Perform required conversion from JSON to Cesium objects
     if (this.options.popup) this.options.popup = this.convertToCesiumObjects(this.options.popup)

@@ -30,7 +30,6 @@ let tooltipMixin = {
     }
   },
   created () {
-    this.tooltipFactory = []
     this.registerLeafletStyle('tooltip', this.getDefaultTooltip)
   }
 }

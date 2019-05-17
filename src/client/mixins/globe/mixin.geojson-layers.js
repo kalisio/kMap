@@ -71,7 +71,7 @@ let geojsonLayersMixin = {
       dataSource.updateGeoJson = async (geoJson) => {
         await this.updateRealtimeGeoJsonData(dataSource, options, geoJson)
         this.applyStyle(dataSource.entities, options)
-        this.applyTooltips(dataSource.entities, options)
+        if (typeof this.applyTooltips === 'function') this.applyTooltips(dataSource.entities, options)
       }
       // Required to be aware of the removed source
       this.viewer.dataSources.dataSourceRemoved.addEventListener((collection, oldSource) => {
@@ -159,7 +159,7 @@ let geojsonLayersMixin = {
             (entities, cluster) => this.applyClusterStyle(entities, cluster, options)
           )
         }
-        this.applyTooltips(dataSource.entities, options)
+        if (typeof this.applyTooltips === 'function') this.applyTooltips(dataSource.entities, options)
         return dataSource
       } catch (error) {
         logger.error(error)

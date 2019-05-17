@@ -120,6 +120,8 @@ let styleMixin = {
   created () {
     this.markerStyleFactory = []
     this.featureStyleFactory = []
+    this.tooltipFactory = []
+    this.popupFactory = []
     this.registerLeafletStyle('markerStyle', this.getDefaultMarker)
     this.registerLeafletStyle('featureStyle', this.getDefaultStyle)
     // Performe required conversion for default feature styling

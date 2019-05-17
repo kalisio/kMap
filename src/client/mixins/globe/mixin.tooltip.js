@@ -76,7 +76,6 @@ let tooltipMixin = {
     }
   },
   created () {
-    this.tooltipFactory = []
     this.registerCesiumStyle('tooltip', this.getDefaultTooltip)
     // Perform required conversion from JSON to Cesium objects
     if (this.options.tooltip) this.options.tooltip = this.convertToCesiumObjects(this.options.tooltip)

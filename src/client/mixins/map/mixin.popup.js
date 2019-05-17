@@ -43,7 +43,6 @@ let popupMixin = {
     }
   },
   created () {
-    this.popupFactory = []
     this.registerLeafletStyle('popup', this.getDefaultPopup)
   }
 }
