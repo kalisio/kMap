@@ -4,7 +4,6 @@ import fileLayers from './mixin.file-layers'
 import forecastLayers from './mixin.forecast-layers'
 import georasterLayers from './mixin.georaster-layers'
 import editLayers from './mixin.edit-layers'
-import pathLayers from './mixin.path-layers'
 import style from './mixin.style'
 import tooltip from './mixin.tooltip'
 import popup from './mixin.popup'
@@ -16,7 +15,6 @@ export default {
   forecastLayers,
   georasterLayers,
   editLayers,
-  pathLayers,
   style,
   tooltip,
   popup
