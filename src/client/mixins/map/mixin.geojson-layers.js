@@ -2,6 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
+import { GradientPath } from '../../leaflet/GradientPath'
 import { fetchGeoJson, LeafletEvents, LeafletStyleMappings, bindLeafletEvents } from '../../utils'
 
 // Override default Leaflet GeoJson utility to manage some specific use cases
@@ -17,6 +18,11 @@ L.GeoJSON.geometryToLayer = function (geojson, options) {
       let layer = new L.Geodesic([], Object.assign({ fill: true, steps: 360 }, options.style(geojson)))
       layer.createCircle(L.GeoJSON.coordsToLatLng(geometry.coordinates), properties.radius)
       return layer
+    }
+  }
+  if (geometry && properties && properties.gradient) {
+    if (geometry.type === 'LineString') {
+      return new GradientPath(geojson, options.style(geojson))
     }
   }
   return geometryToLayer(geojson, options)
@@ -69,7 +75,9 @@ let geojsonLayersMixin = {
               break
             case 'LineString':
             case 'MultiLineString':
-              oldLayer.setLatLngs(L.GeoJSON.coordsToLatLngs(coordinates, type === 'LineString' ? 0 : 1))
+              // Support Gradient Path
+              if (typeof oldLayer.setData === 'function') oldLayer.setData(feature)
+              else oldLayer.setLatLngs(L.GeoJSON.coordsToLatLngs(coordinates, type === 'LineString' ? 0 : 1))
               break
             case 'Polygon':
             case 'MultiPolygon':
