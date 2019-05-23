@@ -1,4 +1,3 @@
-import _ from 'lodash'
 export * from './leaflet/utils'
 export * from './cesium/utils'
 
