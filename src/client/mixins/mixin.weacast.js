@@ -31,7 +31,7 @@ let weacastMixin = {
           if (weacastAccessToken) await this.weacastApi.authenticate()
           else await this.weacastApi.authenticate({ strategy: 'jwt', accessToken })
         } catch (error) {
-          logger.error('Cannot initialize weacast API', error)
+          logger.error('Cannot initialize Weacast API', error)
         }
       } else {
         this.weacastApi = this.$api
@@ -44,7 +44,11 @@ let weacastMixin = {
           return this.$api.forecastTime
         }
       }
-      
+      try {
+        await this.setupForecastModels()
+      } catch (error) {
+        logger.error('Cannot retrieve available Weacast forecast models', error)
+      }
     },
     async setupForecastModels () {
       if (!this.weacastApi) return
