@@ -50,7 +50,7 @@ export default {
       const hasGeolocateAction = (typeof this.onGeolocate === 'function') && (actions ? actions.includes('geolocate') : true)
       const hasGeocodingAction = (typeof this.onGeocoding === 'function') && (actions ? actions.includes('geocode') : true)
       const hasLocationIndicatorAction = (typeof this.createLocationIndicator === 'function') && (actions ? actions.includes('track-location') : true)
-      const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && (actions ? actions.includes('probe-location') : true)
+      const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && (actions ? actions.includes('probe-location') : (this.weacastApi && this.forecastModel))
       const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && (actions ? actions.includes('create-layer') : true)
       // FAB
       if (hasFullscreenAction) this.registerFabAction({
@@ -94,6 +94,9 @@ export default {
           // Process i18n
           if (this.$t(layer.name)) layer.name = this.$t(layer.name)
           if (this.$t(layer.description)) layer.description = this.$t(layer.description)
+          // Check for Weacast API availability
+          const isWeacastLayer = _.get(layer, `${this.engine}.type`, '').startsWith('weacast.')
+          if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
           this.addLayer(layer)
         }
       })
@@ -401,12 +404,6 @@ export default {
       if (!this.restoreView()) {
         if (this.$store.get('user.position')) this.geolocate()
       }
-      // Retrieve the layers
-      try {
-        await this.refreshLayers()
-      } catch (error) {
-        logger.error(error)
-      }
       // Retrieve the forecast models
       if (this.setupWeacast) {
         try {
@@ -417,6 +414,12 @@ export default {
         this.forecastModelHandlers = { toggle: (model) => this.onForecastModelSelected(model) }
       } else {
         this.forecastModelHandlers = {}
+      }
+      // Retrieve the layers
+      try {
+        await this.refreshLayers()
+      } catch (error) {
+        logger.error(error)
       }
       // TimeLine
       if (this.setupTimeline) this.setupTimeline()

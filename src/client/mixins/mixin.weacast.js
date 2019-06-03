@@ -44,15 +44,14 @@ let weacastMixin = {
           return this.$api.forecastTime
         }
       }
-      this.setupForecastModels()
+      
     },
-    setupForecastModels () {
-      return this.weacastApi.getService('forecasts').find()
-      .then(response => {
-        this.forecastModels = response.data
-        // Select first one as current
-        this.forecastModel = this.forecastModels.length > 0 ? this.forecastModels[0] : null
-      })
+    async setupForecastModels () {
+      if (!this.weacastApi) return
+      const response = await this.weacastApi.getService('forecasts').find()
+      this.forecastModels = response.data
+      // Select first one as current
+      this.forecastModel = this.forecastModels.length > 0 ? this.forecastModels[0] : null
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
