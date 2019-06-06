@@ -54,8 +54,11 @@ let weacastMixin = {
       if (!this.weacastApi) return
       const response = await this.weacastApi.getService('forecasts').find()
       this.forecastModels = response.data
-      // Select first one as current
-      this.forecastModel = this.forecastModels.length > 0 ? this.forecastModels[0] : null
+      // Select default if any or first one
+      this.forecastModel = this.forecastModels.find(forecast => forecast.isDefault)
+      if (!this.forecastModel) {
+        this.forecastModel = (this.forecastModels.length > 0 ? this.forecastModels[0] : null)
+      }
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
