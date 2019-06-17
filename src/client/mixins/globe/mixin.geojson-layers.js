@@ -5,6 +5,60 @@ import { fetchGeoJson, CesiumStyleMappings, getTextTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
+    async loadGeoJson (dataSource, geoJson, cesiumOptions) {
+      await dataSource.load(geoJson, cesiumOptions)
+      // Process specific entities
+      const entities = dataSource.entities.values
+      let entitiesToAdd = []
+      let entitiesToRemove = []
+      for (let i = 0; i < entities.length; i++) {
+        const entity = entities[i]
+        const properties = entity.properties.getValue(0)
+        // Circles
+        const radius = _.get(properties, 'radius')
+        const geodesic = _.get(properties, 'geodesic')
+        if (radius && geodesic) {
+          let stroke = _.has(properties, 'stroke') ?
+            Cesium.Color.fromCssColorString(_.get(properties, 'stroke')) :
+            dataSource.stroke
+          const strokeWidth = _.get(properties, 'stroke-width', dataSource.strokeWidth)
+          if (_.has(properties, 'stroke-opaciy')) stroke.alpha = _.get(properties, 'stroke-opaciy')
+          let fill = _.has(properties, 'fill') ?
+            Cesium.Color.fromCssColorString(_.get(properties, 'fill')) :
+            dataSource.fill
+          if (_.has(properties, 'fill-opacity')) fill.alpha = _.get(properties, 'fill-opacity')
+          let newEntity = {
+            id: entity.id,
+            position: entity.position.getValue(0),
+            name: entity.name,
+            description: entity.description.getValue(0),
+            properties: entity.properties.getValue(0),
+            ellipse: {
+              semiMinorAxis: radius,
+              semiMajorAxis: radius,
+              material: new Cesium.ColorMaterialProperty(fill),
+              outlineColor: new Cesium.ConstantProperty(stroke),
+              outlineWidth: strokeWidth,
+              outline: new Cesium.ConstantProperty(true)
+            }
+          }
+          entitiesToAdd.push(newEntity)
+          entitiesToRemove.push(entity)
+        }
+        // Walls
+        const wall = _.get(properties, 'wall')
+        if (wall) {
+          // TODO
+        }
+        // Labels
+        const text = _.get(properties, 'icon-text')
+        if (text) {
+          // TODO
+        }
+      }
+      entitiesToRemove.forEach(entity => dataSource.entities.remove(entity))
+      entitiesToAdd.forEach(entity => dataSource.entities.add(entity))
+    },
     async startRealtimeGeoJsonDataUpdate (dataSource, options) {
       const cesiumOptions = options.cesium
       // If no interval given this is a manual update
@@ -32,11 +86,11 @@ let geojsonLayersMixin = {
       if (options.probeService) {
         // If the probe location is given by another service use it on initialization
         if (dataSource.entities.values.length === 0) {
-          await dataSource.load(this.getProbeFeatures(options), cesiumOptions)
+          await this.loadGeoJson(dataSource, this.getProbeFeatures(options), cesiumOptions)
         }
         // Then get last available measures
         let measureSource = new Cesium.GeoJsonDataSource()
-        await measureSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+        await this.loadGeoJson(measureSource, this.getFeatures(options, queryInterval), cesiumOptions)
         // Then merge with probes
         const probes = dataSource.entities.values
         const measures = measureSource.entities.values
@@ -54,12 +108,12 @@ let geojsonLayersMixin = {
         }
       } else if (options.service) { // Check for feature service layers only, in this case update in place
         // If no probe reference, nothing to be initialized
-        await dataSource.load(this.getFeatures(options, queryInterval), cesiumOptions)
+        await this.loadGeoJson(dataSource, his.getFeatures(options, queryInterval), cesiumOptions)
       } else if (geoJson) {
-        await dataSource.load(geoJson, cesiumOptions)
+        await this.loadGeoJson(dataSource, geoJson, cesiumOptions)
       } else if (!_.isNil(source)) {
         // Assume source is an URL returning GeoJson
-        await dataSource.load(fetchGeoJson(source), cesiumOptions)
+        await this.loadGeoJson(dataSource, fetchGeoJson(source), cesiumOptions)
       }
     },
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
@@ -139,9 +193,9 @@ let geojsonLayersMixin = {
             await this.createCesiumRealtimeGeoJsonLayer(dataSource, options)
           } else {
             // Check for feature service layers
-            if (options.service) await dataSource.load(this.getFeatures(options), cesiumOptions)
+            if (options.service) await this.loadGeoJson(dataSource, this.getFeatures(options), cesiumOptions)
             // Assume source is an URL returning GeoJson
-            else await dataSource.load(fetchGeoJson(source), cesiumOptions)
+            else await this.loadGeoJson(dataSource, fetchGeoJson(source), cesiumOptions)
           }
         }
         this.applyStyle(dataSource.entities, options)

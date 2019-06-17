@@ -6,6 +6,7 @@ export const LeafletStyleMappings = {
   'stroke': 'color',
   'stroke-opacity': 'opacity',
   'stroke-width': 'weight',
+  'fill': 'fillColor',
   'fill-opacity': 'fillOpacity',
   'fill-color': 'fillColor',
   'weight': 'weight',
