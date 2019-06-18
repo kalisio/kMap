@@ -46,8 +46,26 @@ let geojsonLayersMixin = {
         }
         // Walls
         const wall = _.get(properties, 'wall')
-        if (wall) {
-          // TODO
+        if (wall && entity.polyline) {
+          const { stroke, strokeWidth, fill } = this.convertFromSimpleStyleSpecOrDefaults(properties)
+          // Simply push the entity, other options like font will be set using styling options
+          // This one will replace the original line
+          entitiesToAdd.push({
+            id: entity.id,
+            parent: entity,
+            name: entity.name,
+            description: entity.description.getValue(0),
+            properties: entity.properties.getValue(0),
+            wall: {
+              positions: entity.polyline.positions.getValue(0),
+              material: new Cesium.ColorMaterialProperty(fill),
+              outlineColor: new Cesium.ConstantProperty(stroke),
+              outlineWidth: strokeWidth,
+              outline: new Cesium.ConstantProperty(true)
+            }
+          })
+          entitiesToRemove.push(entity)
+          //entity.polyline.clampToGround = false
         }
         // Labels
         const text = _.get(properties, 'icon-text')
