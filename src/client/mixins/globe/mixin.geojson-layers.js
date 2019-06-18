@@ -5,6 +5,13 @@ import { fetchGeoJson, CesiumStyleMappings, getTextTable } from '../../utils'
 
 let geojsonLayersMixin = {
   methods: {
+    convertFromSimpleStyleSpecOrDefaults (properties) {
+      let { stroke, strokeWidth, fill } = this.convertFromSimpleStyleSpec(properties)
+      if (!stroke) stroke = Cesium.GeoJsonDataSource.stroke
+      if (!strokeWidth) strokeWidth = Cesium.GeoJsonDataSource.strokeWidth
+      if (!fill) fill = Cesium.GeoJsonDataSource.fill
+      return { stroke, strokeWidth, fill }
+    },
     async loadGeoJson (dataSource, geoJson, cesiumOptions) {
       await dataSource.load(geoJson, cesiumOptions)
       // Process specific entities
@@ -18,16 +25,9 @@ let geojsonLayersMixin = {
         const radius = _.get(properties, 'radius')
         const geodesic = _.get(properties, 'geodesic')
         if (radius && geodesic) {
-          let stroke = _.has(properties, 'stroke') ?
-            Cesium.Color.fromCssColorString(_.get(properties, 'stroke')) :
-            dataSource.stroke
-          const strokeWidth = _.get(properties, 'stroke-width', dataSource.strokeWidth)
-          if (_.has(properties, 'stroke-opaciy')) stroke.alpha = _.get(properties, 'stroke-opaciy')
-          let fill = _.has(properties, 'fill') ?
-            Cesium.Color.fromCssColorString(_.get(properties, 'fill')) :
-            dataSource.fill
-          if (_.has(properties, 'fill-opacity')) fill.alpha = _.get(properties, 'fill-opacity')
-          let newEntity = {
+          const { stroke, strokeWidth, fill } = this.convertFromSimpleStyleSpecOrDefaults(properties)
+          // This one will replace the original point
+          entitiesToAdd.push({
             id: entity.id,
             position: entity.position.getValue(0),
             name: entity.name,
@@ -41,8 +41,7 @@ let geojsonLayersMixin = {
               outlineWidth: strokeWidth,
               outline: new Cesium.ConstantProperty(true)
             }
-          }
-          entitiesToAdd.push(newEntity)
+          })
           entitiesToRemove.push(entity)
         }
         // Walls
@@ -53,7 +52,23 @@ let geojsonLayersMixin = {
         // Labels
         const text = _.get(properties, 'icon-text')
         if (text) {
-          // TODO
+          const { stroke, strokeWidth, fill } = this.convertFromSimpleStyleSpecOrDefaults(properties)
+          // Simply push the entity, other options like font will be set using styling options
+          // This one will replace the original point
+          entitiesToAdd.push({
+            id: entity.id,
+            position: entity.position.getValue(0),
+            name: entity.name,
+            description: entity.description.getValue(0),
+            properties: entity.properties.getValue(0),
+            label: {
+              text,
+              fillColor: new Cesium.ConstantProperty(fill),
+              outlineColor: new Cesium.ConstantProperty(stroke),
+              outlineWidth: strokeWidth
+            }
+          })
+          entitiesToRemove.push(entity)
         }
       }
       entitiesToRemove.forEach(entity => dataSource.entities.remove(entity))

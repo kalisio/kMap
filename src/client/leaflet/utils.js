@@ -4,6 +4,7 @@ export const LeafletStyleMappings = {
   'z-index': 'pane',
   'pane': 'pane',
   'stroke': 'color',
+  'stroke-color': 'color',
   'stroke-opacity': 'opacity',
   'stroke-width': 'weight',
   'fill': 'fillColor',
