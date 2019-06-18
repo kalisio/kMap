@@ -44,20 +44,22 @@ let tooltipMixin = {
       return tooltip
     },
     isTooltipOpen (entity) {
-      if (entity.label) return entity.label.show
-      // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child entity
-      else if (this.getNbChildrenForEntity(entity) > 0) return this.isTooltipOpen(this.getChildForEntity(entity))
-      else return false
+      if (this.getNbChildrenForEntity(entity) > 0) {
+        let tooltip = this.getChildForEntity(entity)
+        return _.get(entity, 'label.show', false)
+      } else return false
     },
     openTooltip (entity) {
-      if (entity.label) entity.label.show = true
-      // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child entity
-      else if (this.getNbChildrenForEntity(entity) > 0) this.openTooltip(this.getChildForEntity(entity))
+      if (this.getNbChildrenForEntity(entity) > 0) {
+        let tooltip = this.getChildForEntity(entity)
+        if (tooltip.label) tooltip.label.show = true
+      }
     },
     closeTooltip (entity) {
-      if (entity.label) entity.label.show = false
-      // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child entity
-      else if (this.getNbChildrenForEntity(entity) > 0) this.closeTooltip(this.getChildForEntity(entity))
+      if (this.getNbChildrenForEntity(entity) > 0) {
+        let tooltip = this.getChildForEntity(entity)
+        if (tooltip.label) tooltip.label.show = false
+      }
     },
     onTooltip (options, event) {
       // Nothing to do in this case
