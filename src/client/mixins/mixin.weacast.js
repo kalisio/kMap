@@ -9,8 +9,7 @@ let weacastMixin = {
   data () {
     return {
       forecastModel: null,
-      forecastModels: [],
-      probedLocation: null
+      forecastModels: []
     }
   },
   methods: {
@@ -60,6 +59,10 @@ let weacastMixin = {
         this.forecastModel = (this.forecastModels.length > 0 ? this.forecastModels[0] : null)
       }
     },
+    setForecastModel (model) {
+      this.forecastModel = model
+      this.$emit('forecast-model-changed', this.forecastModel)
+    },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
       if (!this.forecastModel) return
@@ -87,9 +90,10 @@ let weacastMixin = {
           forecast: this.forecastModel.name,
           elements: this.forecastModel.elements.map(element => element.name)
         }, { query })
-        if (response.features.length > 0) this.probedLocation = response.features[0]
-        else throw new Error('Cannot find valid forecast at location')
-        this.createProbedLocationLayer()
+        if (response.features.length > 0) {
+          this.probedLocation = response.features[0]
+          this.$emit('probed-location-changed', this.probedLocation)
+        } else throw new Error('Cannot find valid forecast at location')
       } catch (error) {
         this.probedLocation = null
         logger.error(error)
@@ -138,9 +142,10 @@ let weacastMixin = {
             $aggregate: this.forecastModel.elements.map(element => element.name).concat(['windDirection', 'windSpeed'])
           }
         })
-        if (results.length > 0) this.probedLocation = results[0]
-        else throw new Error('Cannot find valid forecast for feature')
-        this.createProbedLocationLayer()
+        if (results.length > 0) {
+          this.probedLocation = results[0]
+          this.$emit('probed-location-changed', this.probedLocation)
+        } else throw new Error('Cannot find valid forecast for feature')
       } catch (error) {
         this.probedLocation = null
         logger.error(error)

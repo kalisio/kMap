@@ -269,7 +269,10 @@ let baseGlobeMixin = {
         pickedPosition = Cesium.Cartographic.fromCartesian(pickedPosition)
         const longitude = Cesium.Math.toDegrees(pickedPosition.longitude)
         const latitude = Cesium.Math.toDegrees(pickedPosition.latitude)
+        // This ensure we can use similar handlers than for Leaflet
         emittedEvent.latlng = [latitude, longitude]
+        emittedEvent.latlng.lng = longitude
+        emittedEvent.latlng.lat = latitude
       }
       const pickedObject = this.viewer.scene.pick(event.endPosition || event.position)
       if (pickedObject) {

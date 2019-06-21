@@ -35,11 +35,7 @@ let locationIndicatorMixin = {
       this.currentLocationFormat = format
     },
     updateLocationIndicator (options, event) {
-      if (Array.isArray(event.latlng)) {
-        this.currentLocation = event.latlng
-      } else if (typeof event.latlng === 'object') {
-        this.currentLocation = [event.latlng.lat, event.latlng.lng]
-      }
+      this.currentLocation = [event.latlng.lat, event.latlng.lng]
       this.locationIndicator.location = this.currentLocation
     }
   },

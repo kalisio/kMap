@@ -25,6 +25,18 @@ let legendMixin = {
       }
     }
   },
+  computed: {
+    colorLegendStyle () {
+      return {
+        left: '18px',
+        top: 0.25 * this.engineContainerHeight + 'px',
+        height: 0.50 * this.engineContainerHeight + 'px',
+        width: '40px',
+        border: '1px solid lightgrey',        
+        fontSize: '12px'
+      }
+    }
+  },
   methods: {
     onColorLegendShowLayer (layer, engineLayer) {
       // Check for valid types
@@ -182,6 +194,10 @@ let legendMixin = {
 
       return unit
     }
+  },
+  created () {
+    // Load the required components
+    this.$options.components['k-color-legend'] = this.$load('KColorLegend')
   },
   mounted () {
     this.resetColorLegend()

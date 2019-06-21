@@ -100,9 +100,10 @@ let featureServiceMixin = {
           $gte: startTime.format(),
           $lte: endTime.format()
         })
-        if (result.features.length > 0) this.probedLocation = result.features[0]
-        else throw new Error('Cannot find valid measure for feature')
-        this.createProbedLocationLayer()
+        if (result.features.length > 0) {
+          this.probedLocation = result.features[0]
+          this.$emit('probed-location-changed', this.probedLocation)
+        } else throw new Error('Cannot find valid measure for feature')
       } catch (error) {
         this.probedLocation = null
         logger.error(error)

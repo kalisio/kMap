@@ -18,6 +18,12 @@ let forecastLayersMixin = {
       })
       return visualModel
     },
+    updateVisualForecastModel () {
+      // Update layers
+      _.forOwn(this.leafletLayers, layer => {
+        if (layer instanceof L.weacast.ForecastLayer) layer.setForecastModel(this.getVisualForecastModel(layer.options))
+      })
+    },
     createLeafletForecastLayer (options) {
       let leafletOptions = options.leaflet || options
       // Check for valid types
@@ -35,6 +41,12 @@ let forecastLayersMixin = {
   },
   created () {
     this.registerLeafletConstructor(this.createLeafletForecastLayer)
+  },
+  mounted () {
+    this.$on('forecast-model-changed', this.updateVisualForecastModel)
+  },
+  beforeDestroy () {
+    this.$off('forecast-model-changed', this.updateVisualForecastModel)
   }
 }
 

@@ -2,6 +2,8 @@ import geolocation from './mixin.geolocation'
 import navigator from './mixin.navigator'
 import featureService from './mixin.feature-service'
 import time from './mixin.time'
+import timeline from './mixin.timeline'
+import timeseries from './mixin.timeseries'
 import weacast from './mixin.weacast'
 import activity from './mixin.activity'
 import legend from './mixin.legend'
@@ -12,6 +14,8 @@ export default {
   navigator,
   featureService,
   time,
+  timeline,
+  timeseries,
   weacast,
   activity,
   legend,

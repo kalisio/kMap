@@ -10,8 +10,11 @@ export default {
       forecastModelHandlers: {},
       layerCategories: [],
       layerHandlers: {},
+      variables: [],
       engine: 'leaflet',
-      engineReady: false
+      engineReady: false,
+      engineContainerWidth: null,
+      engineContainerHeight: null
     }
   },
   computed: {
@@ -88,6 +91,7 @@ export default {
         editData: (layer) => this.onEditLayerData(layer),
         remove: (layer) => this.onRemoveLayer(layer)
       }
+      this.variables = []
       let catalogLayers = await this.getCatalogLayers()
       _.forEach(catalogLayers, (layer) => {
         if (layer[this.engine]) {
@@ -99,6 +103,9 @@ export default {
           if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
           this.addLayer(layer)
         }
+        // Filter layers with variables, not just visible ones because we might want to
+        // probe weather even if there is no visual representation (e.g. in globe)
+        if (layer.variables) this.variables = this.variables.concat(layer.variables)
       })
       // We need at least an active background
       const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
@@ -247,9 +254,6 @@ export default {
           }
         ]
       })
-    },
-    onForecastModelSelected (model) {
-      this.forecastModel = model
     },
     onMapReady () {
       this.engineReady = true
@@ -411,7 +415,7 @@ export default {
         } catch (error) {
           logger.error(error)
         }
-        this.forecastModelHandlers = { toggle: (model) => this.onForecastModelSelected(model) }
+        this.forecastModelHandlers = { toggle: (model) => this.setForecastModel(model) }
       } else {
         this.forecastModelHandlers = {}
       }
@@ -423,111 +427,6 @@ export default {
       }
       // TimeLine
       if (this.setupTimeline) this.setupTimeline()
-    },
-    async createProbedLocationLayer () {
-      if (!this.probedLocation) return
-      const name = this.$t('mixins.activity.PROBED_LOCATION')
-      // Use wind barbs on weather probed features
-      const isWeatherProbe = (_.has(this.probedLocation, 'properties.windDirection') &&
-                              _.has(this.probedLocation, 'properties.windSpeed'))
-      // Get any previous layer or create it the first time
-      let layer = this.getLayerByName(name)
-      if (!layer) {
-        await this.addLayer({
-          name,
-          type: 'OverlayLayer',
-          icon: 'colorize',
-          isStorable: false,
-          isEditable: false,
-          isRemovable: true,
-          leaflet: {
-            type: 'geoJson',
-            isVisible: true,
-            realtime: true,
-            popup: { pick: [] }
-          },
-          cesium: {
-            type: 'geoJson',
-            isVisible: true,
-            realtime: true,
-            popup: { pick: [] }
-          }
-        })
-      }
-      // Update data
-      this.updateLayer(name, isWeatherProbe ?
-        this.getProbedLocationForecastAtCurrentTime() :
-        this.getProbedLocationMeasureAtCurrentTime())
-    },
-    getTimeLineInterval () {
-      // interval length: length of 1 day in milliseconds
-      const length = 24 * 60 * 60000
-
-      return {
-        length,
-        getIntervalStartValue (rangeStart) {
-          let startTime = moment.utc(rangeStart)
-          startTime.local()
-          const hour = startTime.hours()
-          const minute = startTime.minutes()
-          let startValue
-          // range starts on a day (ignoring seconds)
-          if (hour == 0 && minute == 0) {
-            startValue = rangeStart
-          } else {
-            let startOfDay = startTime.startOf('day')
-            startOfDay.add({ days: 1 })
-            startValue = startOfDay.valueOf()
-          } 
-          return startValue
-        },
-        valueChanged (value, previousValue, step) {
-          let changed = true
-          if (step !== null) {
-            changed = false
-            if (previousValue === null) {
-              changed = true
-            } else {
-              const difference = Math.abs(value - previousValue)
-              switch (step) {
-                case 'h':
-                  changed = (difference >= 60 * 60000)
-                  break
-                case 'm':
-                  changed = (difference >= 60000)   
-                  break
-                default:
-                  changed = true
-              }
-            }
-          }
-          return changed
-        }
-      }
-    },
-    getTimeLineFormatter () {
-      return {
-        format: (value, type, displayOptions) => {
-          const time = new Date(value)
-          let label
-          switch (type) {
-            case 'interval':
-              if (displayOptions.width >= 110) {
-                label = this.formatTime('date.long', time)
-              } else {
-                label = this.formatTime('date.short', time)
-              }
-              break 
-            case 'pointer':
-              label = `${this.formatTime('date.long', time)} - ${this.formatTime('time.short', time)}`
-              break 
-            case 'indicator':
-              label = this.formatTime('time.short', time)
-              break 
-          }
-          return label
-        }        
-      }
     }
   },
   beforeCreate () {   

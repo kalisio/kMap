@@ -36,7 +36,10 @@
       "GEOCODE_BUTTON": "Géocoder",
       "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
       "TRACK_LOCATION": "Suivi de coordonnées",
-      "PROBE": "Sonder",
+      "PROBE": "Sonder"
+    },
+    "timeseries": {
+      "PROBE": "Sonde",
       "PROBED_LOCATION": "Sonde"
     },
     "editLayers": {
