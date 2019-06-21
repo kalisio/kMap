@@ -16,9 +16,10 @@
 </template>
 
 <script>
+import moment from 'moment'
+import { QResizeObservable, QBtn } from 'quasar'
 import { mixins as kMapMixins } from '..'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
-import { QResizeObservable, QBtn } from 'quasar'
 
 export default {
   name: 'k-catalog-activity',
@@ -76,6 +77,7 @@ export default {
       this.setupMap(this.$refs.map, this.$config('map.viewer'))
       // Wait until viewer is ready
       await this.initializeView()
+      this.setCurrentTime(moment.utc())
     },
     async getCatalogLayers () {
       let layers = []
