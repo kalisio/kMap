@@ -141,7 +141,7 @@ let geojsonLayersMixin = {
         }
       } else if (options.service) { // Check for feature service layers only, in this case update in place
         // If no probe reference, nothing to be initialized
-        await this.loadGeoJson(dataSource, his.getFeatures(options, queryInterval), cesiumOptions)
+        await this.loadGeoJson(dataSource, this.getFeatures(options, queryInterval), cesiumOptions)
       } else if (geoJson) {
         await this.loadGeoJson(dataSource, geoJson, cesiumOptions)
       } else if (!_.isNil(source)) {
