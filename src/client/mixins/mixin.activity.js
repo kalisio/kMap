@@ -129,7 +129,7 @@ export default {
       // Only possible on user-defined layers by default
       else return (!layer._id && (layer.service === 'features'))
     },
-    setupLayerActions (layer) {
+    registerLayerActions (layer) {
       let actions = []
       // Add supported actions
       if (layer.type === 'OverlayLayer') {
@@ -173,7 +173,7 @@ export default {
       this.$set(layer, 'actions', actions)
     },
     onLayerAdded (layer) {
-      this.setupLayerActions(layer)
+      this.registerLayerActions(layer)
     },
     onTriggerLayer (layer) {
       if (!this.isLayerVisible(layer.name)) {
@@ -196,7 +196,7 @@ export default {
       const createdLayer = await this.$api.getService('catalog')
       .create(_.omit(layer, ['actions', 'isVisible']))
       layer._id = createdLayer._id
-      this.setupLayerActions(layer) // Refresh actions due to state change
+      this.registerLayerActions(layer) // Refresh actions due to state change
       // Because we save all features in a single service use filtering to separate layers
       // We use the generated DB ID as layer ID on features
       let geoJson = this.toGeoJson(layer.name)
@@ -228,7 +228,7 @@ export default {
     async onEditLayerData (layer) {
       // Start/Stop edition
       this.editLayer(layer.name)
-      this.setupLayerActions(layer) // Refresh actions due to state change
+      this.registerLayerActions(layer) // Refresh actions due to state change
     },
     async onRemoveLayer (layer) {
       Dialog.create({
