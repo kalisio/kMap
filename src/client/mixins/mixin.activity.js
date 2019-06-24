@@ -195,9 +195,7 @@ export default function (name) {
         this.registerLayerActions(layer) // Refresh actions due to state change
         // Because we save all features in a single service use filtering to separate layers
         // We use the generated DB ID as layer ID on features
-        let geoJson = this.toGeoJson(layer.name)
-        geoJson.features.forEach(feature => feature.layer = createdLayer._id)
-        await this.$api.getService('features').create(geoJson.features)
+        await this.createFeatures(this.toGeoJson(layer.name), createdLayer._id)
         // Update filter in layer as well
         await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
       },
@@ -239,7 +237,7 @@ export default function (name) {
                 if (layer._id) {
                   // If persistent feature layer remove features as well
                   if (layer.service === 'features') {
-                    await this.$api.getService('features').remove(null, { query: { layer: layer._id } })
+                    await this.removeFeatures(layer._id)
                   }
                   await this.$api.getService('catalog').remove(layer._id)
                 }

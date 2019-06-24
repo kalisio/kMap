@@ -46,6 +46,8 @@
       "PROBED_LOCATION": "Probe"
     },
     "editLayers": {
+      "REMOVE_FEATURE_DIALOG_TITLE": "Remove this feature ?",
+      "REMOVE_FEATURE_DIALOG_MESSAGE": "Are you sure you want to remove this feature from your workspace ?",
       "draw": {
         "toolbar": {
           "actions": {

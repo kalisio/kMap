@@ -4,7 +4,7 @@ import moment from 'moment'
 export default {
   data () {
     return {
-      featureActions: [{ icon: 'whatshot' }, { icon: 'whatshot' }, { icon: 'whatshot' }, { icon: 'whatshot' }],
+      featureActions: [],
       radialMenuPosition: { x: -100, y: -100 }
     }
   },
@@ -19,17 +19,42 @@ export default {
     }
   },
   methods: {
+    clearFeatureActions () {
+      this.featureActions = []
+    },
+    // This method should be overriden in activities
+    refreshFeatureActions (feature, layer) {
+      this.clearFeatureActions()
+    },
+    getFeatureAction (name) {
+      return this.featureActions.find({ name })
+    },
+    selectFeatureForAction (feature, layer) {
+      this.selectedLayerForAction = layer
+      this.selectedFeatureForAction = feature
+    },
+    unselectFeatureForAction () {
+      this.selectedLayerForAction = null
+      this.selectedFeatureForAction = null
+    },
     updateRadialMenuPosition (event) {
       if (event.containerPoint) this.radialMenuPosition = event.containerPoint
     },
-    async onFeatureActionButtons (options, event) {
+    async onFeatureActionButtons (layer, event) {
       const feature = _.get(event, 'target.feature')
       if (!feature) return
-      this.updateRadialMenuPosition(event)
-      this.$refs.radialMenu.open()
+      this.refreshFeatureActions(feature, layer)
+      // Nothing allowed on this feature or close menu on the same one
+      if ((this.selectedFeatureForAction === feature) || (this.featureActions.length === 0)) {
+        this.$refs.radialMenu.close() // Closing should be bound to unselect
+      } else {
+        this.selectFeatureForAction(feature, layer)
+        this.updateRadialMenuPosition(event)
+        this.$refs.radialMenu.open()
+      }
     },
-    onFeatureActionSelected (action) {
-      console.log(action)
+    onFeatureActionClicked (action) {
+      if (action.handler) action.handler(this.selectedFeatureForAction, this.selectedLayerForAction)
     }
   },
   created () {

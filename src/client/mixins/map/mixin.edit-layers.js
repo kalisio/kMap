@@ -3,6 +3,7 @@ import L from 'leaflet'
 import logger from 'loglevel'
 import 'leaflet-draw/dist/leaflet.draw-src.js'
 import 'leaflet-draw/dist/leaflet.draw-src.css'
+import { Dialog } from 'quasar'
 import { bindLeafletEvents } from '../../utils'
 
 export default {
@@ -82,13 +83,12 @@ export default {
       this.editFeatureModal.$mount()
       this.editFeatureModal.open()
       this.editFeatureModal.$on('applied', async updatedFeature => {
-        const updatedProperties = _.pick(updatedFeature, ['properties'])
         // Restore popup
         if (popup) leafletLayer.bindPopup(popup)
         // Save in DB and in memory
-        if (feature._id) await this.$api.getService('features').patch(feature._id, updatedProperties)
+        await this.editFeaturesProperties(updatedFeature)
         let geoJson = leafletLayer.toGeoJSON()
-        Object.assign(geoJson, updatedProperties)
+        Object.assign(geoJson, _.pick(updatedFeature, ['properties']))
         this.editableLayer.removeLayer(leafletLayer)
         this.editableLayer.addData(geoJson)
         this.editFeatureModal.close()
@@ -98,35 +98,36 @@ export default {
     async onFeatureCreated (event) {
       let geoJson = event.layer.toGeoJSON()
       // Save changes to DB, we use the layer DB ID as layer ID on features
-      if (this.editedLayer._id) {
-        geoJson.layer = this.editedLayer._id
-        geoJson = await this.$api.getService('features').create(geoJson)
-      }
+      await this.createFeatures(geoJson, this.editedLayer._id)
       this.editableLayer.addData(geoJson)
     },
     async onFeaturesEdited (event) {
-      const geoJson = event.layers.toGeoJSON()
-      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
       // Save changes to DB
-      for (let i = 0; i < features.length; i++) {
-        const feature = features[i]
-        if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['geometry']))
-      }
+      await this.editFeaturesGeometry(event.layers.toGeoJSON())
     },
     async onFeaturesDeleted (event) {
-      const geoJson = event.layers.toGeoJSON()
-      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
       // Save changes to DB
-      for (let i = 0; i < features.length; i++) {
-        const feature = features[i]
-        if (feature._id) await this.$api.getService('features').remove(feature._id)
-      }
+      await this.removeFeatures(event.layers.toGeoJSON())
     },
     onStartDelete () {
       this.deleteInProgress = true
     },
     onStopDelete () {
       this.deleteInProgress = false
+    },
+    async onRemoveFeature (feature) {
+      Dialog.create({
+        title: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_TITLE'),
+        message: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_MESSAGE'),
+        buttons: [
+          {
+            label: this.$t('OK'),
+            handler: async () => await this.removeFeatures(feature)
+          }, {
+            label: this.$t('CANCEL')
+          }
+        ]
+      })
     }
   },
   beforeCreate () {

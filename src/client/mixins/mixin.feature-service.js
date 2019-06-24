@@ -109,6 +109,38 @@ export default {
         logger.error(error)
       }
       this.unsetCursor('processing-cursor')
+    },
+    async createFeatures (geoJson, layerId) {
+      if (!layerId) return
+      let features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      features.forEach(feature => feature.layer = layerId)
+      await this.$api.getService('features').create(features)
+    },
+    async editFeaturesGeometry (geoJson) {
+      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      for (let i = 0; i < features.length; i++) {
+        const feature = features[i]
+        if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['geometry']))
+      }
+    },
+    async editFeaturesProperties (geoJson) {
+      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      for (let i = 0; i < features.length; i++) {
+        const feature = features[i]
+        if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['properties']))
+      }
+    },
+    async removeFeatures (geoJson) {
+      // Remove all features of a given layer
+      if (typeof geoJson._id === 'string') {
+        await this.$api.getService('features').remove(null, { query: { layer: geoJson._id } })
+      } else {
+        const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+        for (let i = 0; i < features.length; i++) {
+          const feature = features[i]
+          if (feature._id) await this.$api.getService('features').remove(feature._id)
+        }
+      }
     }
   }
 }
