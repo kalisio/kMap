@@ -59,7 +59,7 @@ export default {
       return atob(typeAndData[1])
     },
     async onUpdateFeatureProperties (layer, event) {
-      const leafletLayer = event.target
+      const leafletLayer = event && event.target
       if (!leafletLayer) return
       let feature = _.get(leafletLayer, 'feature')
       if (!feature || !this.isLayerEdited(layer.name)) return

@@ -267,9 +267,6 @@ export default {
       this.updateLeafletPanesVisibility()
     }
   },
-  beforeCreate () {
-    this.options = Object.assign({}, this.$config('map'))
-  },
   created () {
     this.leafletLayers = {}
     this.leafletPanes = {}

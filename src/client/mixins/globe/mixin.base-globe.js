@@ -287,9 +287,6 @@ export default {
       this.$emit(event.originalEvent.name, options, emittedEvent)
     }
   },
-  beforeCreate () {
-    this.options = Object.assign({}, this.$config('globe'))
-  },
   created () {
     this.cesiumLayers = {}
     this.cesiumFactory = []
