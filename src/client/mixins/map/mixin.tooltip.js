@@ -1,7 +1,7 @@
 import L from 'leaflet'
 import _ from 'lodash'
 
-let tooltipMixin = {
+export default {
   methods: {
     getDefaultTooltip (feature, layer, options) {
       const properties = feature.properties
@@ -33,5 +33,3 @@ let tooltipMixin = {
     this.registerLeafletStyle('tooltip', this.getDefaultTooltip)
   }
 }
-
-export default tooltipMixin

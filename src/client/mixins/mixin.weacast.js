@@ -5,7 +5,7 @@ import moment from 'moment'
 import { weacast } from 'weacast-core/client'
 import { getNearestTime } from '../utils'
 
-let weacastMixin = {
+export default {
   data () {
     return {
       forecastModel: null,
@@ -211,5 +211,3 @@ let weacastMixin = {
     this.$off('current-time-changed', this.onCurrentForecastTimeChanged)
   }
 }
-
-export default weacastMixin

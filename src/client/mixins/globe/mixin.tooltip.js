@@ -1,6 +1,6 @@
 import _ from 'lodash'
 
-let tooltipMixin = {
+export default {
   methods: {
     applyTooltips (entities, options) {
       for (let i = 0; i < entities.values.length; i++) {
@@ -89,5 +89,3 @@ let tooltipMixin = {
     this.$off('mousemove', this.onTooltip)
   }
 }
-
-export default tooltipMixin

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { getTextTable } from '../../utils'
 
-let popupMixin = {
+export default {
   methods: {
     getDefaultPopup (entity, options) {
       let popup
@@ -68,5 +68,3 @@ let popupMixin = {
     this.$off('click', this.onPopup)
   }
 }
-
-export default popupMixin

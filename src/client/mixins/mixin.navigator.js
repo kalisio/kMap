@@ -1,7 +1,7 @@
 import logger from 'loglevel'
 import { ActionSheet } from 'quasar'
 
-let navigatorMixin = {
+export default {
   methods: {
     canNavigate () {
       if (!this.$q.platform.is.cordova) return false
@@ -32,5 +32,3 @@ let navigatorMixin = {
     }
   }
 }
-
-export default navigatorMixin

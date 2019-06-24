@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import 'weacast-leaflet'
 
-let forecastLayersMixin = {
+export default {
   methods: {
     getVisualForecastModel (layerConfig) {
       // For visualization we might decimate the data resolution for performance reasons
@@ -49,5 +49,3 @@ let forecastLayersMixin = {
     this.$off('forecast-model-changed', this.updateVisualForecastModel)
   }
 }
-
-export default forecastLayersMixin

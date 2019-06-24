@@ -28,7 +28,7 @@ L.GeoJSON.geometryToLayer = function (geojson, options) {
   return geometryToLayer(geojson, options)
 }
 
-let geojsonLayersMixin = {
+export default {
   methods: {
     processRealtimeGeoJsonLayerOptions (options) {
       let leafletOptions = options.leaflet || options
@@ -268,5 +268,3 @@ let geojsonLayersMixin = {
     this.registerLeafletConstructor(this.createLeafletGeoJsonLayer)
   }
 }
-
-export default geojsonLayersMixin

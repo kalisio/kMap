@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import { getHtmlTable } from '../../utils'
 
-let popupMixin = {
+export default {
   methods: {
     getDefaultPopup (feature, layer, options) {
       let properties = feature.properties
@@ -46,5 +46,3 @@ let popupMixin = {
     this.registerLeafletStyle('popup', this.getDefaultPopup)
   }
 }
-
-export default popupMixin

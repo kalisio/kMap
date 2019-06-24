@@ -2,7 +2,7 @@ import Cesium from 'cesium/Source/Cesium.js'
 import _ from 'lodash'
 import { CesiumStyleMappings } from '../../utils'
 
-let styleMixin = {
+export default {
   methods: {
     applyStyle (entities, options) {
       let cesiumOptions = options.cesium || options
@@ -168,5 +168,3 @@ let styleMixin = {
     if (this.options.clusterStyle) this.options.clusterStyle = this.convertToCesiumObjects(this.options.clusterStyle)
   }
 }
-
-export default styleMixin

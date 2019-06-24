@@ -3,7 +3,7 @@ import logger from 'loglevel'
 import moment from 'moment'
 import { getNearestTime } from '../utils'
 
-let featureServiceMixin = {
+export default {
   methods: {
     async getProbeFeatures (options) {
       let response = await this.$api.getService(options.probeService).find({})
@@ -112,5 +112,3 @@ let featureServiceMixin = {
     }
   }
 }
-
-export default featureServiceMixin

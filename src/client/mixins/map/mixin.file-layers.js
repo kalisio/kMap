@@ -5,7 +5,7 @@ import fileLayer from 'leaflet-filelayer'
 
 fileLayer(null, L, togeojson)
 
-let fileLayersMixin = {
+export default {
   mounted () {
     this.$on('map-ready', _ => {
       this.loader = L.FileLayer.fileLoader(this.map, Object.assign({
@@ -67,5 +67,3 @@ let fileLayersMixin = {
     })
   }
 }
-
-export default fileLayersMixin

@@ -7,7 +7,7 @@ import { convertCesiumHandlerEvent } from '../../utils'
 // Cesium files need to be also added as static assets of the applciation
 BuildModuleUrl.setBaseUrl('./statics/Cesium/')
 
-let baseGlobeMixin = {
+export default {
   data () {
     return {
       layers: {}
@@ -301,5 +301,3 @@ let baseGlobeMixin = {
     this.viewer.destroy()
   }
 }
-
-export default baseGlobeMixin

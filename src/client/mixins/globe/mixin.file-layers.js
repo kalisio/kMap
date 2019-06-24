@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 
-let fileLayersMixin = {
+export default {
   mounted () {
     this.$on('globe-ready', _ => {
       this.viewer.extend(Cesium.viewerDragDropMixin, this.options.fileLayers)
@@ -31,5 +31,3 @@ let fileLayersMixin = {
     })
   }
 }
-
-export default fileLayersMixin

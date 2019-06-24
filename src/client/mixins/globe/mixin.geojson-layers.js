@@ -3,7 +3,7 @@ import logger from 'loglevel'
 import _ from 'lodash'
 import { fetchGeoJson, CesiumStyleMappings, getTextTable } from '../../utils'
 
-let geojsonLayersMixin = {
+export default {
   methods: {
     convertFromSimpleStyleSpecOrDefaults (properties) {
       let { stroke, strokeWidth, fill } = this.convertFromSimpleStyleSpec(properties)
@@ -271,5 +271,3 @@ let geojsonLayersMixin = {
     }
   }
 }
-
-export default geojsonLayersMixin

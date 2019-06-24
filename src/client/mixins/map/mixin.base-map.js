@@ -21,7 +21,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png')
 })
 
-let baseMapMixin = {
+export default {
   data () {
     return {
       layers: {}
@@ -288,5 +288,3 @@ let baseMapMixin = {
     this.map.remove()
   }
 }
-
-export default baseMapMixin

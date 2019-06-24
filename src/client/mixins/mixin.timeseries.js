@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import moment from 'moment'
 
-let timeseriesMixin = {
+export default {
   data () {
     return {
       probedLocation: null,
@@ -177,5 +177,3 @@ let timeseriesMixin = {
     this.$off('click', this.onProbeFeatureClicked)
   }
 }
-
-export default timeseriesMixin

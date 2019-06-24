@@ -7,6 +7,7 @@ import editLayers from './mixin.edit-layers'
 import style from './mixin.style'
 import tooltip from './mixin.tooltip'
 import popup from './mixin.popup'
+import activity from './mixin.map-activity'
 
 export default {
   baseMap,
@@ -17,5 +18,6 @@ export default {
   editLayers,
   style,
   tooltip,
-  popup
+  popup,
+  activity
 }

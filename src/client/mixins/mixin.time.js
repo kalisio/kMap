@@ -2,7 +2,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { Events } from 'quasar'
 
-let timeMixin = {
+export default {
   data () {
     return {
       currentTime: moment.utc(),
@@ -78,5 +78,3 @@ let timeMixin = {
     Events.$off('time-format-changed', this.setTimeFormat)
   }
 }
-
-export default timeMixin

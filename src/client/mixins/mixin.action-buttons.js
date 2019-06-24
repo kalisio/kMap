@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import moment from 'moment'
 
-let actionButtonsMixin = {
+export default {
   data () {
     return {
       featureActions: [{ icon: 'whatshot' }, { icon: 'whatshot' }, { icon: 'whatshot' }, { icon: 'whatshot' }],
@@ -46,5 +46,3 @@ let actionButtonsMixin = {
     //this.$off('move', this.updateRadialMenuPosition)
   }
 }
-
-export default actionButtonsMixin

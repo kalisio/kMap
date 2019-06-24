@@ -3,7 +3,7 @@ import { Events, Toast } from 'quasar'
 import { Store, utils } from '@kalisio/kdk-core/client'
 import { errors } from '../../common'
 
-let geolocationMixin = {
+export default {
   methods: {
     refreshPosition () {
       // If we are not waiting for or first time
@@ -69,5 +69,3 @@ let geolocationMixin = {
     Events.$off('user-changed', this.updatePosition)
   }
 }
-
-export default geolocationMixin

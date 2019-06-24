@@ -2,7 +2,7 @@ import L from 'leaflet'
 import _ from 'lodash'
 import { LeafletStyleMappings } from '../../utils'
 
-let styleMixin = {
+export default {
   methods: {
     createMarkerFromStyle (latlng, markerStyle, feature) {
       if (markerStyle) {
@@ -129,5 +129,3 @@ let styleMixin = {
     if (this.options.pointStyle) this.convertFromSimpleStyleSpec(this.options.pointStyle, 'update-in-place')
   }
 }
-
-export default styleMixin

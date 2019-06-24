@@ -85,7 +85,7 @@ let GeorasterLayer = L.Layer.extend({
   }
 })
 
-let georasterLayersMixin = {
+export default {
   methods: {
     async createLeafletGeorasterLayer (options) {
       let leafletOptions = options.leaflet || options
@@ -110,5 +110,3 @@ let georasterLayersMixin = {
     this.registerLeafletConstructor(this.createLeafletGeorasterLayer)
   }
 }
-
-export default georasterLayersMixin

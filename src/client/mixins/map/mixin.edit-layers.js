@@ -5,7 +5,7 @@ import 'leaflet-draw/dist/leaflet.draw-src.js'
 import 'leaflet-draw/dist/leaflet.draw-src.css'
 import { bindLeafletEvents } from '../../utils'
 
-let editLayersMixin = {
+export default {
   methods: {
     isLayerEdited (name) {
       return this.editedLayer && (this.editedLayer.name === name)
@@ -164,5 +164,3 @@ let editLayersMixin = {
     this.$off('draw:deleted', this.onFeaturesDeleted)
   }
 }
-
-export default editLayersMixin

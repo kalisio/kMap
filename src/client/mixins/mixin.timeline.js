@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import moment from 'moment'
 
-let timelineMixin = {
+export default {
   data () {
     let now = moment.utc()
     return {
@@ -144,5 +144,3 @@ let timelineMixin = {
     this.$off('forecast-model-changed', this.setupTimeline)
   }
 }
-
-export default timelineMixin

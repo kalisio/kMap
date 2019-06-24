@@ -6,7 +6,7 @@ math.createUnit('knot', { definition: '0.514444 m/s', aliases: ['knots', 'kt', '
 
 const COLOR_STEPS = 10
 
-let legendMixin = {
+export default {
   data () {
     return {
       legendLayer: null,
@@ -213,5 +213,3 @@ let legendMixin = {
     this.$off('layer-hidden', this.onColorLegendHideLayer)
   }
 }
-
-export default legendMixin

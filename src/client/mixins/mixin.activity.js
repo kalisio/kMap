@@ -4,453 +4,458 @@ import moment from 'moment'
 import { Events, Dialog } from 'quasar'
 import { errors } from '../../common'
 
-export default {
-  data () {
-    return {
-      forecastModelHandlers: {},
-      layerCategories: [],
-      layerHandlers: {},
-      variables: [],
-      engine: 'leaflet',
-      engineReady: false,
-      engineContainerWidth: null,
-      engineContainerHeight: null
-    }
-  },
-  computed: {
-    appName () {
-      return this.$config('appName')
-    },
-    sideNavToggle () {
-      const buttons = (this.engine === 'leaflet' ? 'mapActivity.buttons' : 'globeActivity.buttons')
-      return this.$config(buttons, ['side-nav']).includes('side-nav')
-    },
-    panelToggle () {
-      const buttons = (this.engine === 'leaflet' ? 'mapActivity.buttons' : 'globeActivity.buttons')
-      return this.$config(buttons, ['panel']).includes('panel')
-    },
-    viewStyle () {
-      return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
-    }
-  },
-  methods: {
-    setMappingEngine(engine) {
-      this.engine = engine
-    },
-    getGeocodingToolbar () {
-      return [
-        { name: 'close-action', label: this.$t('mixins.activity.CLOSE_GEOCODING_ACTION'), icon: 'close', handler: this.onCloseGeocoding }
-      ]
-    },
-    getGeocodingButtons () {
-      return [
-        { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: (event, done) => this.onGeocode(done) }
-      ]
-    },
-    registerActivityActions () {
-      const actions = (this.engine === 'leaflet' ? this.$config('mapActivity.actions') : this.$config('globeActivity.actions'))
-      const hasFullscreenAction = (typeof this.onToggleFullscreen === 'function') && (actions ? actions.includes('fullscreen') : true)
-      const hasGeolocateAction = (typeof this.onGeolocate === 'function') && (actions ? actions.includes('geolocate') : true)
-      const hasGeocodingAction = (typeof this.onGeocoding === 'function') && (actions ? actions.includes('geocode') : true)
-      const hasLocationIndicatorAction = (typeof this.createLocationIndicator === 'function') && (actions ? actions.includes('track-location') : true)
-      const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && (actions ? actions.includes('probe-location') : (this.weacastApi && this.forecastModel))
-      const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && (actions ? actions.includes('create-layer') : true)
-      // FAB
-      if (hasFullscreenAction) this.registerFabAction({
-        name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
-      })
-      if (hasGeolocateAction) this.registerFabAction({
-        name: 'geolocate', label: this.$t('mixins.activity.GEOLOCATE'), icon: 'my_location', handler: this.onGeolocate
-      })
-      if (hasGeocodingAction) this.registerFabAction({
-        name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
-      })
-      if (hasLocationIndicatorAction) this.registerFabAction({
-        name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
-      })
-      if (hasProbeLocationAction) this.registerFabAction({
-        name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
-      })
-      if (hasCreateLayerAction) this.registerFabAction({
-        name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
-      })
-    },
-    async getCatalogLayers () {
-      const catalogService = this.$api.getService('catalog')
-      const response = await catalogService.find()
-      return response.data
-    },
-    async refreshLayers () {
-      this.layers = {}
-      this.layerCategories = (this.engine === 'leaflet' ? this.$config('mapPanel.categories') : this.$config('globePanel.categories'))
-      this.layerHandlers = {
-        toggle: (layer) => this.onTriggerLayer(layer),
-        zoomTo: (layer) => this.onZoomToLayer(layer),
-        save: (layer) => this.onSaveLayer(layer),
-        edit: (layer) => this.onEditLayer(layer),
-        editData: (layer) => this.onEditLayerData(layer),
-        remove: (layer) => this.onRemoveLayer(layer)
-      }
-      this.variables = []
-      let catalogLayers = await this.getCatalogLayers()
-      _.forEach(catalogLayers, (layer) => {
-        if (layer[this.engine]) {
-          // Process i18n
-          if (this.$t(layer.name)) layer.name = this.$t(layer.name)
-          if (this.$t(layer.description)) layer.description = this.$t(layer.description)
-          // Check for Weacast API availability
-          const isWeacastLayer = _.get(layer, `${this.engine}.type`, '').startsWith('weacast.')
-          if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
-          this.addLayer(layer)
-        }
-        // Filter layers with variables, not just visible ones because we might want to
-        // probe weather even if there is no visual representation (e.g. in globe)
-        if (layer.variables) this.variables = this.variables.concat(layer.variables)
-      })
-      // We need at least an active background
-      const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
-      if (!hasVisibleBaseLayer) {
-        const baseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer'))
-        if (baseLayer) this.showLayer(baseLayer.name)
+export default function (name) {
+  return {
+    data () {
+      return {
+        forecastModelHandlers: {},
+        layerCategories: [],
+        layerHandlers: {},
+        variables: [],
+        engine: 'leaflet',
+        engineReady: false,
+        engineContainerWidth: null,
+        engineContainerHeight: null
       }
     },
-    isLayerStorable (layer) {
-      if (_.has(layer, 'isStorable')) return _.get(layer, 'isStorable')
-      // Only possible when export as GeoJson is possible by default
-      else return (!layer._id && (typeof this.toGeoJson === 'function'))
+    computed: {
+      appName () {
+        return this.$config('appName')
+      },
+      sideNavToggle () {
+        return _.get(this, 'activityOptions.buttons', ['side-nav']).includes('side-nav')
+      },
+      panelToggle () {
+        return _.get(this, 'activityOptions.buttons', ['panel']).includes('panel')
+      },
+      viewStyle () {
+        return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
+      }
     },
-    isLayerEditable (layer) {
-      if (_.has(layer, 'isEditable')) return _.get(layer, 'isEditable')
-      // Only possible on user-defined and saved layers by default
-      else return (layer._id && (layer.service === 'features'))
-    },
-    isLayerRemovable (layer) {
-      if (_.has(layer, 'isRemovable')) return _.get(layer, 'isRemovable')
-      // Only possible on user-defined layers by default
-      else return (!layer._id && (layer.service === 'features'))
-    },
-    registerLayerActions (layer) {
-      let actions = []
-      // Add supported actions
-      if (layer.type === 'OverlayLayer') {
-        actions.push({
-          name: 'zoomTo',
-          label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
-          icon: 'zoom_out_map'
+    methods: {
+      getGeocodingToolbar () {
+        return [
+          { name: 'close-action', label: this.$t('mixins.activity.CLOSE_GEOCODING_ACTION'), icon: 'close', handler: this.onCloseGeocoding }
+        ]
+      },
+      getGeocodingButtons () {
+        return [
+          { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: (event, done) => this.onGeocode(done) }
+        ]
+      },
+      registerActivityActions () {
+        const actions = _.get(this, 'activityOptions.actions', ['fullscreen', 'geolocate', 'geocode', 'track-location', 'probe-location', 'create-layer'])
+        const hasFullscreenAction = (typeof this.onToggleFullscreen === 'function') && actions.includes('fullscreen')
+        const hasGeolocateAction = (typeof this.onGeolocate === 'function') && actions.includes('geolocate')
+        const hasGeocodingAction = (typeof this.onGeocoding === 'function') && actions.includes('geocode')
+        const hasLocationIndicatorAction = (typeof this.createLocationIndicator === 'function') && actions.includes('track-location')
+        const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && actions.includes('probe-location') && this.weacastApi && this.forecastModel
+        const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && actions.includes('create-layer')
+        // FAB
+        if (hasFullscreenAction) this.registerFabAction({
+          name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
         })
-        if (this.isLayerStorable(layer) && !layer._id) {
-          actions.push({
-            name: 'save',
-            label: this.$t('mixins.activity.SAVE_LABEL'),
-            icon: 'save'
-          })
+        if (hasGeolocateAction) this.registerFabAction({
+          name: 'geolocate', label: this.$t('mixins.activity.GEOLOCATE'), icon: 'my_location', handler: this.onGeolocate
+        })
+        if (hasGeocodingAction) this.registerFabAction({
+          name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
+        })
+        if (hasLocationIndicatorAction) this.registerFabAction({
+          name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
+        })
+        if (hasProbeLocationAction) this.registerFabAction({
+          name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
+        })
+        if (hasCreateLayerAction) this.registerFabAction({
+          name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
+        })
+      },
+      async getCatalogLayers () {
+        const catalogService = this.$api.getService('catalog')
+        const response = await catalogService.find()
+        return response.data
+      },
+      async refreshLayers () {
+        this.layers = {}
+        this.layerCategories = _.get(this, 'activityOptions.panel.categories', [])
+        this.layerHandlers = {
+          toggle: (layer) => this.onTriggerLayer(layer),
+          zoomTo: (layer) => this.onZoomToLayer(layer),
+          save: (layer) => this.onSaveLayer(layer),
+          edit: (layer) => this.onEditLayer(layer),
+          editData: (layer) => this.onEditLayerData(layer),
+          remove: (layer) => this.onRemoveLayer(layer)
         }
-        if (this.isLayerEditable(layer)) {
+        this.variables = []
+        let catalogLayers = await this.getCatalogLayers()
+        _.forEach(catalogLayers, (layer) => {
+          if (layer[this.engine]) {
+            // Process i18n
+            if (this.$t(layer.name)) layer.name = this.$t(layer.name)
+            if (this.$t(layer.description)) layer.description = this.$t(layer.description)
+            // Check for Weacast API availability
+            const isWeacastLayer = _.get(layer, `${this.engine}.type`, '').startsWith('weacast.')
+            if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
+            this.addLayer(layer)
+          }
+          // Filter layers with variables, not just visible ones because we might want to
+          // probe weather even if there is no visual representation (e.g. in globe)
+          if (layer.variables) this.variables = this.variables.concat(layer.variables)
+        })
+        // We need at least an active background
+        const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
+        if (!hasVisibleBaseLayer) {
+          const baseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer'))
+          if (baseLayer) this.showLayer(baseLayer.name)
+        }
+      },
+      isLayerStorable (layer) {
+        if (_.has(layer, 'isStorable')) return _.get(layer, 'isStorable')
+        // Only possible when export as GeoJson is possible by default
+        else return (!layer._id && (typeof this.toGeoJson === 'function'))
+      },
+      isLayerEditable (layer) {
+        if (_.has(layer, 'isEditable')) return _.get(layer, 'isEditable')
+        // Only possible on user-defined and saved layers by default
+        else return (layer._id && (layer.service === 'features'))
+      },
+      isLayerRemovable (layer) {
+        if (_.has(layer, 'isRemovable')) return _.get(layer, 'isRemovable')
+        // Only possible on user-defined layers by default
+        else return (!layer._id && (layer.service === 'features'))
+      },
+      registerLayerActions (layer) {
+        let actions = []
+        // Add supported actions
+        if (layer.type === 'OverlayLayer') {
           actions.push({
-            name: 'edit',
-            label: this.$t('mixins.activity.EDIT_LABEL'),
-            icon: 'description'
+            name: 'zoomTo',
+            label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
+            icon: 'zoom_out_map'
           })
-          // Supported by underlying engine ?
-          if (typeof this.editLayer === 'function') {
+          if (this.isLayerStorable(layer) && !layer._id) {
             actions.push({
-              name: 'editData',
-              label: this.isLayerEdited(layer.name) ?
-                this.$t('mixins.activity.STOP_EDIT_DATA_LABEL') :
-                this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
-              icon: 'edit_location'
+              name: 'save',
+              label: this.$t('mixins.activity.SAVE_LABEL'),
+              icon: 'save'
+            })
+          }
+          if (this.isLayerEditable(layer)) {
+            actions.push({
+              name: 'edit',
+              label: this.$t('mixins.activity.EDIT_LABEL'),
+              icon: 'description'
+            })
+            // Supported by underlying engine ?
+            if (typeof this.editLayer === 'function') {
+              actions.push({
+                name: 'editData',
+                label: this.isLayerEdited(layer.name) ?
+                  this.$t('mixins.activity.STOP_EDIT_DATA_LABEL') :
+                  this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
+                icon: 'edit_location'
+              })
+            }
+          }
+          if (this.isLayerRemovable(layer)) {
+            actions.push({
+              name: 'remove',
+              label: this.$t('mixins.activity.REMOVE_LABEL'),
+              icon: 'remove_circle'
             })
           }
         }
-        if (this.isLayerRemovable(layer)) {
-          actions.push({
-            name: 'remove',
-            label: this.$t('mixins.activity.REMOVE_LABEL'),
-            icon: 'remove_circle'
-          })
-        }
-      }
-      this.$set(layer, 'actions', actions)
-    },
-    onLayerAdded (layer) {
-      this.registerLayerActions(layer)
-    },
-    onTriggerLayer (layer) {
-      if (!this.isLayerVisible(layer.name)) {
-        this.showLayer(layer.name)
-      } else {
-        this.hideLayer(layer.name)
-      } 
-    },
-    onZoomToLayer (layer) {
-      this.zoomToLayer(layer.name)
-    },
-    async onSaveLayer (layer) {
-      // Change data source from in-memory to features service
-      _.merge(layer, {
-        service: 'features',
-        [this.engine]: { source: '/api/features' }
-      })
-      // When saving from one engine copy options to the other one so that it will be available in both of them
-      _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
-      const createdLayer = await this.$api.getService('catalog')
-      .create(_.omit(layer, ['actions', 'isVisible']))
-      layer._id = createdLayer._id
-      this.registerLayerActions(layer) // Refresh actions due to state change
-      // Because we save all features in a single service use filtering to separate layers
-      // We use the generated DB ID as layer ID on features
-      let geoJson = this.toGeoJson(layer.name)
-      geoJson.features.forEach(feature => feature.layer = createdLayer._id)
-      await this.$api.getService('features').create(geoJson.features)
-      // Update filter in layer as well
-      await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
-    },
-    async onEditLayer (layer) {
-      this.editModal = await this.$createComponent('editor/KModalEditor', {
-        propsData: {
-          service: 'catalog',
-          contextId: this.contextId,
-          objectId: layer._id
-        }
-      })
-      this.editModal.$mount()
-      this.editModal.open()
-      this.editModal.$on('applied', updatedLayer => {
-        // If renamed need to update the layer map accordingly
-        if (layer.name !== updatedLayer.name) {
-          this.renameLayer(layer.name, updatedLayer.name)
-        }
-        Object.assign(layer, updatedLayer)
-        this.editModal.close()
-        this.editModal = null
-      })
-    },
-    async onEditLayerData (layer) {
-      // Start/Stop edition
-      this.editLayer(layer.name)
-      this.registerLayerActions(layer) // Refresh actions due to state change
-    },
-    async onRemoveLayer (layer) {
-      Dialog.create({
-        title: this.$t('mixins.activity.REMOVE_DIALOG_TITLE', { layer: layer.name }),
-        message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
-        buttons: [
-          {
-            label: this.$t('OK'),
-            handler: async () => {
-              // Stop any running edition
-              if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
-              if (layer._id) {
-                // If persistent feature layer remove features as well
-                if (layer.service === 'features') {
-                  await this.$api.getService('features').remove(null, { query: { layer: layer._id } })
+        this.$set(layer, 'actions', actions)
+      },
+      onLayerAdded (layer) {
+        this.registerLayerActions(layer)
+      },
+      onTriggerLayer (layer) {
+        if (!this.isLayerVisible(layer.name)) {
+          this.showLayer(layer.name)
+        } else {
+          this.hideLayer(layer.name)
+        } 
+      },
+      onZoomToLayer (layer) {
+        this.zoomToLayer(layer.name)
+      },
+      async onSaveLayer (layer) {
+        // Change data source from in-memory to features service
+        _.merge(layer, {
+          service: 'features',
+          [this.engine]: { source: '/api/features' }
+        })
+        // When saving from one engine copy options to the other one so that it will be available in both of them
+        _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
+        const createdLayer = await this.$api.getService('catalog')
+        .create(_.omit(layer, ['actions', 'isVisible']))
+        layer._id = createdLayer._id
+        this.registerLayerActions(layer) // Refresh actions due to state change
+        // Because we save all features in a single service use filtering to separate layers
+        // We use the generated DB ID as layer ID on features
+        let geoJson = this.toGeoJson(layer.name)
+        geoJson.features.forEach(feature => feature.layer = createdLayer._id)
+        await this.$api.getService('features').create(geoJson.features)
+        // Update filter in layer as well
+        await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
+      },
+      async onEditLayer (layer) {
+        this.editModal = await this.$createComponent('editor/KModalEditor', {
+          propsData: {
+            service: 'catalog',
+            contextId: this.contextId,
+            objectId: layer._id
+          }
+        })
+        this.editModal.$mount()
+        this.editModal.open()
+        this.editModal.$on('applied', updatedLayer => {
+          // If renamed need to update the layer map accordingly
+          if (layer.name !== updatedLayer.name) {
+            this.renameLayer(layer.name, updatedLayer.name)
+          }
+          Object.assign(layer, updatedLayer)
+          this.editModal.close()
+          this.editModal = null
+        })
+      },
+      async onEditLayerData (layer) {
+        // Start/Stop edition
+        this.editLayer(layer.name)
+        this.registerLayerActions(layer) // Refresh actions due to state change
+      },
+      async onRemoveLayer (layer) {
+        Dialog.create({
+          title: this.$t('mixins.activity.REMOVE_DIALOG_TITLE', { layer: layer.name }),
+          message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
+          buttons: [
+            {
+              label: this.$t('OK'),
+              handler: async () => {
+                // Stop any running edition
+                if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
+                if (layer._id) {
+                  // If persistent feature layer remove features as well
+                  if (layer.service === 'features') {
+                    await this.$api.getService('features').remove(null, { query: { layer: layer._id } })
+                  }
+                  await this.$api.getService('catalog').remove(layer._id)
                 }
-                await this.$api.getService('catalog').remove(layer._id)
+                this.removeLayer(layer.name)
               }
-              this.removeLayer(layer.name)
+            }, {
+              label: this.$t('CANCEL')
             }
-          }, {
-            label: this.$t('CANCEL')
-          }
-        ]
-      })
-    },
-    onMapReady () {
-      this.engineReady = true
-      this.engine = 'leaflet'
-    },
-    onGlobeReady () {
-      this.engineReady = true
-      this.engine = 'cesium'
-    },
-    async onCreateLayer () {
-      // Set layer data source to features service
-      this.createModal = await this.$createComponent('editor/KModalEditor', {
-        propsData: {
-          service: 'catalog',
-          contextId: this.contextId,
-          baseObject: {
-            type: 'OverlayLayer',
-            icon: 'insert_drive_file',
-            service: 'features',
-            isStorable: true,
-            isEditable: true,
-            isRemovable: true,
-            [this.engine]: {
-              type: 'geoJson',
-              isVisible: true,
-              source: '/api/features'
+          ]
+        })
+      },
+      onMapReady () {
+        this.engineReady = true
+        this.engine = 'leaflet'
+      },
+      onGlobeReady () {
+        this.engineReady = true
+        this.engine = 'cesium'
+      },
+      async onCreateLayer () {
+        // Set layer data source to features service
+        this.createModal = await this.$createComponent('editor/KModalEditor', {
+          propsData: {
+            service: 'catalog',
+            contextId: this.contextId,
+            baseObject: {
+              type: 'OverlayLayer',
+              icon: 'insert_drive_file',
+              service: 'features',
+              isStorable: true,
+              isEditable: true,
+              isRemovable: true,
+              [this.engine]: {
+                type: 'geoJson',
+                isVisible: true,
+                source: '/api/features'
+              }
             }
           }
+        })
+        this.createModal.$mount()
+        this.createModal.open()
+        this.createModal.$on('applied', async createdLayer => {
+          this.createModal.close()
+          this.createModal = null
+          // Create an empty layer used as a container
+          await this.addLayer(createdLayer)
+          // Start editing
+          await this.onEditLayerData(createdLayer)
+        })
+      },
+      onGeolocate () {
+        // Force a refresh
+        this.clearStoredView()
+        this.updatePosition()
+      },
+      onGeolocationError (error) {
+        // Remove geolocation action if not allowed by user
+        if (error.code === 'GEOLOCATION_PERMISSION_DENIED') {
+          this.unregisterFabAction('geolocate')
         }
-      })
-      this.createModal.$mount()
-      this.createModal.open()
-      this.createModal.$on('applied', async createdLayer => {
-        this.createModal.close()
-        this.createModal = null
-        // Create an empty layer used as a container
-        await this.addLayer(createdLayer)
-        // Start editing
-        await this.onEditLayerData(createdLayer)
-      })
-    },
-    onGeolocate () {
-      // Force a refresh
-      this.clearStoredView()
-      this.updatePosition()
-    },
-    onGeolocationError (error) {
-      // Remove geolocation action if not allowed by user
-      if (error.code === 'GEOLOCATION_PERMISSION_DENIED') {
-        this.unregisterFabAction('geolocate')
-      }
-    },
-    onCloseGeocoding (done) {
-      this.geocodingModal.close(done)
-      this.geocodingModal = null
-    },
-    async onGeocoding () {
-      const schema = await this.$load('geocoding', 'schema')
-      this.geocodingModal = await this.$createComponent('frame/KModal', {
-        propsData: {
-          title: this.$t('mixins.activity.GEOCODING'),
-          toolbar: this.getGeocodingToolbar(),
-          buttons: this.getGeocodingButtons(),
-          route: false
-        }
-      })
-      // Slots require VNodes not components
-      this.geocodingModal.$slots['modal-content'] = [
-        await this.$createComponentVNode('form/KForm', { props: { schema } })
-      ]
-      this.geocodingModal.$mount()
-      this.geocodingModal.open()
-    },
-    onGeocode (done) {
-      const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
-      if (geocodingForm) {
-        let result = geocodingForm.validate()
-        const longitude = _.get(result, 'values.location.longitude')
-        const latitude = _.get(result, 'values.location.latitude')
-        if (longitude && latitude) {
-          this.center(longitude, latitude)
-        }
-      }
-      this.onCloseGeocoding(done)
-    },
-    onTrackLocation () {
-      if (!this.locationIndicator) this.createLocationIndicator()
-      else this.removeLocationIndicator()
-    },
-    geolocate () {
-      if (!this.engineReady) {
-        //logger.error('Engine not ready to geolocate')
-        return
-      }
-      if (_.get(this.$route, 'query.south')) return
-      const position = this.$store.get('user.position')
-      // 3D or 2D centering ?
-      if (position) {
-        this.center(position.longitude, position.latitude)
-      }
-    },
-    getViewKey () {
-      return this.appName.toLowerCase() + '-view'
-    },
-    storeView () {
-      const bounds = this.getBounds()
-      const south = bounds[0][0]
-      const west = bounds[0][1]
-      const north = bounds[1][0]
-      const east = bounds[1][1]
-      // Store both in URL and local storage, except if the user has explicitly revoked restoration
-      const restoreView = this.$store.get('restore.view')
-      if (restoreView) {
-        this.$router.push({ query: { south, west, north, east } })
-        window.localStorage.setItem(this.getViewKey(), JSON.stringify(bounds))
-      }
-    },
-    restoreView () {
-      let bounds
-      const restoreView = this.$store.get('restore.view')
-      if (restoreView) {
-        const savedBounds = window.localStorage.getItem(this.getViewKey())
-        if (savedBounds) bounds = JSON.parse(savedBounds)
-      } else if (_.get(this.$route, 'query.south') && _.get(this.$route, 'query.west') &&
-                 _.get(this.$route, 'query.north') && _.get(this.$route, 'query.east')) {
-        bounds = [
-          [_.get(this.$route, 'query.south'), _.get(this.$route, 'query.west')],
-          [_.get(this.$route, 'query.north'), _.get(this.$route, 'query.east')]
+      },
+      onCloseGeocoding (done) {
+        this.geocodingModal.close(done)
+        this.geocodingModal = null
+      },
+      async onGeocoding () {
+        const schema = await this.$load('geocoding', 'schema')
+        this.geocodingModal = await this.$createComponent('frame/KModal', {
+          propsData: {
+            title: this.$t('mixins.activity.GEOCODING'),
+            toolbar: this.getGeocodingToolbar(),
+            buttons: this.getGeocodingButtons(),
+            route: false
+          }
+        })
+        // Slots require VNodes not components
+        this.geocodingModal.$slots['modal-content'] = [
+          await this.$createComponentVNode('form/KForm', { props: { schema } })
         ]
-      }
-      // Restore state if required
-      if (bounds) {
+        this.geocodingModal.$mount()
+        this.geocodingModal.open()
+      },
+      onGeocode (done) {
+        const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
+        if (geocodingForm) {
+          let result = geocodingForm.validate()
+          const longitude = _.get(result, 'values.location.longitude')
+          const latitude = _.get(result, 'values.location.latitude')
+          if (longitude && latitude) {
+            this.center(longitude, latitude)
+          }
+        }
+        this.onCloseGeocoding(done)
+      },
+      onTrackLocation () {
+        if (!this.locationIndicator) this.createLocationIndicator()
+        else this.removeLocationIndicator()
+      },
+      geolocate () {
+        if (!this.engineReady) {
+          //logger.error('Engine not ready to geolocate')
+          return
+        }
+        if (_.get(this.$route, 'query.south')) return
+        const position = this.$store.get('user.position')
+        // 3D or 2D centering ?
+        if (position) {
+          this.center(position.longitude, position.latitude)
+        }
+      },
+      getViewKey () {
+        return this.appName.toLowerCase() + `-${this.name}-view`
+      },
+      storeView () {
+        const bounds = this.getBounds()
         const south = bounds[0][0]
         const west = bounds[0][1]
         const north = bounds[1][0]
         const east = bounds[1][1]
-        this.$router.push({ query: { south, west, north, east } })
-        this.zoomToBounds(bounds)
-      }
-      return bounds
-    },
-    clearStoredView () {
-      this.$router.push({ query: {} })
-      window.localStorage.removeItem(this.getViewKey())
-    },
-    updateViewSettings () {
-      this.clearStoredView()
-      this.restoreView()
-    },
-    async initializeView () {
-      // Geolocate by default if view has not been restored
-      if (!this.restoreView()) {
-        if (this.$store.get('user.position')) this.geolocate()
-      }
-      // Retrieve the forecast models
-      if (this.setupWeacast) {
+        // Store both in URL and local storage, except if the user has explicitly revoked restoration
+        const restoreView = this.$store.get('restore.view')
+        if (restoreView) {
+          this.$router.push({ query: { south, west, north, east } })
+          window.localStorage.setItem(this.getViewKey(), JSON.stringify(bounds))
+        }
+      },
+      restoreView () {
+        let bounds
+        const restoreView = this.$store.get('restore.view')
+        if (restoreView) {
+          const savedBounds = window.localStorage.getItem(this.getViewKey())
+          if (savedBounds) bounds = JSON.parse(savedBounds)
+        } else if (_.get(this.$route, 'query.south') && _.get(this.$route, 'query.west') &&
+                   _.get(this.$route, 'query.north') && _.get(this.$route, 'query.east')) {
+          bounds = [
+            [_.get(this.$route, 'query.south'), _.get(this.$route, 'query.west')],
+            [_.get(this.$route, 'query.north'), _.get(this.$route, 'query.east')]
+          ]
+        }
+        // Restore state if required
+        if (bounds) {
+          const south = bounds[0][0]
+          const west = bounds[0][1]
+          const north = bounds[1][0]
+          const east = bounds[1][1]
+          this.$router.push({ query: { south, west, north, east } })
+          this.zoomToBounds(bounds)
+        }
+        return bounds
+      },
+      clearStoredView () {
+        this.$router.push({ query: {} })
+        window.localStorage.removeItem(this.getViewKey())
+      },
+      updateViewSettings () {
+        this.clearStoredView()
+        this.restoreView()
+      },
+      async initialize () {
+        // Geolocate by default if view has not been restored
+        if (!this.restoreView()) {
+          if (this.$store.get('user.position')) this.geolocate()
+        }
+        // Retrieve the forecast models
+        if (this.setupWeacast) {
+          try {
+            await this.setupWeacast(this.$config('weacast'))
+          } catch (error) {
+            logger.error(error)
+          }
+          this.forecastModelHandlers = { toggle: (model) => this.setForecastModel(model) }
+        } else {
+          this.forecastModelHandlers = {}
+        }
+        // Retrieve the layers
         try {
-          await this.setupWeacast(this.$config('weacast'))
+          await this.refreshLayers()
         } catch (error) {
           logger.error(error)
         }
-        this.forecastModelHandlers = { toggle: (model) => this.setForecastModel(model) }
-      } else {
-        this.forecastModelHandlers = {}
+        // TimeLine
+        if (this.setupTimeline) this.setupTimeline()
       }
-      // Retrieve the layers
-      try {
-        await this.refreshLayers()
-      } catch (error) {
-        logger.error(error)
+    },
+    beforeCreate () {
+      // Config options: to be done first based on specific config name setup
+      this.name = name
+      this.options = this.$config(`${this.name}`)
+      this.activityOptions = {
+        buttons: this.$config(`${this.name}Activity.buttons`),
+        actions: this.$config(`${this.name}Activity.actions`),
+        panel: this.$config(`${this.name}Panel`)
       }
-      // TimeLine
-      if (this.setupTimeline) this.setupTimeline()
+    },
+    created () {
+      // Load the required components
+      this.$options.components['k-modal'] = this.$load('frame/KModal')
+      this.$options.components['k-form'] = this.$load('form/KForm')
+    },
+    mounted () {
+      this.$on('map-ready', this.onMapReady)
+      this.$on('globe-ready', this.onGlobeReady)
+      this.$on('layer-added', this.onLayerAdded)
+      Events.$on('user-position-changed', this.geolocate)
+      // Whenever restore view settings are updated, update view as well
+      Events.$on('restore-view-changed', this.updateViewSettings)
+      Events.$on('error', this.onGeolocationError)
+    },
+    beforeDestroy () {
+      this.$off('map-ready', this.onMapReady)
+      this.$off('globe-ready', this.onGlobeReady)
+      this.$off('layer-added', this.onLayerAdded)
+      Events.$off('user-position-changed', this.geolocate)
+      Events.$off('restore-view-changed', this.updateViewSettings)
+      Events.$off('error', this.onGeolocationError)
     }
-  },
-  beforeCreate () {   
-  },
-  created () {
-    // Load the required components
-    this.$options.components['k-modal'] = this.$load('frame/KModal')
-    this.$options.components['k-form'] = this.$load('form/KForm')
-  },
-  mounted () {
-    this.$on('map-ready', this.onMapReady)
-    this.$on('globe-ready', this.onGlobeReady)
-    this.$on('layer-added', this.onLayerAdded)
-    Events.$on('user-position-changed', this.geolocate)
-    // Whenever restore view settings are updated, update view as well
-    Events.$on('restore-view-changed', this.updateViewSettings)
-    Events.$on('error', this.onGeolocationError)
-  },
-  beforeDestroy () {
-    this.$off('map-ready', this.onMapReady)
-    this.$off('globe-ready', this.onGlobeReady)
-    this.$off('layer-added', this.onLayerAdded)
-    Events.$off('user-position-changed', this.geolocate)
-    Events.$off('restore-view-changed', this.updateViewSettings)
-    Events.$off('error', this.onGeolocationError)
   }
 }

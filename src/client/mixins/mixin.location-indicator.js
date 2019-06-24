@@ -2,7 +2,7 @@ import Vue from 'vue'
 import { Events, QChip } from 'quasar'
 import KLocationIndicator from '../components/KLocationIndicator.vue'
 
-let locationIndicatorMixin = {
+export default {
   data () {
     return {
       currentLocation: [0, 0],
@@ -47,5 +47,3 @@ let locationIndicatorMixin = {
     Events.$off('location-format-changed', this.setLocationFormat)
   }
 }
-
-export default locationIndicatorMixin
