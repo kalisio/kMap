@@ -115,14 +115,19 @@ export default {
     onStopDelete () {
       this.deleteInProgress = false
     },
-    async onRemoveFeature (feature) {
+    async onRemoveFeature (feature, layer, leafletLayer) {
       Dialog.create({
         title: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_TITLE'),
         message: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_MESSAGE'),
         buttons: [
           {
             label: this.$t('OK'),
-            handler: async () => await this.removeFeatures(feature)
+            handler: async () => {
+              let parentLeafletLayer = this.getLeafletLayerByName(layer.name)
+              if (!parentLeafletLayer) return
+              await this.removeFeatures(feature)
+              parentLeafletLayer.removeLayer(leafletLayer)
+            }
           }, {
             label: this.$t('CANCEL')
           }

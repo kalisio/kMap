@@ -130,12 +130,12 @@ export default {
         if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['properties']))
       }
     },
-    async removeFeatures (geoJson) {
+    async removeFeatures (geoJsonOrLayerId) {
       // Remove all features of a given layer
-      if (typeof geoJson._id === 'string') {
-        await this.$api.getService('features').remove(null, { query: { layer: geoJson._id } })
+      if (typeof geoJsonOrLayerId === 'string') {
+        await this.$api.getService('features').remove(null, { query: { layer: geoJsonOrLayerId } })
       } else {
-        const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+        const features = (geoJsonOrLayerId.type === 'FeatureCollection' ? geoJsonOrLayerId.features : [geoJsonOrLayerId])
         for (let i = 0; i < features.length; i++) {
           const feature = features[i]
           if (feature._id) await this.$api.getService('features').remove(feature._id)
