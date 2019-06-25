@@ -7,6 +7,7 @@ module.exports = function (app, options) {
     options.Model.createIndex({ time: 1 })
   }
   options.Model.createIndex({ geometry: '2dsphere' })
+  options.Model.createIndex({ layer: 1 })
   if (options.featureId) {
     options.Model.createIndex({ ['properties.' + options.featureId]: 1 })
   }
