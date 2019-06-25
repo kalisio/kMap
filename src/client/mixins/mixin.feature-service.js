@@ -114,7 +114,7 @@ export default {
       if (!layerId) return
       let features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
       features.forEach(feature => feature.layer = layerId)
-      await this.$api.getService('features').create(features)
+      return await this.$api.getService('features').create(features)
     },
     async editFeaturesGeometry (geoJson) {
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])

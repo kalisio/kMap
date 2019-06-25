@@ -5,13 +5,13 @@ export default {
   data () {
     return {
       featureActions: [],
-      radialMenuPosition: { x: -100, y: -100 }
+      radialFabPosition: { x: -100, y: -100 }
     }
   },
   computed: {
     radialFabStyle () {
       return `zIndex: 1000; position: absolute;
-        left: ${this.radialMenuPosition.x - 25}px; top: ${this.radialMenuPosition.y - 25}px;`
+        left: ${this.radialFabPosition.x - 25}px; top: ${this.radialFabPosition.y - 25}px;`
     }
   },
   methods: {
@@ -22,8 +22,8 @@ export default {
     refreshFeatureActions (feature, layer) {
       this.clearFeatureActions()
     },
-    getFeatureAction (name) {
-      return this.featureActions.find({ name })
+    getFeatureForAction () {
+      return this.selectionForAction.feature
     },
     selectFeatureForAction (feature, layer, leafletLayer) {
       this.selectionForAction = { feature, layer, leafletLayer }
@@ -32,9 +32,9 @@ export default {
       this.selectionForAction = {}
     },
     updateRadialMenuPosition (layer, event) {
-      if (event.containerPoint) this.radialMenuPosition = event.containerPoint
+      if (event.containerPoint) this.radialFabPosition = event.containerPoint
       else if (this.selectionForAction.leafletLayer) {
-        this.radialMenuPosition = this.map.latLngToContainerPoint(this.selectionForAction.leafletLayer.getLatLng())
+        this.radialFabPosition = this.map.latLngToContainerPoint(this.selectionForAction.leafletLayer.getLatLng())
       }
     },
     async onFeatureActionButtons (layer, event) {
@@ -44,12 +44,12 @@ export default {
       if (!feature) return
       this.refreshFeatureActions(feature, layer)
       // Nothing allowed on this feature or close menu on the same one
-      if ((this.selectionForAction.feature === feature) || (this.featureActions.length === 0)) {
-        this.$refs.radialMenu.close() // Closing should be bound to unselect
+      if ((this.getFeatureForAction() === feature) || (this.featureActions.length === 0)) {
+        this.$refs.radialFab.close() // Closing should be bound to unselect
       } else {
         this.selectFeatureForAction(feature, layer, leafletLayer)
         this.updateRadialMenuPosition(layer, event)
-        this.$refs.radialMenu.open()
+        this.$refs.radialFab.open()
       }
     },
     onFeatureActionClicked (action) {

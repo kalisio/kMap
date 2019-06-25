@@ -59,14 +59,7 @@ export default {
       // We get data as a data URI
       return atob(typeAndData[1])
     },
-    async onUpdateFeatureProperties (layer, event) {
-      const leafletLayer = event && event.target
-      if (!leafletLayer) return
-      let feature = _.get(leafletLayer, 'feature')
-      if (!feature || !this.isLayerEdited(layer.name)) return
-      if (!this.editedLayerSchema) return // No edition schema
-      // Check if not currently in the edition workspace for removal
-      if (this.deleteInProgress) return
+    async updateFeatureProperties (feature, layer, leafletLayer) {
       // Avoid default popup
       const popup = leafletLayer.getPopup()
       if (popup) leafletLayer.unbindPopup(popup)
@@ -94,11 +87,26 @@ export default {
         this.editFeatureModal.close()
         this.editFeatureModal = null
       })
+      this.editFeatureModal.$on('closed', () => {
+        // Restore popup
+        if (popup) leafletLayer.bindPopup(popup)
+        this.editFeatureModal = null
+      })
+    },
+    async onEditFeatureProperties (layer, event) {
+      const leafletLayer = event && event.target
+      if (!leafletLayer) return
+      let feature = _.get(leafletLayer, 'feature')
+      if (!feature || !this.isLayerEdited(layer.name)) return
+      if (!this.editedLayerSchema) return // No edition schema
+      // Check if not currently in the edition workspace for removal
+      if (this.deleteInProgress) return
+      await this.updateFeatureProperties(feature, layer, leafletLayer)
     },
     async onFeatureCreated (event) {
       let geoJson = event.layer.toGeoJSON()
       // Save changes to DB, we use the layer DB ID as layer ID on features
-      await this.createFeatures(geoJson, this.editedLayer._id)
+      geoJson = await this.createFeatures(geoJson, this.editedLayer._id)
       this.editableLayer.addData(geoJson)
     },
     async onFeaturesEdited (event) {
@@ -109,10 +117,10 @@ export default {
       // Save changes to DB
       await this.removeFeatures(event.layers.toGeoJSON())
     },
-    onStartDelete () {
+    onStartDeleteFeatures () {
       this.deleteInProgress = true
     },
-    onStopDelete () {
+    onStopDeleteFeatures () {
       this.deleteInProgress = false
     },
     async onRemoveFeature (feature, layer, leafletLayer) {
@@ -154,17 +162,17 @@ export default {
       // Setup event binding
       bindLeafletEvents(this.map, _.values(L.Draw.Event), this)
     })
-    this.$on('click', this.onUpdateFeatureProperties)
-    this.$on('draw:deletestart', this.onStartDelete)
-    this.$on('draw:deletestop', this.onStopDelete)
+    this.$on('click', this.onEditFeatureProperties)
+    this.$on('draw:deletestart', this.onStartDeleteFeatures)
+    this.$on('draw:deletestop', this.onStopDeleteFeatures)
     this.$on('draw:created', this.onFeatureCreated)
     this.$on('draw:edited', this.onFeaturesEdited)
     this.$on('draw:deleted', this.onFeaturesDeleted)
   },
   beforeDestroy () {
-    this.$off('click', this.onUpdateFeatureProperties)
-    this.$off('draw:deletestart', this.onStartDelete)
-    this.$off('draw:deletestop', this.onStopDelete)
+    this.$off('click', this.onEditFeatureProperties)
+    this.$off('draw:deletestart', this.onStartDeleteFeatures)
+    this.$off('draw:deletestop', this.onStopDeleteFeatures)
     this.$off('draw:created', this.onFeatureCreated)
     this.$off('draw:edited', this.onFeaturesEdited)
     this.$off('draw:deleted', this.onFeaturesDeleted)
