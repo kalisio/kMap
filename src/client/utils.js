@@ -41,3 +41,15 @@ export function getTimeInterval (times, mode = 'minimum') {
   })
   return interval
 }
+
+// Format (reverse) geocoding output
+export function formatGeocodingResult (element) {
+  let label = element.formattedAddress || ''
+  if (!label) {
+    if (element.streetNumber) label += (element.streetNumber + ', ')
+    if (element.streetName) label += (element.streetName + ' ')
+    if (element.city) label += (element.city + ' ')
+    if (element.zipcode) label += (' (' + element.zipcode + ')')
+  }
+  return label
+}

@@ -26,17 +26,35 @@ export default function (name, app, options) {
       }
       return results
     },
+    async reverse (geocoder, lon, lat) {
+      let results = []
+      try {
+        results = await geocoder.reverse({ lat, lon })
+      } catch (error) {
+        logger.error(error)
+      }
+      return results
+    },
     async create (data, params) {
       const nbResults = _.get(this, 'paginate.default', 10)
       debug('geocoder service called for create', data)
-      let aggregatedResults = await Promise.all(geocoders.map(geocoder => this.geocode(geocoder, data.address)))
+      let aggregatedResults = await Promise.all(geocoders.map(geocoder => {
+        if (data.address) return this.geocode(geocoder, data.address)
+        // All geocoders cannot do reverse geocoding
+        else if (geocoder.reverse) {
+          // We support GeoJson feature for reverse geocoding
+          const lon = _.get(data, 'lon', _.get(data, 'longitude', _.get(data, 'geometry.coordinates[0]')))
+          const lat = _.get(data, 'lat', _.get(data, 'latitude', _.get(data, 'geometry.coordinates[1]')))
+          return this.reverse(geocoder, lon, lat)
+        } else return Promise.resolve([])
+      }))
       let results = []
       let processing = true
       // Iterate to take best results for each provider in same order
       while (processing) {
         const previousCount = results.length
         aggregatedResults.forEach(resultsForProvider => {
-          // Take current best result
+          // Take current best result if any
           const bestResultForProvider = resultsForProvider.shift()
           if (bestResultForProvider) results.push(bestResultForProvider)
         })

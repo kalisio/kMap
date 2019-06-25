@@ -20,6 +20,7 @@
 import _ from 'lodash'
 import { QField, QSearch, QAutocomplete } from 'quasar'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
+import { formatGeocodingResult } from '../utils'
 
 export default {
   name: 'k-location-field',
@@ -79,13 +80,7 @@ export default {
       .then(response => {
         let places = []
         response.forEach(element => {
-          let label = element.formattedAddress || ''
-          if (!label) {
-            if (element.streetNumber) label += (element.streetNumber + ', ')
-            if (element.streetName) label += (element.streetName + ' ')
-            if (element.city) label += (element.city + ' ')
-            if (element.zipcode) label += (' (' + element.zipcode + ')')
-          }
+          let label = formatGeocodingResult(element)
           let place = {
             value: Object.assign(element, { name: label }),
             label: label
