@@ -8,7 +8,6 @@ import weacast from './mixin.weacast'
 import activity from './mixin.activity'
 import legend from './mixin.legend'
 import locationIndicator from './mixin.location-indicator'
-import actionButtons from './mixin.action-buttons'
 
 export default {
   geolocation,
@@ -20,6 +19,5 @@ export default {
   weacast,
   activity,
   legend,
-  locationIndicator,
-  actionButtons
+  locationIndicator
 }

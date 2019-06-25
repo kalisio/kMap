@@ -11,11 +11,7 @@ export default {
   computed: {
     radialFabStyle () {
       return `zIndex: 1000; position: absolute;
-        left: ${this.radialMenuPosition.x - 25}px; top: ${this.radialMenuPosition.y - 25}px;
-        background-color: #FC6E44;`
-    },
-    radialFabItemStyle () {
-      return `background-color: #FC6E44;`
+        left: ${this.radialMenuPosition.x - 25}px; top: ${this.radialMenuPosition.y - 25}px;`
     }
   },
   methods: {
@@ -29,45 +25,53 @@ export default {
     getFeatureAction (name) {
       return this.featureActions.find({ name })
     },
-    selectFeatureForAction (feature, layer) {
-      this.selectedLayerForAction = layer
-      this.selectedFeatureForAction = feature
+    selectFeatureForAction (feature, layer, leafletLayer) {
+      this.selectionForAction = { feature, layer, leafletLayer }
     },
     unselectFeatureForAction () {
-      this.selectedLayerForAction = null
-      this.selectedFeatureForAction = null
+      this.selectionForAction = {}
     },
-    updateRadialMenuPosition (event) {
+    updateRadialMenuPosition (layer, event) {
       if (event.containerPoint) this.radialMenuPosition = event.containerPoint
+      else if (this.selectionForAction.leafletLayer) {
+        this.radialMenuPosition = this.map.latLngToContainerPoint(this.selectionForAction.leafletLayer.getLatLng())
+      }
     },
     async onFeatureActionButtons (layer, event) {
-      const feature = _.get(event, 'target.feature')
+      const leafletLayer = event && event.target
+      if (!leafletLayer) return
+      let feature = _.get(leafletLayer, 'feature')
       if (!feature) return
       this.refreshFeatureActions(feature, layer)
       // Nothing allowed on this feature or close menu on the same one
-      if ((this.selectedFeatureForAction === feature) || (this.featureActions.length === 0)) {
+      if ((this.selectionForAction.feature === feature) || (this.featureActions.length === 0)) {
         this.$refs.radialMenu.close() // Closing should be bound to unselect
       } else {
-        this.selectFeatureForAction(feature, layer)
-        this.updateRadialMenuPosition(event)
+        this.selectFeatureForAction(feature, layer, leafletLayer)
+        this.updateRadialMenuPosition(layer, event)
         this.$refs.radialMenu.open()
       }
     },
     onFeatureActionClicked (action) {
-      if (action.handler) action.handler(this.selectedFeatureForAction, this.selectedLayerForAction)
+      const { feature, layer, leafletLayer } = this.selectionForAction
+      // If a handler is given call it
+      if (action.handler) action.handler.call(this, feature, layer, leafletLayer)
+      // If a route is given activate it
+      else if (action.route) this.$router.push(action.route)
     }
   },
   created () {
     // Load the required components
     this.$options.components['k-radial-fab'] = this.$load('menu/KRadialFab')
     this.$options.components['k-radial-fab-item'] = this.$load('menu/KRadialFabItem')
+    this.selectionForAction = {}
   },
   mounted () {
     this.$on('click', this.onFeatureActionButtons)
-    //this.$on('move', this.updateRadialMenuPosition)
+    this.$on('move', this.updateRadialMenuPosition)
   },
   beforeDestroy () {
     this.$off('click', this.onFeatureActionButtons)
-    //this.$off('move', this.updateRadialMenuPosition)
+    this.$off('move', this.updateRadialMenuPosition)
   }
 }
