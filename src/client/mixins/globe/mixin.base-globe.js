@@ -199,7 +199,7 @@ export default {
 
       this.viewer.flyTo(layer.entities, { duration: 0 })
     },
-    center (longitude, latitude, altitude = 10000, heading = 0, pitch = -90, roll = 0) {
+    center (longitude, latitude, altitude = 5000, heading = 0, pitch = -90, roll = 0) {
       const target = {
         destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
         orientation: {

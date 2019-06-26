@@ -22,11 +22,19 @@
         "helper": "schemas.CATALOG_DESCRIPTION_FIELD_HELPER"
       }
     },
+    "featureId": {
+      "type": "string", 
+      "maxLength": 256,
+      "field": {
+        "component": "form/KTextField",
+        "helper": "schemas.CATALOG_FEATURE_ID_FIELD_HELPER"
+      }
+    },
     "schema": { 
       "type": "object",
       "field": {
         "component": "form/KAttachmentField",
-        "helper": "schemas.SCHEMA_FIELD_HELPER",
+        "helper": "schemas.CATALOG_SCHEMA_FIELD_HELPER",
         "service": "storage",
         "acceptedFiles": "application/json",
         "maxFilesize": 0.5,

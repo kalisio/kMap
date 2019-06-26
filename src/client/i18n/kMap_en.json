@@ -157,9 +157,10 @@
   "schemas": {
     "OBJECT_NAME": "{{ object.name }}",
     "CATALOG_CREATE_TITLE": "Create a new data layer",
-    "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
-    "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description",
-    "SCHEMA_FIELD_HELPER": "Select a data scheme"
+    "CATALOG_NAME_FIELD_HELPER": "Enter a name",
+    "CATALOG_DESCRIPTION_FIELD_HELPER": "Enter a description",
+    "CATALOG_FEATURE_ID_FIELD_HELPER": "Select a unique ID",
+    "CATALOG_SCHEMA_FIELD_HELPER": "Select a data scheme"
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)"

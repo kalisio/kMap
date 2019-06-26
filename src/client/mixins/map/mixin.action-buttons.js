@@ -67,11 +67,11 @@ export default {
     this.selectionForAction = {}
   },
   mounted () {
-    this.$on('click', this.onFeatureActionButtons)
+    this.$on('contextmenu', this.onFeatureActionButtons)
     this.$on('move', this.updateRadialMenuPosition)
   },
   beforeDestroy () {
-    this.$off('click', this.onFeatureActionButtons)
+    this.$off('contextmenu', this.onFeatureActionButtons)
     this.$off('move', this.updateRadialMenuPosition)
   }
 }

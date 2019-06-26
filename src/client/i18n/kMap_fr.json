@@ -156,7 +156,8 @@
     "CATALOG_CREATE_TITLE": "Créer une nouvelles couche de données",
     "CATALOG_NAME_FIELD_HELPER": "Choisissez un nom",
     "CATALOG_DESCRIPTION_FIELD_HELPER": "Saisissez une description",
-    "SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"
+    "CATALOG_FEATURE_ID_FIELD_HELPER": "Saisissez un identifiant unique",
+    "CATALOG_SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)"

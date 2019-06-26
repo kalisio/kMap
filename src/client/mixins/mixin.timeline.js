@@ -31,9 +31,13 @@ export default {
     setupTimeline () {
       let now = moment.utc()
       // Start just before the first available data
-      const start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7*60*60*24
+      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7*60*60*24
+      // Override by config ?
+      start = _.get(this, 'activityOptions.timeline.start', start)
       // Start just after the last available data
-      const end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7*60*60*24
+      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7*60*60*24
+      // Override by config ?
+      end = _.get(this, 'activityOptions.timeline.end', end)
       this.timeline.start = now.clone().add({ seconds: start }).valueOf()
       this.timeline.end = now.clone().add({ seconds: end }).valueOf()
       // Clamp current time to range

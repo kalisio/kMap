@@ -83,10 +83,10 @@ export default function (name) {
         this.layerCategories = _.get(this, 'activityOptions.panel.categories', [])
         this.layerHandlers = {
           toggle: (layer) => this.onTriggerLayer(layer),
-          zoomTo: (layer) => this.onZoomToLayer(layer),
+          'zoom-to': (layer) => this.onZoomToLayer(layer),
           save: (layer) => this.onSaveLayer(layer),
           edit: (layer) => this.onEditLayer(layer),
-          editData: (layer) => this.onEditLayerData(layer),
+          'edit-data': (layer) => this.onEditLayerData(layer),
           remove: (layer) => this.onRemoveLayer(layer)
         }
         this.variables = []
@@ -115,7 +115,7 @@ export default function (name) {
       isLayerStorable (layer) {
         if (_.has(layer, 'isStorable')) return _.get(layer, 'isStorable')
         // Only possible when export as GeoJson is possible by default
-        else return (!layer._id && (layer.service === 'features') && (typeof this.toGeoJson === 'function'))
+        else return (!layer._id && (typeof this.toGeoJson === 'function'))
       },
       isLayerEditable (layer) {
         if (_.has(layer, 'isEditable')) return _.get(layer, 'isEditable')
@@ -125,7 +125,7 @@ export default function (name) {
       isLayerRemovable (layer) {
         if (_.has(layer, 'isRemovable')) return _.get(layer, 'isRemovable')
         // Only possible on user-defined layers by default
-        else return (!layer._id && (layer.service === 'features'))
+        else return (!layer._id || (layer.service === 'features'))
       },
       registerLayerActions (layer) {
         let defaultActions = ['zoom-to', 'save', 'edit', 'remove']
@@ -194,15 +194,18 @@ export default function (name) {
         })
         // When saving from one engine copy options to the other one so that it will be available in both of them
         _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
-        const createdLayer = await this.$api.getService('catalog')
+        let createdLayer = await this.$api.getService('catalog')
         .create(_.omit(layer, ['actions', 'isVisible']))
-        layer._id = createdLayer._id
-        this.registerLayerActions(layer) // Refresh actions due to state change
+        //layer._id = createdLayer._id
+        //this.registerLayerActions(layer) // Refresh actions due to state change
         // Because we save all features in a single service use filtering to separate layers
         // We use the generated DB ID as layer ID on features
         await this.createFeatures(this.toGeoJson(layer.name), createdLayer._id)
         // Update filter in layer as well
-        await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
+        createdLayer = await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
+        // Reset layer with new setup
+        await this.removeLayer(layer.name)
+        await this.addLayer(createdLayer)
       },
       async onEditLayer (layer) {
         this.editModal = await this.$createComponent('editor/KModalEditor', {
@@ -272,9 +275,6 @@ export default function (name) {
               type: 'OverlayLayer',
               icon: 'insert_drive_file',
               service: 'features',
-              isStorable: true,
-              isEditable: true,
-              isRemovable: true,
               [this.engine]: {
                 type: 'geoJson',
                 isVisible: true,

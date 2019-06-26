@@ -49,9 +49,6 @@ export default {
           name: event.filename || this.$t('mixins.fileLayers.IMPORTED_DATA_NAME'),
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
-          isStorable: true,
-          isEditable: true,
-          isRemovable: true,
           leaflet: {
             type: 'geoJson',
             isVisible: true

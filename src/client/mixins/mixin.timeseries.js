@@ -39,7 +39,6 @@ export default {
           icon: 'colorize',
           isStorable: false,
           isEditable: false,
-          isRemovable: true,
           leaflet: {
             type: 'geoJson',
             isVisible: true,
