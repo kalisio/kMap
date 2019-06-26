@@ -1,7 +1,9 @@
 <template>
-  <q-chip color="secondary" closable class="fixed-center" style="top: 32px" @click="onClick()" @close="onClose()">
-    {{ currentFormattedLocation }}
-  </q-chip>
+  <div class="column items-center fixed-bottom" style="bottom: 32px" >
+    <q-chip color="secondary" closable  @click="onClick()" @close="onClose()">
+      {{ currentFormattedLocation }}
+    </q-chip>
+  </div>
 </template>
 
 <script>
