@@ -44,7 +44,9 @@ export default function (name) {
         ]
       },
       registerActivityActions () {
-        const actions = _.get(this, 'activityOptions.actions', ['fullscreen', 'geolocate', 'geocode', 'track-location', 'probe-location', 'create-layer'])
+        let defaultActions = ['fullscreen', 'geolocate', 'geocode', 'track-location', 'probe-location']
+        if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['create-layer'])
+        const actions = _.get(this, 'activityOptions.actions', defaultActions)
         const hasFullscreenAction = (typeof this.onToggleFullscreen === 'function') && actions.includes('fullscreen')
         const hasGeolocateAction = (typeof this.onGeolocate === 'function') && actions.includes('geolocate')
         const hasGeocodingAction = (typeof this.onGeocoding === 'function') && actions.includes('geocode')
@@ -113,7 +115,7 @@ export default function (name) {
       isLayerStorable (layer) {
         if (_.has(layer, 'isStorable')) return _.get(layer, 'isStorable')
         // Only possible when export as GeoJson is possible by default
-        else return (!layer._id && (typeof this.toGeoJson === 'function'))
+        else return (!layer._id && (layer.service === 'features') && (typeof this.toGeoJson === 'function'))
       },
       isLayerEditable (layer) {
         if (_.has(layer, 'isEditable')) return _.get(layer, 'isEditable')
@@ -126,31 +128,34 @@ export default function (name) {
         else return (!layer._id && (layer.service === 'features'))
       },
       registerLayerActions (layer) {
+        let defaultActions = ['zoom-to', 'save', 'edit', 'remove']
+        if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['edit-data'])
+        const layerActions = _.get(this, 'activityOptions.layerActions', defaultActions)
         let actions = []
         // Add supported actions
         if (layer.type === 'OverlayLayer') {
-          actions.push({
-            name: 'zoomTo',
+          if (layerActions.includes('zoom-to')) actions.push({
+            name: 'zoom-to',
             label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
             icon: 'zoom_out_map'
           })
-          if (this.isLayerStorable(layer) && !layer._id) {
+          if (this.isLayerStorable(layer) && !layer._id && layerActions.includes('save')) {
             actions.push({
               name: 'save',
               label: this.$t('mixins.activity.SAVE_LABEL'),
               icon: 'save'
             })
           }
-          if (this.isLayerEditable(layer)) {
+          if (this.isLayerEditable(layer) && layerActions.includes('edit')) {
             actions.push({
               name: 'edit',
               label: this.$t('mixins.activity.EDIT_LABEL'),
               icon: 'description'
             })
             // Supported by underlying engine ?
-            if (typeof this.editLayer === 'function') {
+            if ((typeof this.editLayer === 'function') && layerActions.includes('edit-data')) {
               actions.push({
-                name: 'editData',
+                name: 'edit-data',
                 label: this.isLayerEdited(layer.name) ?
                   this.$t('mixins.activity.STOP_EDIT_DATA_LABEL') :
                   this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
@@ -158,7 +163,7 @@ export default function (name) {
               })
             }
           }
-          if (this.isLayerRemovable(layer)) {
+          if (this.isLayerRemovable(layer) && layerActions.includes('remove')) {
             actions.push({
               name: 'remove',
               label: this.$t('mixins.activity.REMOVE_LABEL'),
@@ -427,11 +432,9 @@ export default function (name) {
       // Config options: to be done first based on specific config name setup
       this.name = name
       this.options = this.$config(`${this.name}`)
-      this.activityOptions = {
-        buttons: this.$config(`${this.name}Activity.buttons`),
-        actions: this.$config(`${this.name}Activity.actions`),
+      this.activityOptions = Object.assign({
         panel: this.$config(`${this.name}Panel`)
-      }
+      }, this.$config(`${this.name}Activity`))
     },
     created () {
       // Load the required components
