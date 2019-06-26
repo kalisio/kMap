@@ -174,6 +174,11 @@ export default {
       const cesiumOptions = options.cesium
       // Check for valid type
       if (cesiumOptions.type !== 'geoJson') return
+
+      if (this.options.cluster) {
+        if (cesiumOptions.cluster) Object.assign(cesiumOptions.cluster, this.options.cluster)
+        else cesiumOptions.cluster = Object.assign({}, this.options.cluster)
+      }
       // Merge generic GeoJson options and layer options
       let geoJsonOptions = this.getGeoJsonOptions(options)
       Object.keys(geoJsonOptions).forEach(key => {

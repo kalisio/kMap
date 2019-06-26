@@ -40,6 +40,8 @@ export default {
       let container = _.get(leafletOptions, 'container')
       if (container) {
         leafletOptions.container = this.createLeafletLayer({ type: container })
+      } else if (leafletOptions.cluster) { // Specific case of clustering
+        leafletOptions.container = this.createLeafletLayer({ type: 'markerClusterGroup' }, leafletOptions.cluster)
       }
       // Custom update function to ensure dynamic styling works as expected
       if (!_.has(leafletOptions, 'updateFeature')) {
@@ -150,6 +152,10 @@ export default {
       if (leafletOptions.type !== 'geoJson') return
 
       try {
+        if (this.options.cluster) {
+          if (leafletOptions.cluster) Object.assign(leafletOptions.cluster, this.options.cluster)
+          else leafletOptions.cluster = Object.assign({}, this.options.cluster)
+        }
         // Specific case of realtime layer
         if (leafletOptions.realtime) {
           this.processRealtimeGeoJsonLayerOptions(options)
