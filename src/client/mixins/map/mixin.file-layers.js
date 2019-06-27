@@ -51,7 +51,8 @@ export default {
           icon: 'insert_drive_file',
           leaflet: {
             type: 'geoJson',
-            isVisible: true
+            isVisible: true,
+            cluster: { disableClusteringAtZoom: 18 }
           }
         })
         let fileLayer = this.getLeafletLayerByName(event.filename)

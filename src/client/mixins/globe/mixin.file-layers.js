@@ -21,6 +21,7 @@ export default {
           cesium: {
             type: 'geoJson',
             isVisible: true,
+            cluster: { pixelRange: 50 },
             source: source.name // Set the data source name instead of URL in this case
           }
         })

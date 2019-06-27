@@ -278,7 +278,8 @@ export default function (name) {
               [this.engine]: {
                 type: 'geoJson',
                 isVisible: true,
-                source: '/api/features'
+                source: '/api/features',
+                cluster: { disableClusteringAtZoom: 18 }
               }
             }
           }
