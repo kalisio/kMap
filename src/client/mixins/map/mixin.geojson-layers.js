@@ -38,10 +38,9 @@ export default {
       const id = _.get(options, 'featureId', _.get(leafletOptions, 'id', '_id'))
       if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id, _.get(feature, id)))
       let container = _.get(leafletOptions, 'container')
-      if (container) {
+    // If container given and not already instanciated, do it
+      if (typeof container === 'string') {
         leafletOptions.container = this.createLeafletLayer({ type: container })
-      } else if (leafletOptions.cluster) { // Specific case of clustering
-        leafletOptions.container = this.createLeafletLayer({ type: 'markerClusterGroup' }, leafletOptions.cluster)
       }
       // Custom update function to ensure dynamic styling works as expected
       if (!_.has(leafletOptions, 'updateFeature')) {
@@ -153,18 +152,19 @@ export default {
 
       try {
         if (this.options.cluster) {
+          // Merge existing config or create a new one on layer
           if (leafletOptions.cluster) Object.assign(leafletOptions.cluster, this.options.cluster)
           else leafletOptions.cluster = Object.assign({}, this.options.cluster)
+        }
+        // Specific case of clustered layer where we first need to create an underlying group
+        if (leafletOptions.cluster) {
+          this.processClusterLayerOptions(options)
         }
         // Specific case of realtime layer
         if (leafletOptions.realtime) {
           this.processRealtimeGeoJsonLayerOptions(options)
         } else {
           await this.processGeoJsonLayerOptions(options)
-        }
-        // Specific case of clustered layer where we first need to create an underlying group
-        if (leafletOptions.cluster) {
-          this.processClusterLayerOptions(options)
         }
         // Optimize templating by creating compilers up-front
         let layerStyleTemplate = _.get(leafletOptions, 'template')
@@ -196,11 +196,12 @@ export default {
           // Bind event
           layer.on('update', (data) => this.$emit('layer-updated', Object.assign({ layer: options, leafletLayer: layer }, data)))
           if (leafletOptions.container) layer.once('add', () => leafletOptions.container.addTo(this.map))
-        }
-        // Specific case of clustered layer where the group is added instead of the geojson layer
-        if (leafletOptions.cluster && leafletOptions.container) {
-          leafletOptions.container.addLayer(layer)
-          layer = leafletOptions.container
+        } else {
+          // Specific case of clustered layer where the group is added instead of the geojson layer
+          if (leafletOptions.cluster && leafletOptions.container) {
+            leafletOptions.container.addLayer(layer)
+            layer = leafletOptions.container
+          }
         }
         // Specific case of time dimension layer where we embed the underlying geojson layer
         if (leafletOptions.timeDimension) {
