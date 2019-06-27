@@ -93,6 +93,7 @@ export default {
       if (!feature && !entity) return
       // For Cesium we have a different setup
       if (this.engine === 'cesium') {
+        if (!entity.properties) return
         feature = { properties: entity.properties.getValue(0) }
       }
       const isWeatherProbe = (_.has(feature, 'properties.windDirection') &&
