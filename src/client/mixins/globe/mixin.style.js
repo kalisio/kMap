@@ -109,7 +109,6 @@ export default {
       const properties = (entity.properties ? entity.properties.getValue(0) : null)
       let cesiumOptions = options.cesium || options
       let style = _.merge({}, this.options.entityStyle || {})
-      if (properties && properties.entityStyle) _.merge(style, this.convertToCesiumObjects(properties.entityStyle))
       // We allow to template entity style properties according to feature,
       // because it can be slow you have to specify a subset of properties
       const entityStyleTemplate = _.get(cesiumOptions, 'entityStyleTemplate')
@@ -138,6 +137,7 @@ export default {
         // In this case the conversion to Cesium objects has already occured on layer creation
         style = _.merge(style, cesiumOptions.entityStyle || {})
       }
+      if (properties && properties.entityStyle) _.merge(style, this.convertToCesiumObjects(properties.entityStyle))
       return style
     },
     getDefaultClusterStyle (entities, cluster, options) {
