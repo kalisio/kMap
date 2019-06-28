@@ -212,14 +212,17 @@ export default {
       try {
         const source = _.get(cesiumOptions, 'source')
         let dataSource = source
-        // Check if data source already added to the scene and we only want to
-        // create a layer on top of it or if we have to load it
-        // Indeed loading a file by drop makes Cesium load it under the hood
-        for (let i = 0; i < this.viewer.dataSources.length; i++) {
-          if (this.viewer.dataSources.get(i).name === dataSource) {
-            dataSource = this.viewer.dataSources.get(i)
-            this.viewer.dataSources.remove(dataSource, false)
-            break
+        if (dataSource) {
+          // Check if data source already added to the scene and we only want to
+          // create a layer on top of it or if we have to load it
+          // Indeed loading a file by drop makes Cesium load it under the hood
+          for (let i = 0; i < this.viewer.dataSources.length; i++) {
+            const currentSource = this.viewer.dataSources.get(i)
+            if (currentSource.name === dataSource) {
+              dataSource = currentSource
+              this.viewer.dataSources.remove(currentSource, false)
+              break
+            }
           }
         }
         // If we already have a source we simply use it otherwise we create/load it
