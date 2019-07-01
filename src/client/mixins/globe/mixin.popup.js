@@ -51,7 +51,7 @@ export default {
       if (!this.clickedEntity || !options) return
       const popup = this.generateCesiumStyle('popup', this.clickedEntity, options)
       if (popup) {
-        const position = this.getPositionForEntity(this.clickedEntity)
+        const position = (event.pickedPosition ? event.pickedPosition : this.getPositionForEntity(this.clickedEntity))
         this.popupEntity = this.viewer.entities.add({ position, label: popup })
       }
     }

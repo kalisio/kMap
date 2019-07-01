@@ -7,13 +7,11 @@ export default {
         let entity = entities.values[i]
         const tooltip = this.generateCesiumStyle('tooltip', entity, options)
         if (tooltip) {
+          // Default tooltip position (can change in sticky mode)
           const position = this.getPositionForEntity(entity)
-          // FIXME: for now directly add the label to the entity does not seem to work so we add it as a child
-          // Similarly ff entity already has a label we need a separated entity anyway
-          // if (entity.label) {
-          this.viewer.entities.add({ parent: entity, position, label: tooltip })
-          // }
-          // else entity.label = new Cesium.LabelGraphics(tooltip)
+          let tooltipEntity = this.viewer.entities.add({ parent: entity, position, label: tooltip })
+          // This option is not cesium specific so we have to manage it manually
+          if (tooltip.sticky) tooltipEntity.sticky = true
         }
       }
     },
@@ -49,10 +47,11 @@ export default {
         return _.get(entity, 'label.show', false)
       } else return false
     },
-    openTooltip (entity) {
+    openTooltip (entity, position) {
       if (this.getNbChildrenForEntity(entity) > 0) {
         let tooltip = this.getChildForEntity(entity)
         if (tooltip.label) tooltip.label.show = true
+        if (tooltip.sticky) tooltip.position = position
       }
     },
     closeTooltip (entity) {
@@ -73,7 +72,7 @@ export default {
       // Only for entities from a layer
       if (options && entity) {
         this.overEntity = entity
-        this.openTooltip(this.overEntity)
+        this.openTooltip(this.overEntity, event.pickedPosition)
       }
     }
   },

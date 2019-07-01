@@ -266,6 +266,8 @@ export default {
       let options
       let pickedPosition = this.viewer.camera.pickEllipsoid(event.endPosition || event.position, this.viewer.scene.globe.ellipsoid)
       if (pickedPosition) {
+        // This is for 3D handlers
+        emittedEvent.pickedPosition = pickedPosition
         pickedPosition = Cesium.Cartographic.fromCartesian(pickedPosition)
         const longitude = Cesium.Math.toDegrees(pickedPosition.longitude)
         const latitude = Cesium.Math.toDegrees(pickedPosition.latitude)
