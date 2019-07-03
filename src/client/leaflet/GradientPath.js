@@ -143,7 +143,7 @@ let GradientPath = L.PixiOverlay.extend({
       } else {
         texture = this.createSolidTexture(this.path.gradient, weight)
       }
-      this.container.addChild(new PIXI.mesh.Rope(texture, points))
+      this.container.addChild(new PIXI.SimpleRope(texture, points))
     }
     this.renderer.render(this.container)
   }
