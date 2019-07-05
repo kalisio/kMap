@@ -93,7 +93,6 @@ export default {
       // SVG/Canvas-based layers provide no mean to manage render order except using bringToFront() or bringToBack()
       // This is why Leaflet 1.0 introduced panes: https://leafletjs.com/reference.html#map-pane & https://leafletjs.com/examples/map-panes/
       // By implicitely create a pane for each provided z-index makes this transparent for the user
-      console.log(leafletOptions)
       let zIndex = _.has(leafletOptions, 'zIndex')
       if (zIndex) {
         zIndex = _.get(leafletOptions, 'zIndex')
