@@ -81,9 +81,17 @@ export default {
       _.forOwn(this.leafletPanes, (pane, paneName) => {
         // Filter only some panes ?
         if (panes && panes.includes(paneName)) return
-        _.set(pane, 'style.display', 'block')
-        if (_.has(pane, 'minZoom') && (zoom < _.get(pane, 'minZoom'))) _.set(pane, 'style.display', 'none')
-        if (_.has(pane, 'maxZoom') && (zoom > _.get(pane, 'maxZoom'))) _.set(pane, 'style.display', 'none')
+        if (!_.has(pane, 'minZoom') && !_.has(pane, 'maxZoom')) return
+        if (!pane.style) pane['style'] = {}
+        if (_.has(pane, 'minZoom') && (zoom < _.get(pane, 'minZoom'))) {
+          pane.style['display']='none'
+          return
+        }
+        if (_.has(pane, 'maxZoom') && (zoom > _.get(pane, 'maxZoom'))) {
+          pane.style['display']='none'
+          return
+        }
+        pane.style['display'] = 'block'
       })
     },
     createLeafletLayer (options) {
@@ -96,7 +104,6 @@ export default {
       let zIndex = _.has(leafletOptions, 'zIndex')
       if (zIndex) {
         zIndex = _.get(leafletOptions, 'zIndex')
-        console.log('zIndex: ', zIndex)
         this.createLeafletPane(zIndex)
         // Set layer to use target pane
         _.set(leafletOptions, 'pane', zIndex.toString())
