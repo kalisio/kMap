@@ -59,7 +59,7 @@ export default {
       let pane = this.map.getPane(paneName)
       if (!pane) {
         pane = this.map.createPane(paneName)
-        if (typeof paneOrZIndex === 'Number') _.set(pane, 'style.zIndex', paneOrZIndex)
+        if (typeof paneOrZIndex === 'number') _.set(pane, 'style.zIndex', paneOrZIndex)
         else _.set(pane, 'style.zIndex', 400) // Defaults for overlay in Leaflet
       }
       this.leafletPanes[paneName] = pane
@@ -93,9 +93,11 @@ export default {
       // SVG/Canvas-based layers provide no mean to manage render order except using bringToFront() or bringToBack()
       // This is why Leaflet 1.0 introduced panes: https://leafletjs.com/reference.html#map-pane & https://leafletjs.com/examples/map-panes/
       // By implicitely create a pane for each provided z-index makes this transparent for the user
+      console.log(leafletOptions)
       let zIndex = _.has(leafletOptions, 'zIndex')
       if (zIndex) {
         zIndex = _.get(leafletOptions, 'zIndex')
+        console.log('zIndex: ', zIndex)
         this.createLeafletPane(zIndex)
         // Set layer to use target pane
         _.set(leafletOptions, 'pane', zIndex.toString())
