@@ -1,6 +1,6 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import _ from 'lodash'
-import { CesiumStyleMappings } from '../../utils'
+import { CesiumStyleMappings, CesiumEntityTypes } from '../../utils'
 
 export default {
   methods: {
@@ -11,9 +11,8 @@ export default {
         let entity = entities.values[i]
         const style = this.generateCesiumStyle('entityStyle', entity, options)
         // Loop over possible types
-        const entityTypes = ['billboard', 'label', 'point', 'polyline', 'polygon']
-        entityTypes.forEach(type => {
-          if (entity[type]) {
+        CesiumEntityTypes.forEach(type => {
+          if (entity[type] && style[type]) {
             _.merge(entity[type], style[type])
           }
         })

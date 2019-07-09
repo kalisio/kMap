@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { fetchGeoJson, CesiumStyleMappings, getTextTable } from '../../utils'
+import { fetchGeoJson, getTextTable } from '../../utils'
 
 export default {
   methods: {
@@ -49,9 +49,9 @@ export default {
         if (wall && entity.polyline) {
           const { stroke, strokeWidth, fill } = this.convertFromSimpleStyleSpecOrDefaults(properties)
           // Simply push the entity, other options like font will be set using styling options
-          // This one will replace the original line
+          // This one will come in addition to the original line
           entitiesToAdd.push({
-            id: entity.id,
+            id: entity.id + '-wall',
             parent: entity,
             name: entity.name,
             description: entity.description.getValue(0),
@@ -64,8 +64,6 @@ export default {
               outline: new Cesium.ConstantProperty(true)
             }
           })
-          entitiesToRemove.push(entity)
-          //entity.polyline.clampToGround = false
         }
         // Labels
         const text = _.get(properties, 'icon-text')

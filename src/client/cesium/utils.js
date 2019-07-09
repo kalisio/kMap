@@ -13,6 +13,8 @@ export const CesiumStyleMappings = {
   'marker-color': 'markerColor'
 }
 export const CesiumStyleOptions = _.values(CesiumStyleMappings)
+export const CesiumEntityTypes = ['billboard', 'box', 'corridor', 'cylinder', 'ellipse', 'ellipsoid',
+  'label', 'model', 'path', 'plane', 'point', 'polygon', 'polyline', 'rectangle', 'wall']
 
 export function convertCesiumHandlerEvent (type) {
   const buttonMapping = {
