@@ -12,9 +12,7 @@ export default {
   computed: {
     probedLocationName () {
       if (!this.probedLocation) return ''
-      let name = _.get(this.probedLocation, 'properties.LbStationHydro') ||
-             _.get(this.probedLocation, 'properties.name') ||
-             _.get(this.probedLocation, 'properties.NAME')
+      let name = _.get(this.probedLocation, 'properties.name') || _.get(this.probedLocation, 'properties.NAME')
       if (!name && _.has(this.probedLocation, 'geometry.coordinates')) {
         const longitude = _.get(this.probedLocation, 'geometry.coordinates[0]')
         const latitude = _.get(this.probedLocation, 'geometry.coordinates[1]')
