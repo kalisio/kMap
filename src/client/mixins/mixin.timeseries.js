@@ -25,9 +25,11 @@ export default {
     async createProbedLocationLayer () {
       if (!this.probedLocation) return
       const name = this.$t('mixins.timeseries.PROBED_LOCATION')
+      const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
+      const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
       // Use wind barbs on weather probed features
-      const isWeatherProbe = (_.has(this.probedLocation, 'properties.windDirection') &&
-                              _.has(this.probedLocation, 'properties.windSpeed'))
+      const isWeatherProbe = (_.has(this.probedLocation, `properties.${windDirection}`) &&
+                              _.has(this.probedLocation, `properties.${windSpeed}`))
       // Get any previous layer or create it the first time
       let layer = this.getLayerByName(name)
       if (!layer) {
@@ -94,10 +96,12 @@ export default {
         if (!entity.properties) return
         feature = { properties: entity.properties.getValue(0) }
       }
-      const isWeatherProbe = (_.has(feature, 'properties.windDirection') &&
-                              _.has(feature, 'properties.windSpeed'))
-      const isWeatherProbedLocation = (this.probedLocation && _.has(this.probedLocation, 'properties.windDirection') &&
-                                       _.has(this.probedLocation, 'properties.windSpeed'))
+      const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
+      const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
+      const isWeatherProbe = (_.has(feature, `properties.${windDirection}`) &&
+                              _.has(feature, `properties.${windSpeed}`))
+      const isWeatherProbedLocation = (this.probedLocation && _.has(this.probedLocation, `properties.${windDirection}`) &&
+                                       _.has(this.probedLocation, `properties.${windSpeed}`))
       let hasTimeseries = true
       // Update timeseries data if required
       if (options.probe) { // Static weacast probe
