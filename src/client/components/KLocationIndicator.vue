@@ -8,13 +8,9 @@
 
 <script>
 import formatcoords from 'formatcoords'
-import { QChip } from 'quasar'
 
 export default {
   name: 'k-location-indicator',
-  components: {
-    QChip
-  },
   computed: {
     currentFormattedLocation () {
       return formatcoords(this.location).format(this.locationFormat)

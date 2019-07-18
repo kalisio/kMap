@@ -48,21 +48,9 @@
 
 <script>
 import _ from 'lodash'
-import { QBtn, QIcon, QPopover, QList, QItem, QItemSide, QItemTile, QItemMain, QTooltip } from 'quasar'
 
 export default {
   name: 'k-layers-selector',
-  components: {
-    QBtn,
-    QIcon,
-    QList,
-    QItem,
-    QItemSide,
-    QItemTile,
-    QItemMain,
-    QPopover,
-    QTooltip
-  },
   props: {
     layers: {
       type: Array,

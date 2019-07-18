@@ -2,7 +2,7 @@
   <q-list>
     <slot name="panel-header"/>
     <template v-for="category in categories">
-      <q-collapsible
+      <q-expansion-item
         v-if="layersByCategory[category.name].length > 0"
         :key="category.name"
         :icon="category.icon"
@@ -11,7 +11,7 @@
           :layers="layersByCategory[category.name]"
           :layerHandlers="layerHandlers"
           :options="category.options || {}" />
-      </q-collapsible>
+      </q-expansion-item>
     </template>
     <slot name="panel-footer"/>
   </q-list>
@@ -20,14 +20,9 @@
 <script>
 import sift from 'sift'
 import _ from 'lodash'
-import { QList, QCollapsible } from 'quasar'
 
 export default {
   name: 'k-layers-panel',
-  components: {
-    QList,
-    QCollapsible
-  },
   props: {
     layers: {
       type: Object,

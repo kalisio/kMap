@@ -1,19 +1,14 @@
 <template>
   <k-layers-panel :layers="layers" :layerHandlers="layerHandlers" :categories="layerCategories" >
-      <q-collapsible slot="panel-footer" v-if="forecastModels.length > 0" icon="fa-globe" :label="$t('KCatalogPanel.FORECASTS_LABEL')">
+      <q-expansion-item slot="panel-footer" v-if="forecastModels.length > 0" icon="fa-globe" :label="$t('KCatalogPanel.FORECASTS_LABEL')">
         <k-forecast-models-selector :forecastModels="forecastModels" :forecastModelHandlers="forecastModelHandlers" :forecastModel="forecastModel" />
-      </q-collapsible>
+      </q-expansion-item>
   </k-layers-panel>
 </template>
 
 <script>
-import { QCollapsible } from 'quasar'
-
 export default {
   name: 'k-catalog-panel',
-  components: {
-    QCollapsible
-  },
   props: {
     layers: {
       type: Object,

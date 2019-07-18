@@ -17,21 +17,8 @@
 </template>
 
 <script>
-import { QCollapsible, QBtn, QIcon, QTooltip, QList, QItem, QItemSide, QItemTile, QItemMain } from 'quasar'
-
 export default {
   name: 'k-forecast-models-selector',
-  components: {
-    QCollapsible,
-    QBtn,
-    QIcon,
-    QList,
-    QItem,
-    QItemSide,
-    QItemTile,
-    QItemMain,
-    QTooltip
-  },
   data () {
     return {
       selected: {}

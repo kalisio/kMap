@@ -18,17 +18,11 @@
 
 <script>
 import _ from 'lodash'
-import { QField, QSearch, QAutocomplete } from 'quasar'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 import { formatGeocodingResult } from '../utils'
 
 export default {
   name: 'k-location-field',
-  components: {
-    QField,
-    QSearch,
-    QAutocomplete
-  },
   mixins: [
     kCoreMixins.refsResolver(['map']),
     kCoreMixins.baseField
