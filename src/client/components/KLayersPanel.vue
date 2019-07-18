@@ -1,8 +1,8 @@
 <template>
-  <q-list>
+  <q-list dense>
     <slot name="panel-header"/>
     <template v-for="category in categories">
-      <q-expansion-item
+      <q-expansion-item expand-separator
         v-if="layersByCategory[category.name].length > 0"
         :key="category.name"
         :icon="category.icon"

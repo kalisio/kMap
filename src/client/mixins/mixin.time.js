@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import moment from 'moment'
-import { Events } from 'quasar'
 
 export default {
   data () {
@@ -72,9 +71,9 @@ export default {
   },
   created () {
     // Whenever the time format is updated, update data as well
-    Events.$on('time-format-changed', this.setTimeFormat)
+    this.$events.$on('time-format-changed', this.setTimeFormat)
   },
   beforeDestroy () {
-    Events.$off('time-format-changed', this.setTimeFormat)
+    this.$events.$off('time-format-changed', this.setTimeFormat)
   }
 }

@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import { Events, QChip } from 'quasar'
 import KLocationIndicator from '../components/KLocationIndicator.vue'
 
 export default {
@@ -41,9 +40,9 @@ export default {
   },
   created () {
     // Whenever the location format is updated, update indicator as well
-    Events.$on('location-format-changed', this.setLocationFormat)
+    this.$events.$on('location-format-changed', this.setLocationFormat)
   },
   beforeDestroy () {
-    Events.$off('location-format-changed', this.setLocationFormat)
+    this.$evens.$off('location-format-changed', this.setLocationFormat)
   }
 }

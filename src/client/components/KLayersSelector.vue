@@ -1,49 +1,44 @@
 <template>
-  <div class="row justify-center">
-    <q-list dense no-border>
+  <!--div class="row justify-center"-->
+    <q-list dense>
       <template v-for="layer in layers">
-        <!--q-btn v-if="options.buttons"
-          :id ="layer.name" 
-          :key="layer.name" 
-          round
-          :icon="layer.icon"
-          :flat="!layer.isVisible" 
-          :outline="layer.isVisible" 
-          @click="onLayerClicked(layer, selection)">
-          <img v-if="!layer.icon" :src="layer.iconUrl" width="32" height="32" />
-          <q-tooltip>
-            {{layer.name}}
-          </q-tooltip>
-        </q-btn-->
-        <q-item :class="{ selected: layer.isVisible }" :id="layer.name | kebabCase" :key="layer.name" inset-separator link @click="onLayerClicked(layer, layers)">
-          <q-item-side v-if="!layer.iconUrl" :icon="layer.icon" left>
-          </q-item-side>
-          <q-item-side v-else :avatar="layer.iconUrl" left>
-          </q-item-side>
-          <q-item-main :label="layer.name" :sublabel="layer.description" :tag="layer.isVisible ? 'b' : 'i'"></q-item-main>
-          <q-item-side right>
-            <!-- Actions -->
-            <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" flat small round>
-              <q-popover id="layer-overflow-menu" :ref="'menu-' + layer.name">
+        <q-item :id="layer.name" :key="layer.name" clickable :active="layer.isVisible" active-class="bg-grey-2 text-grey-8" @click="onLayerClicked(layer, layers)">
+          <q-item-section avatar top>
+            <q-icon v-if="!layer.iconUrl" :name="layer.icon" />
+            <img v-else :src="layer.iconUrl" width="32" />
+          </q-item-section>
+          <q-item-section top>
+            <q-item-label lines="1">
+             {{ layer.name }}
+            </q-item-label>
+            <q-item-label caption lines="2">
+             {{ layer.description }}
+            </q-item-label>
+          </q-item-section>
+          <q-item-section top side>
+            <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" icon="more_vert" flat small round>
+              <q-menu>
                 <q-list>
                   <template v-for="action in layer.actions">
                     <q-item :id="action.name" link :key="key(layer, action.name)" @click="onActionTriggered(action, layer)">
-                      <q-item-side :icon="action.icon" />
-                      <q-item-main>
-                        {{action.label}}
-                      </q-item-main>
+                      <q-item-section v-if="!layer.iconUrl" avatar top>
+                        <q-icon :name="action.icon" />
+                      </q-item-section>
+                      <q-item-section top>
+                        <q-item-label lines="1">
+                          {{action.label}}
+                        </q-item-label>
+                      </q-item-section>
                     </q-item>
                   </template>
                 </q-list>
-              </q-popover>
-              <q-icon color="grey-7" name="more_vert"></q-icon>
+              </q-menu>   
             </q-btn>
-          </q-item-side>
-          <q-tooltip v-if="layer.tooltip" :delay="1000">{{layer.tooltip}}</q-tooltip>
+          </q-item-section>
         </q-item>
       </template>
     </q-list>
-  </div>
+  <!--/div-->
 </template>
 
 <script>

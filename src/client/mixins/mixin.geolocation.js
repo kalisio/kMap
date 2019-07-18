@@ -1,5 +1,4 @@
 import logger from 'loglevel'
-import { Events, Toast } from 'quasar'
 import { Store, utils } from '@kalisio/kdk-core/client'
 import { errors } from '../../common'
 
@@ -11,7 +10,7 @@ export default {
         // We need to load the position now
         this.geolocation = utils.createQuerablePromise(new Promise((resolve, reject) => {
           if (!window.navigator.geolocation) {
-            Events.$emit('error', {
+            this.$events.$emit('error', {
               message: this.$t('mixins.geolocation.NOT_SUPPORTED_MESSAGE'),
               // By default we only show geolocation errors, nothing if unsupported
               ignore: true
@@ -52,7 +51,7 @@ export default {
         }
         // It seems there is no message when a code is present, however we cannot alter the original error
         // with the new message because it is a read-only property so we refer to it
-        Events.$emit('error', Object.assign(geolocationError, {
+        this.$events.$emit('error', Object.assign(geolocationError, {
           // By default we only show geolocation errors, nothing if disabled by user
           ignore: (code === error.PERMISSION_DENIED),
           retryHandler: () => this.updatePosition()
@@ -63,9 +62,9 @@ export default {
   created () {
     this.updatePosition()
     // Whenever the user is updated, update position as well
-    Events.$on('user-changed', this.updatePosition)
+    this.$events.$on('user-changed', this.updatePosition)
   },
   beforeDestroy () {
-    Events.$off('user-changed', this.updatePosition)
+    this.$events.$off('user-changed', this.updatePosition)
   }
 }

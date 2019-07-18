@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import logger from 'loglevel'
-import moment from 'moment'
-import { Events, Dialog } from 'quasar'
-import { errors } from '../../common'
+import { Dialog } from 'quasar'
 
 export default function (name) {
   return {
@@ -446,18 +444,18 @@ export default function (name) {
       this.$on('map-ready', this.onMapReady)
       this.$on('globe-ready', this.onGlobeReady)
       this.$on('layer-added', this.onLayerAdded)
-      Events.$on('user-position-changed', this.geolocate)
+      this.$events.$on('user-position-changed', this.geolocate)
       // Whenever restore view settings are updated, update view as well
-      Events.$on('restore-view-changed', this.updateViewSettings)
-      Events.$on('error', this.onGeolocationError)
+      this.$events.$on('restore-view-changed', this.updateViewSettings)
+      this.$events.$on('error', this.onGeolocationError)
     },
     beforeDestroy () {
       this.$off('map-ready', this.onMapReady)
       this.$off('globe-ready', this.onGlobeReady)
       this.$off('layer-added', this.onLayerAdded)
-      Events.$off('user-position-changed', this.geolocate)
-      Events.$off('restore-view-changed', this.updateViewSettings)
-      Events.$off('error', this.onGeolocationError)
+      this.$events.$off('user-position-changed', this.geolocate)
+      this.$events.$off('restore-view-changed', this.updateViewSettings)
+      this.$events.$off('error', this.onGeolocationError)
     }
   }
 }
