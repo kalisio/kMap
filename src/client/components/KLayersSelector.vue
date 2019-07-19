@@ -68,12 +68,12 @@ export default {
       return layer.name + '-' + action
     },
     visibilityIcon (visibility) {
-      if (visibility) return "visibility_off"
-      return "visibility"
+      if (visibility) return 'visibility_off'
+      return 'visibility'
     },
     visibilityColor (visibility) {
-      if (visibility) return "primary"
-      return "grey"
+      if (visibility) return 'primary'
+      return 'grey'
     },
     callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)

@@ -151,7 +151,7 @@ export default {
       const cesiumOptions = options.cesium
       // Default is to start fetching except if qe don't have a source => manual update
       const source = _.get(cesiumOptions, 'source')
-      const start = _.get(cesiumOptions, 'start', source ? true : false)
+      const start = _.get(cesiumOptions, 'start', !!source)
       // Add update capabilities
       dataSource.updateGeoJson = async (geoJson) => {
         await this.updateRealtimeGeoJsonData(dataSource, options, geoJson)

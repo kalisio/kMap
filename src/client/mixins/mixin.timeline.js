@@ -12,7 +12,7 @@ export default {
       },
       timelineInterval: null,
       timelineFormatter: null,
-      timelineRefreshKey: 0,
+      timelineRefreshKey: 0
     }
   },
   computed: {
@@ -31,11 +31,11 @@ export default {
     setupTimeline () {
       let now = moment.utc()
       // Start just before the first available data
-      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7*60*60*24
+      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
       // Override by config ?
       start = _.get(this, 'activityOptions.timeline.start', start)
       // Start just after the last available data
-      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7*60*60*24
+      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
       // Override by config ?
       end = _.get(this, 'activityOptions.timeline.end', end)
       this.timeline.start = now.clone().add({ seconds: start }).valueOf()
@@ -55,7 +55,7 @@ export default {
       // "currentValue: this.value" in mixin.range-compute.js).
       //
       // Since invoking "setupTimeline" means that the whole component simply needs to be recalculated (because we're
-      // changing any/all of its props), forcing an update (using the ":key" technique) seem the simplest solution.  
+      // changing any/all of its props), forcing an update (using the ":key" technique) seem the simplest solution.
       //
       this.timelineRefreshKey = this.timelineRefreshKey + 1
       this.$emit('timeline-changed', this.timeline)
@@ -79,7 +79,7 @@ export default {
             let startOfDay = startTime.startOf('day')
             startOfDay.add({ days: 1 })
             startValue = startOfDay.valueOf()
-          } 
+          }
           return startValue
         },
         valueChanged (value, previousValue, step) {
@@ -95,7 +95,7 @@ export default {
                   changed = (difference >= 60 * 60000)
                   break
                 case 'm':
-                  changed = (difference >= 60000)   
+                  changed = (difference >= 60000)
                   break
                 default:
                   changed = true
@@ -118,20 +118,20 @@ export default {
               } else {
                 label = this.formatTime('date.short', time)
               }
-              break 
+              break
             case 'pointer':
               label = `${this.formatTime('date.long', time)} - ${this.formatTime('time.short', time)}`
-              break 
+              break
             case 'indicator':
               label = this.formatTime('time.short', time)
-              break 
+              break
           }
           return label
-        }        
+        }
       }
     },
     onTimelineUpdated (event) {
-      // Only when drag stops to avoid fetching data permanently 
+      // Only when drag stops to avoid fetching data permanently
       if (event.final) {
         this.setCurrentTime(moment.utc(event.value))
       }

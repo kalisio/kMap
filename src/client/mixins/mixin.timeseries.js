@@ -52,11 +52,11 @@ export default {
         })
       }
       // Update data
-      this.updateLayer(name, isWeatherProbe ?
-        this.getProbedLocationForecastAtCurrentTime() :
-        this.getProbedLocationMeasureAtCurrentTime())
+      this.updateLayer(name, isWeatherProbe
+        ? this.getProbedLocationForecastAtCurrentTime()
+        : this.getProbedLocationMeasureAtCurrentTime())
     },
-    onUpdateTimeseries(state) {
+    onUpdateTimeseries (state) {
       if (state !== 'closed') this.$refs.timeseries.setupTimeTicks()
       else this.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
     },
@@ -109,7 +109,6 @@ export default {
       } else if (options.variables && options.service) { // Static measure probe
         await this.getMeasureForFeature(options, feature,
           moment.utc(this.timeline.current).clone().subtract({ seconds: options.history }), moment.utc(this.timeline.current))
-        
       } else if (isWeatherProbe) { // Dynamic weacast probe
         this.getForecastForLocation(event.latlng.lng, event.latlng.lat,
           moment.utc(this.timeline.start), moment.utc(this.timeline.end))

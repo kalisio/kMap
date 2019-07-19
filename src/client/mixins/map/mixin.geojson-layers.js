@@ -54,16 +54,16 @@ export default {
             // in this case we use marker styling instead of lines/polygons styling
             if (feature.geometry.type === 'Point') {
               // FIXME: updating style in place does not seem to work, so for now we recreate the whole marker
-              //oldLayer.setStyle(leafletOptions.pointToLayer(feature))
+              // oldLayer.setStyle(leafletOptions.pointToLayer(feature))
               return
             } else {
               // It seems the Leaflet realtime plugin takes care of it for us
-              //oldLayer.setStyle(leafletOptions.style(feature))
+              // oldLayer.setStyle(leafletOptions.style(feature))
             }
           }
           if (oldLayer.setIcon) {
             // FIXME: updating icon in place requires to recreate it anyway, so for now we recreate the whole marker
-            //oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature, oldLayer.getLatLng()), 'options.icon'))
+            // oldLayer.setIcon(_.get(leafletOptions.pointToLayer(feature, oldLayer.getLatLng()), 'options.icon'))
             return
           }
           // And coordinates

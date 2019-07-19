@@ -15,7 +15,7 @@ export default {
       let options = this.getLayerByName(name)
       let leafletLayer = this.getLeafletLayerByName(name)
       if (!options || !leafletLayer) return
-      
+
       if (this.editControl) { // Stop edition
         // Remove UI
         this.map.removeControl(this.editControl)
@@ -63,7 +63,7 @@ export default {
       // Avoid default popup
       const popup = leafletLayer.getPopup()
       if (popup) leafletLayer.unbindPopup(popup)
-      
+
       this.editFeatureModal = await this.$createComponent('editor/KModalEditor', {
         propsData: {
           service: 'features',
@@ -147,7 +147,7 @@ export default {
     this.editOptions = {
       polyline: {},
       polygon: {
-        allowIntersection: false, // Restricts shapes to simple polygons
+        allowIntersection: false // Restricts shapes to simple polygons
       },
       circle: {},
       rectangle: {},

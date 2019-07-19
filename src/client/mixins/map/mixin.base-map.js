@@ -84,11 +84,11 @@ export default {
         if (!_.has(pane, 'minZoom') && !_.has(pane, 'maxZoom')) return
         if (!pane.style) pane['style'] = {}
         if (_.has(pane, 'minZoom') && (zoom < _.get(pane, 'minZoom'))) {
-          pane.style['display']='none'
+          pane.style['display'] = 'none'
           return
         }
         if (_.has(pane, 'maxZoom') && (zoom > _.get(pane, 'maxZoom'))) {
-          pane.style['display']='none'
+          pane.style['display'] = 'none'
           return
         }
         pane.style['display'] = 'block'
@@ -117,12 +117,11 @@ export default {
         })
         this.updateLeafletPanesVisibility(panes.map(paneOptions => paneOptions.name || paneOptions.zIndex.toString()))
       }
-      
+
       let layer
       if (leafletOptions.source) {
         layer = _.get(L, leafletOptions.type)(leafletOptions.source, leafletOptions)
-      }
-      else {
+      } else {
         layer = _.get(L, leafletOptions.type)(leafletOptions)
       }
       return layer
