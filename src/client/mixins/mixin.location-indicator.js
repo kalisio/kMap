@@ -43,6 +43,6 @@ export default {
     this.$events.$on('location-format-changed', this.setLocationFormat)
   },
   beforeDestroy () {
-    this.$evens.$off('location-format-changed', this.setLocationFormat)
+    this.$events.$off('location-format-changed', this.setLocationFormat)
   }
 }
