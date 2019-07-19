@@ -1,13 +1,13 @@
 <template>
-  <!--div class="row justify-center"-->
+  <div class="q-pa-md q-gutter-sm">
     <q-list dense>
       <template v-for="layer in layers">
-        <q-item :id="layer.name" :key="layer.name" clickable :active="layer.isVisible" active-class="bg-grey-2 text-grey-8" @click="onLayerClicked(layer, layers)">
-          <q-item-section avatar top>
+        <q-item :id="layer.name" :key="layer.name" :active="layer.isVisible" active-class="selected" dense>
+          <q-item-section avatar>
             <q-icon v-if="!layer.iconUrl" :name="layer.icon" />
             <img v-else :src="layer.iconUrl" width="32" />
           </q-item-section>
-          <q-item-section top>
+          <q-item-section clickable>
             <q-item-label lines="1">
              {{ layer.name }}
             </q-item-label>
@@ -15,30 +15,33 @@
              {{ layer.description }}
             </q-item-label>
           </q-item-section>
-          <q-item-section top side>
-            <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" icon="more_vert" flat small round>
-              <q-menu>
-                <q-list>
-                  <template v-for="action in layer.actions">
-                    <q-item :id="action.name" link :key="key(layer, action.name)" @click="onActionTriggered(action, layer)">
-                      <q-item-section v-if="!layer.iconUrl" avatar top>
-                        <q-icon :name="action.icon" />
-                      </q-item-section>
-                      <q-item-section top>
-                        <q-item-label lines="1">
-                          {{action.label}}
-                        </q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </template>
-                </q-list>
-              </q-menu>   
-            </q-btn>
+          <q-item-section side>
+            <div class="q-gutter-xs">
+              <q-btn id="layer-selector-entry" :icon="visibilityIcon(layer.isVisible)" :color="visibilityColor(layer.isVisible)" size="md" flat round dense @click="onLayerClicked(layer, layers)" />
+              <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" icon="more_vert" size="sm" flat round dense>
+                <q-menu>
+                  <q-list dense>
+                    <template v-for="action in layer.actions">
+                      <q-item :id="action.name" :key="key(layer, action.name)" clickable @click="onActionTriggered(action, layer)">
+                        <q-item-section v-if="!layer.iconUrl" avatar>
+                          <q-icon :name="action.icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label lines="1">
+                            {{action.label}}
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-list>
+                </q-menu>   
+              </q-btn>
+            </div>
           </q-item-section>
         </q-item>
       </template>
     </q-list>
-  <!--/div-->
+  </div>
 </template>
 
 <script>
@@ -64,6 +67,14 @@ export default {
     key (layer, action) {
       return layer.name + '-' + action
     },
+    visibilityIcon (visibility) {
+      if (visibility) return "visibility_off"
+      return "visibility"
+    },
+    visibilityColor (visibility) {
+      if (visibility) return "primary"
+      return "grey"
+    },
     callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)
     },
@@ -84,6 +95,6 @@ export default {
 
 <style>
 .selected {
-  background: #e0e0e0;
+  font-weight: bold;
 }
 </style>

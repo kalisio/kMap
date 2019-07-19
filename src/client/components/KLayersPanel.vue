@@ -1,5 +1,5 @@
 <template>
-  <q-list dense>
+  <q-list dense bordered>
     <slot name="panel-header"/>
     <template v-for="category in categories">
       <q-expansion-item expand-separator
