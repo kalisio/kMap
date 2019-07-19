@@ -15,14 +15,14 @@
              {{ model.description }}
             </q-item-label>
           </q-item-section>
-          <q-item-secion side>
+          <q-item-section side>
             <q-btn 
               id="model-selector-entry" 
               :icon="model.name === selected.name ? 'visibility_off' : 'visibility'" 
               :color="model.name === selected.name ? 'primary' : 'grey'" 
               size="md" flat round dense 
               @click="onModelClicked(model)" />
-          </q-item-secion>
+          </q-item-section>
       </q-item>
       </template>
     </q-list>
