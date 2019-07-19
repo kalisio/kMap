@@ -33,10 +33,6 @@
 <script>
 export default {
   name: 'k-color-legend',
-  components: {
-    QResizeObservable,
-    QTooltip
-  },
   props: [
     'unit',
     'hint',
