@@ -1,6 +1,6 @@
 <template>
   <div class="column items-center fixed-bottom" style="bottom: 32px" >
-    <q-chip color="secondary" closable  @click="onClick()" @close="onClose()">
+    <q-chip color="secondary" text-color="white" closable  @click="onClick()" @close="onClose()">
       {{ currentFormattedLocation }}
     </q-chip>
   </div>
