@@ -1,15 +1,28 @@
 <template>
-  <div class="row justify-center">
-    <q-list dense no-border>
+  <div>
+    <q-list dense>
       <template v-for="model in forecastModels">
-        <q-item :id="model.name" :key="model.name" inset-separator link @click="onModelClicked(model)">
-        <q-item-side v-if="!model.iconUrl" :icon="model.icon || 'fa-globe'" left>
-        </q-item-side>
-        <q-item-side v-else :avatar="model.iconUrl" left>
-        </q-item-side>
-        <q-item-main :label="model.label" :sublabel="model.description" :tag="model.name === selected.name ? 'b' : 'i'"></q-item-main>
-        <q-item-side right>
-        </q-item-side>
+        <q-item :id="model.name" :key="model.name" clickable dense @click="onModelClicked(model)">
+          <q-item-section avatar>
+            <q-icon v-if="!model.iconUrl" :name="model.icon || 'fas fa-globe'" />
+            <img v-else :src="model.iconUrl" width="32" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label lines="1">
+             {{ model.label }}
+            </q-item-label>
+            <q-item-label caption lines="2">
+             {{ model.description }}
+            </q-item-label>
+          </q-item-section>
+          <q-item-secion side>
+            <q-btn 
+              id="model-selector-entry" 
+              :icon="model.name === selected.name ? 'visibility_off' : 'visibility'" 
+              :color="model.name === selected.name ? 'primary' : 'grey'" 
+              size="md" flat round dense 
+              @click="onModelClicked(model)" />
+          </q-item-secion>
       </q-item>
       </template>
     </q-list>

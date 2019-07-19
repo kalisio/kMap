@@ -1,8 +1,8 @@
 <template>
   <k-layers-panel :layers="layers" :layerHandlers="layerHandlers" :categories="layerCategories" >
-      <q-expansion-item slot="panel-footer" v-if="forecastModels.length > 0" icon="fa-globe" :label="$t('KCatalogPanel.FORECASTS_LABEL')">
-        <k-forecast-models-selector :forecastModels="forecastModels" :forecastModelHandlers="forecastModelHandlers" :forecastModel="forecastModel" />
-      </q-expansion-item>
+    <q-expansion-item slot="panel-footer" v-if="forecastModels.length > 0" icon="fas fa-globe" :label="$t('KCatalogPanel.FORECASTS_LABEL')">
+      <k-forecast-models-selector :forecastModels="forecastModels" :forecastModelHandlers="forecastModelHandlers" :forecastModel="forecastModel" />
+    </q-expansion-item>
   </k-layers-panel>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md q-gutter-sm">
+  <div>
     <q-list dense>
       <template v-for="layer in layers">
         <q-item :id="layer.name" :key="layer.name" :active="layer.isVisible" active-class="selected" dense>
@@ -7,7 +7,7 @@
             <q-icon v-if="!layer.iconUrl" :name="layer.icon" />
             <img v-else :src="layer.iconUrl" width="32" />
           </q-item-section>
-          <q-item-section clickable>
+          <q-item-section>
             <q-item-label lines="1">
              {{ layer.name }}
             </q-item-label>
