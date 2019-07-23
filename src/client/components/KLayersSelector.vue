@@ -2,12 +2,12 @@
   <div>
     <q-list dense>
       <template v-for="layer in layers">
-        <q-item :id="layer.name" :key="layer.name" :active="layer.isVisible" active-class="selected" dense>
-          <q-item-section avatar>
+        <q-item :id="layer.name" :key="layer.name" :active="layer.isVisible" active-class="selected" dense v-ripple clickable @click="onLayerClicked(layer)">
+          <q-item-section avatar @mouseover="onOverLayer(layer)">
             <q-icon v-if="!layer.iconUrl" :name="layer.icon" />
             <img v-else :src="layer.iconUrl" width="32" />
           </q-item-section>
-          <q-item-section>
+          <q-item-section @mouseover="onOverLayer(layer)">
             <q-item-label lines="1">
              {{ layer.name }}
             </q-item-label>
@@ -17,9 +17,8 @@
           </q-item-section>
           <q-item-section side>
             <div class="q-gutter-xs">
-              <q-btn id="layer-selector-entry" :icon="visibilityIcon(layer.isVisible)" :color="visibilityColor(layer.isVisible)" size="md" flat round dense @click="onLayerClicked(layer, layers)" />
-              <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" icon="more_vert" size="sm" flat round dense>
-                <q-menu>
+              <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" icon="more_vert" size="sm" flat round dense @mouseover="onOverLayerMenu(layer)">
+                <q-menu :ref="key(layer, 'menu')">
                   <q-list dense>
                     <template v-for="action in layer.actions">
                       <q-item :id="action.name" :key="key(layer, action.name)" clickable @click="onActionTriggered(action, layer)">
@@ -67,27 +66,36 @@ export default {
     key (layer, action) {
       return layer.name + '-' + action
     },
-    visibilityIcon (visibility) {
-      if (visibility) return 'visibility_off'
-      return 'visibility'
-    },
-    visibilityColor (visibility) {
-      if (visibility) return 'primary'
-      return 'grey'
-    },
     callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)
     },
-    onLayerClicked (layer, layers) {
+    onLayerClicked (layer) {
+      // Open menu whenever required
+      if (this.overMenu) {
+        // refs are array due to v-for
+        const menu = _.get(this.$refs, `${layer.name}-menu[0]`)
+        if (menu) menu.toggle()
+        return
+      }
+      // Otherwise standard selection
       if (this.options.exclusive) {
-        let selectedLayer = _.find(layers, { isVisible: true })
+        let selectedLayer = _.find(this.layers, { isVisible: true })
         if (selectedLayer) this.callHandler({ name: 'toggle' }, selectedLayer)
         if (layer === selectedLayer) return
       }
       this.callHandler({ name: 'toggle' }, layer)
     },
+    onOverLayer (layer) {
+      this.overMenu = false
+    },
+    onOverLayerMenu (layer) {
+      this.overMenu = true
+    },
     onActionTriggered (action, layer) {
-      this.$refs['menu-' + layer.name][0].close(() => this.callHandler(action, layer))
+      // refs are array due to v-for
+      const menu = _.get(this.$refs, `${layer.name}-menu[0]`)
+      if (menu) menu.hide()
+      this.callHandler(action, layer)
     }
   }
 }

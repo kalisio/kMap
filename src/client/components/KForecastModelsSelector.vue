@@ -2,7 +2,7 @@
   <div>
     <q-list dense>
       <template v-for="model in forecastModels">
-        <q-item :id="model.name" :key="model.name" clickable dense @click="onModelClicked(model)">
+        <q-item :id="model.name" :key="model.name" :active="selected.name === model.name" active-class="selected" v-ripple clickable dense @click="onModelClicked(model)">
           <q-item-section avatar>
             <q-icon v-if="!model.iconUrl" :name="model.icon || 'fas fa-globe'" />
             <img v-else :src="model.iconUrl" width="32" />
@@ -14,14 +14,6 @@
             <q-item-label caption lines="2">
              {{ model.description }}
             </q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-btn 
-              id="model-selector-entry" 
-              :icon="model.name === selected.name ? 'visibility_off' : 'visibility'" 
-              :color="model.name === selected.name ? 'primary' : 'grey'" 
-              size="md" flat round dense 
-              @click="onModelClicked(model)" />
           </q-item-section>
       </q-item>
       </template>
@@ -70,3 +62,8 @@ export default {
 }
 </script>
 
+<style>
+.selected {
+  font-weight: bold;
+}
+</style>
