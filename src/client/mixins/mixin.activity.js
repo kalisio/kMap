@@ -248,25 +248,23 @@ export default function (name) {
         Dialog.create({
           title: this.$t('mixins.activity.REMOVE_DIALOG_TITLE', { layer: layer.name }),
           message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
-          buttons: [
-            {
-              label: this.$t('OK'),
-              handler: async () => {
-                // Stop any running edition
-                if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
-                if (layer._id) {
-                  // If persistent feature layer remove features as well
-                  if (layer.service === 'features') {
-                    await this.removeFeatures(layer._id)
-                  }
-                  await this.$api.getService('catalog').remove(layer._id)
-                }
-                this.removeLayer(layer.name)
-              }
-            }, {
-              label: this.$t('CANCEL')
+          ok: {
+            label: this.$t('OK'), 
+          },
+          cancel: {
+            label: this.$t('CANCEL')
+          }
+        }).onOk(async () => {
+          // Stop any running edition
+          if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
+          if (layer._id) {
+            // If persistent feature layer remove features as well
+            if (layer.service === 'features') {
+              await this.removeFeatures(layer._id)
             }
-          ]
+            await this.$api.getService('catalog').remove(layer._id)
+          }
+          this.removeLayer(layer.name)
         })
       },
       onMapReady () {

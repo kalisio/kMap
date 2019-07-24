@@ -127,19 +127,17 @@ export default {
       Dialog.create({
         title: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_TITLE'),
         message: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_MESSAGE'),
-        buttons: [
-          {
-            label: this.$t('OK'),
-            handler: async () => {
-              let parentLeafletLayer = this.getLeafletLayerByName(layer.name)
-              if (!parentLeafletLayer) return
-              await this.removeFeatures(feature)
-              parentLeafletLayer.removeLayer(leafletLayer)
-            }
-          }, {
-            label: this.$t('CANCEL')
-          }
-        ]
+        ok: {
+          label: this.$t('OK'), 
+        },
+        cancel: {
+          label: this.$t('CANCEL')
+        }
+      }).onOk(async () => {
+        let parentLeafletLayer = this.getLeafletLayerByName(layer.name)
+        if (!parentLeafletLayer) return
+        await this.removeFeatures(feature)
+        parentLeafletLayer.removeLayer(leafletLayer)
       })
     }
   },
