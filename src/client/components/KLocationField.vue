@@ -77,7 +77,7 @@ export default {
           }
           places.push(place)
         })
-        update(() => this.options = places)
+        update(() => { this.options = places })
       })
     },
     onSelected (result) {
