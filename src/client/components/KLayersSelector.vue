@@ -45,6 +45,7 @@
 
 <script>
 import _ from 'lodash'
+import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-layers-selector',
@@ -65,6 +66,9 @@ export default {
   methods: {
     key (layer, action) {
       return layer.name + '-' + action
+    },
+    layerIcon (layer) {
+      return kCoreUtils.getIconName(layer, 'icon')
     },
     callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)

@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
+
 export default {
   name: 'k-forecast-models-selector',
   data () {
@@ -41,6 +43,11 @@ export default {
     forecastModel: {
       type: Object,
       default: () => {}
+    }
+  },
+  computed: {
+    iconName () {
+      return kCoreUtils.getIconName(this.selected)
     }
   },
   watch: {
