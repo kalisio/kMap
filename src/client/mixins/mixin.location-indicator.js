@@ -13,7 +13,7 @@ export default {
     createLocationIndicator () {
       if (this.locationIndicator) return
       const Component = Vue.extend(KLocationIndicator)
-      this.locationIndicator =  new Component({
+      this.locationIndicator = new Component({
         propsData: {
           location: this.currentLocation,
           locationFormat: this.currentLocationFormat

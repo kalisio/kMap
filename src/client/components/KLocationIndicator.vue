@@ -28,7 +28,7 @@ export default {
     locationFormat: {
       type: String,
       default: 'FFf'
-    },
+    }
   },
   methods: {
     onClick () {

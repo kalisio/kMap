@@ -147,7 +147,7 @@ export default {
         const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
         const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
         elements = elements.concat([windDirection, windSpeed])
-        
+
         let results = await this.weacastApi.getService('probe-results').find({
           query: {
             probeId: this.probe._id,

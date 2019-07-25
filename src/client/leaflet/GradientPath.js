@@ -7,7 +7,7 @@ import 'leaflet-pixi-overlay'
 let GradientPath = L.PixiOverlay.extend({
 
   initialize (geoJson, options) {
-    L.setOptions(this, Object.assign({ stroke: '#FFFFFF', weight: 8 } , options))
+    L.setOptions(this, Object.assign({ stroke: '#FFFFFF', weight: 8 }, options))
     this.paths = []
     this.currentZoom = -1
     this.container = new PIXI.Container()
@@ -118,7 +118,7 @@ let GradientPath = L.PixiOverlay.extend({
     canvas.height = weight
     // use canvas2d API to create the gradient texture
     const ctx = canvas.getContext('2d')
-    const grd = ctx.createLinearGradient(0, 0, canvas.width, 1)    
+    const grd = ctx.createLinearGradient(0, 0, canvas.width, 1)
     for (let i = 0; i < gradient.length; i++) {
       grd.addColorStop(i / gradient.length, gradient[i])
     }
@@ -154,4 +154,3 @@ L.gradientPath = function (options) {
   return new L.GradientPath(options)
 }
 export { GradientPath }
-

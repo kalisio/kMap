@@ -14,7 +14,7 @@ let GeorasterLayer = L.Layer.extend({
     this.colorMap = null
     this.gridRenderer = new GridRenderer()
     this.gridOverlay = this.gridRenderer.initialize(Object.assign(options, { mesh: true }))
-    L.setOptions(this, options || {})    
+    L.setOptions(this, options || {})
   },
 
   onAdd (map) {
@@ -37,7 +37,7 @@ let GeorasterLayer = L.Layer.extend({
     } else if (this.domain) {
       this.colorMap = chroma.scale(scale).domain(this.domain)
     }
-    
+
     // Setup the grid
     let grid = new Grid({
       bounds: [raster.xmin, raster.ymin, raster.xmax, raster.ymax],
@@ -80,7 +80,7 @@ let GeorasterLayer = L.Layer.extend({
       // Store the time
       this.currentTime = nearestTime
       // Compute the url
-      await this.loadRaster(this.currentTime.format(this.url))      
+      await this.loadRaster(this.currentTime.format(this.url))
     }
   }
 })
@@ -89,7 +89,7 @@ export default {
   methods: {
     async createLeafletGeorasterLayer (options) {
       let leafletOptions = options.leaflet || options
-      
+
       // Check for valid type
       if (leafletOptions.type !== 'georaster') return
 

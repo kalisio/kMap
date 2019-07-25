@@ -57,24 +57,36 @@ export default function (name) {
         const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && actions.includes('probe-location') && this.weacastApi && this.forecastModel
         const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && actions.includes('create-layer')
         // FAB
-        if (hasFullscreenAction) this.registerFabAction({
-          name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
-        })
-        if (hasGeolocateAction) this.registerFabAction({
-          name: 'geolocate', label: this.$t('mixins.activity.GEOLOCATE'), icon: 'my_location', handler: this.onGeolocate
-        })
-        if (hasGeocodingAction) this.registerFabAction({
-          name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
-        })
-        if (hasLocationIndicatorAction) this.registerFabAction({
-          name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
-        })
-        if (hasProbeLocationAction) this.registerFabAction({
-          name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
-        })
-        if (hasCreateLayerAction) this.registerFabAction({
-          name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
-        })
+        if (hasFullscreenAction) {
+          this.registerFabAction({
+            name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
+          })
+        }
+        if (hasGeolocateAction) {
+          this.registerFabAction({
+            name: 'geolocate', label: this.$t('mixins.activity.GEOLOCATE'), icon: 'my_location', handler: this.onGeolocate
+          })
+        }
+        if (hasGeocodingAction) {
+          this.registerFabAction({
+            name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
+          })
+        }
+        if (hasLocationIndicatorAction) {
+          this.registerFabAction({
+            name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
+          })
+        }
+        if (hasProbeLocationAction) {
+          this.registerFabAction({
+            name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
+          })
+        }
+        if (hasCreateLayerAction) {
+          this.registerFabAction({
+            name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
+          })
+        }
       },
       async getCatalogLayers () {
         const catalogService = this.$api.getService('catalog')
@@ -137,11 +149,13 @@ export default function (name) {
         let actions = []
         // Add supported actions
         if (layer.type === 'OverlayLayer') {
-          if (layerActions.includes('zoom-to')) actions.push({
-            name: 'zoom-to',
-            label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
-            icon: 'zoom_out_map'
-          })
+          if (layerActions.includes('zoom-to')) {
+            actions.push({
+              name: 'zoom-to',
+              label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
+              icon: 'zoom_out_map'
+            })
+          }
           if (this.isLayerStorable(layer) && !layer._id && layerActions.includes('save')) {
             actions.push({
               name: 'save',
@@ -159,9 +173,9 @@ export default function (name) {
             if ((typeof this.editLayer === 'function') && layerActions.includes('edit-data')) {
               actions.push({
                 name: 'edit-data',
-                label: this.isLayerEdited(layer.name) ?
-                  this.$t('mixins.activity.STOP_EDIT_DATA_LABEL') :
-                  this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
+                label: this.isLayerEdited(layer.name)
+                  ? this.$t('mixins.activity.STOP_EDIT_DATA_LABEL')
+                  : this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
                 icon: 'edit_location'
               })
             }
@@ -184,7 +198,7 @@ export default function (name) {
           this.showLayer(layer.name)
         } else {
           this.hideLayer(layer.name)
-        } 
+        }
       },
       onZoomToLayer (layer) {
         this.zoomToLayer(layer.name)
@@ -199,8 +213,8 @@ export default function (name) {
         _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
         let createdLayer = await this.$api.getService('catalog')
         .create(_.omit(layer, ['actions', 'isVisible']))
-        //layer._id = createdLayer._id
-        //this.registerLayerActions(layer) // Refresh actions due to state change
+        // layer._id = createdLayer._id
+        // this.registerLayerActions(layer) // Refresh actions due to state change
         // Because we save all features in a single service use filtering to separate layers
         // We use the generated DB ID as layer ID on features
         await this.createFeatures(this.toGeoJson(layer.name), createdLayer._id)
@@ -348,7 +362,7 @@ export default function (name) {
       },
       geolocate () {
         if (!this.engineReady) {
-          //logger.error('Engine not ready to geolocate')
+          // logger.error('Engine not ready to geolocate')
           return
         }
         if (_.get(this.$route, 'query.south')) return
