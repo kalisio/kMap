@@ -160,7 +160,8 @@
     "CATALOG_SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"
   },
   "KLocationField": {
-    "PLACEHOLDER": "$t(SEARCH)"
+    "PLACEHOLDER": "$t(SEARCH)",
+    "NO_RESULTS": "$t(EMPTY)"
   },
   "KLocationMap": {
     "CLOSE_ACTION": "$t(CLOSE)"

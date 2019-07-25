@@ -163,7 +163,8 @@
     "CATALOG_SCHEMA_FIELD_HELPER": "Select a data scheme"
   },
   "KLocationField": {
-    "PLACEHOLDER": "$t(SEARCH)"
+    "PLACEHOLDER": "$t(SEARCH)",
+    "NO_RESULTS": "$t(EMPTY)"
   },
   "KLocationMap": {
     "CLOSE_ACTION": "$t(CLOSE)"

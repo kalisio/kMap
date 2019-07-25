@@ -3,14 +3,20 @@
     <q-field
       :icon="icon"
       :label="label"
-      :helper="helper"
-      :error-label="errorLabel"
+      :hint="helper"
+      :error-message="errorLabel"
       :label-width="labelWidth"
       :error="hasError"
     >
-      <q-search ref="search" v-model="pattern" :after="actions" @change="onChanged" :placeholder="$t('KLocationField.PLACEHOLDER')">
-        <q-autocomplete :min-characters="5" :debounce="1000" @search="onSearch" @selected="onSelected" />
-      </q-search>
+      <q-select clearable use-input dropdown-icon="" v-model="pattern" :options="options"
+        @filter="onSearch" @input="onSelected" :label="$t('KLocationField.PLACEHOLDER')">
+        <template v-slot:no-option>
+          <q-item>
+            <q-item-section class="text-grey">{{$t('KLocationField.NO_RESULTS')}}</q-item-section>
+          </q-item>
+        </template>
+      </q-select>
+      <q-btn icon="place" flat v-if="locationSelected" @click="onMapClicked"/>
     </q-field>
     <k-location-map ref="map" :draggable="properties.draggable" v-bind="properties.field.locationMap" />
   </div>
@@ -27,28 +33,21 @@ export default {
     kCoreMixins.refsResolver(['map']),
     kCoreMixins.baseField
   ],
-  computed: {
-    actions () {
-      let buttons = [
-        {
-          icon: 'cancel',
-          content: true,
-          handler: () => { this.$refs.search.clear() }
-        }
-      ]
-      if (!_.isNil(this.model.longitude) && !_.isNil(this.model.latitude)) {
-        buttons.push({
-          icon: 'place',
-          content: true,
-          handler: () => this.onMapClicked()
-        })
-      }
-      return buttons
+  props: {
+    minLength: {
+      type: Number,
+      default: 2
     }
   },
   data () {
     return {
-      pattern: ''
+      pattern: '',
+      options: []
+    }
+  },
+  computed: {
+    locationSelected () {
+      return (!_.isNil(this.model.longitude) && !_.isNil(this.model.latitude))
     }
   },
   methods: {
@@ -59,14 +58,11 @@ export default {
       this.model = value
       this.pattern = value.name
     },
-    onChanged (pattern) {
-      if (typeof pattern === 'string') this.model = { name: pattern }
-      else {
-        this.model = pattern
-        this.pattern = this.model.name
+    onSearch (pattern, update, abort) {
+      if (pattern.length < this.minLength) {
+        abort()
+        return
       }
-    },
-    onSearch (pattern, done) {
       // Build the list of responses
       const geocoderService = this.$api.getService('geocoder')
       if (!geocoderService) throw Error('Cannot find geocoder service')
@@ -81,11 +77,12 @@ export default {
           }
           places.push(place)
         })
-        done(places)
+        update(() => this.options = places)
       })
     },
     onSelected (result) {
-      this.model = result.value
+      // Can be null on clear
+      this.model = (result ? result.value : {})
     },
     onMapClicked () {
       this.$refs.map.open(this.model)
