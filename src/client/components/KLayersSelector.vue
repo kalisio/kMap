@@ -76,8 +76,9 @@ export default {
     onLayerClicked (layer) {
       // Open menu whenever required
       if (this.overMenu) {
-        // refs are array due to v-for
-        const menu = _.get(this.$refs, `${layer.name}-menu[0]`)
+        // refs can be array due to v-for
+        let menu = _.get(this.$refs, `${layer.name}-menu`)
+        if (Array.isArray(menu)) menu = menu[0]
         if (menu) menu.toggle()
         return
       }

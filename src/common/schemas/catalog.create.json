@@ -39,10 +39,12 @@
         "acceptedFiles": "application/json",
         "maxFilesize": 0.5,
         "autoProcessQueue": false,
+        "resourcesService": "catalog",
+        "resourceField": "schema",
         "storagePath": "schemas/<%= id %>.json"
       }
     }
   },
-  "required": ["name", "description", "schema"]
+  "required": ["name", "description", "featureId", "schema"]
 }
 
