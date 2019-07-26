@@ -251,6 +251,9 @@ export default {
 
       this.chart = new Chart(this.$refs.chart.getContext('2d'), this.config)
     }
+  },
+  async mounted () {
+    this.setupGraph()
   }
 }
 </script>

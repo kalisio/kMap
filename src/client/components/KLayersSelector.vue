@@ -22,7 +22,7 @@
                   <q-list dense>
                     <template v-for="action in layer.actions">
                       <q-item :id="action.name" :key="key(layer, action.name)" clickable @click="onActionTriggered(action, layer)">
-                        <q-item-section v-if="!layer.iconUrl" avatar>
+                        <q-item-section v-if="action.icon" avatar>
                           <q-icon :name="action.icon" />
                         </q-item-section>
                         <q-item-section>
