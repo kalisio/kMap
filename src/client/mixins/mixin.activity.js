@@ -38,7 +38,7 @@ export default function (name) {
       },
       getGeocodingButtons () {
         return [
-          { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: (event, done) => this.onGeocode(done) }
+          { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: () => this.onGeocode() }
         ]
       },
       registerActivityActions () {
@@ -248,6 +248,7 @@ export default function (name) {
         Dialog.create({
           title: this.$t('mixins.activity.REMOVE_DIALOG_TITLE', { layer: layer.name }),
           message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
+          html: true,
           ok: {
             label: this.$t('OK'), 
           },
@@ -337,7 +338,7 @@ export default function (name) {
         this.geocodingModal.$mount()
         this.geocodingModal.open()
       },
-      onGeocode (done) {
+      onGeocode () {
         const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
         if (geocodingForm) {
           let result = geocodingForm.validate()

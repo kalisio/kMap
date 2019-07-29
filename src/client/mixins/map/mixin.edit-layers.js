@@ -127,6 +127,7 @@ export default {
       Dialog.create({
         title: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_TITLE'),
         message: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_MESSAGE'),
+        html: true,
         ok: {
           label: this.$t('OK'), 
         },
