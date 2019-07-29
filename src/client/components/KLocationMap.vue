@@ -1,10 +1,7 @@
 <template>
-  <k-modal 
-    ref="modal" :title="title" :toolbar="toolbar()" :options="modalStyle" @opened="refreshMap()">
-    <div slot="modal-content">
-      <div ref="map" class="k-location-map" />
-    </div>
-  </k-modal>
+  <div ref="map" style="width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;" >
+    <q-resize-observer @resize="onMapResized" />
+  </div>
 </template>
 
 <script>
@@ -36,20 +33,11 @@ export default {
         }
       }
     },
-    modalStyle: {
-      type: Object,
-      default: () => {
-        return {
-          minWidth: '60%',
-          minHeight: '60%'
-        }
-      }
-    },
     markerStyle: {
       type: Object,
       default: () => {
         return {
-          iconClasses: 'fa fa-circle',
+          iconClasses: 'fas fa-circle',
           markerColor: '#000000',
           iconColor: '#FFFFFF'
         }
@@ -63,33 +51,27 @@ export default {
     }
   },
   methods: {
-    toolbar () {
-      return [
-        { name: 'close-action', label: this.$t('KLocationMap.CLOSE_ACTION'), icon: 'close', handler: () => this.doClose() }
-      ]
-    },
-    open (location) {
+    async initialize (location) {
       if (_.isNil(location.longitude)) throw Error('Invalid location: undefined longitude property')
       if (_.isNil(location.latitude)) throw Error('Invalid location: undefined latitude property')
       if (_.isNil(location.name)) throw Error('Invalid location: undefined name property')
       this.location = location
-      this.$refs.modal.open()
       this.title = location.name
       this.center(location.longitude, location.latitude, this.mapOptions.zoom)
       if (!this.marker) {
-        this.marker = L.marker([location.latitude, location.longitude], { icon: L.icon.fontAwesome(this.markerStyle), draggable: this.draggable })
+        this.marker = L.marker([location.latitude, location.longitude], {
+          icon: L.icon.fontAwesome(this.markerStyle), draggable: this.draggable
+        })
         this.marker.addTo(this.map)
+        if (this.draggable) this.marker.on('dragend', this.updateLocation)
       } else {
         this.marker.setLatLng([location.latitude, location.longitude])
       }
     },
-    doClose () {
-      this.$refs.modal.close()
-      if (this.draggable) {
-        this.location.latitude = this.marker.getLatLng().lat
-        this.location.longitude = this.marker.getLatLng().lng
-        this.$emit('location-changed', location)
-      }
+    updateLocation () {
+      this.location.latitude = this.marker.getLatLng().lat
+      this.location.longitude = this.marker.getLatLng().lng
+      this.$emit('location-changed', location)
     },
     async refreshBaseLayer () {
       this.layers = {}
@@ -97,28 +79,16 @@ export default {
       // Get first visible base layer
       let response = await catalogService.find({ query: { type: 'BaseLayer', 'leaflet.isVisible': true } })
       if (response.data.length > 0) this.addLayer(response.data[0])
+    },
+    onMapResized (size) {
+      this.refreshMap()
     }
-  },
-  created () {
-    // load the required components
-    this.$options.components['k-modal'] = this.$load('frame/KModal')
   },
   async mounted () {
     await this.loadRefs()
     this.setupMap(this.$refs.map, this.mapOptions)
-    this.refreshBaseLayer()
+    await this.refreshBaseLayer()
+    this.$emit('map-ready')
   }
 }
 </script>
-
-<style>
-.k-location-map {
-  position: absolute;
-  left: 1rem;
-  right: 1rem;
-  top: 5rem;
-  bottom: 1rem;
-  font-weight: normal;
-  z-index: 0;
-}
-</style>

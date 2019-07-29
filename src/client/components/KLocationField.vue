@@ -16,9 +16,15 @@
           </q-item>
         </template>
       </q-select>
-      <q-btn icon="place" flat v-if="locationSelected" @click="onMapClicked"/>
+      <q-btn icon="place" flat v-if="locationSelected" @click="$refs.modal.open()"/>
     </q-field>
-    <k-location-map ref="map" :draggable="properties.draggable" v-bind="properties.field.locationMap" />
+    <k-modal ref="modal" :toolbar="toolbar()">
+      <div slot="modal-content">
+        <k-location-map ref="locationMap" :draggable="properties.draggable"
+          v-bind="properties.field.locationMap" @map-ready="initializeMap" />
+      </div>
+    </k-modal>
+    </div>
   </div>
 </template>
 
@@ -29,10 +35,7 @@ import { formatGeocodingResult } from '../utils'
 
 export default {
   name: 'k-location-field',
-  mixins: [
-    kCoreMixins.refsResolver(['map']),
-    kCoreMixins.baseField
-  ],
+  mixins: [kCoreMixins.baseField],
   props: {
     minLength: {
       type: Number,
@@ -41,6 +44,7 @@ export default {
   },
   data () {
     return {
+      isMapVisible: false,
       pattern: '',
       options: []
     }
@@ -57,6 +61,11 @@ export default {
     fill (value) {
       this.model = value
       this.pattern = value.name
+    },
+    toolbar () {
+      return [
+        { name: 'close-action', label: this.$t('KLocationMap.CLOSE_ACTION'), icon: 'close', handler: () => this.$refs.modal.close() }
+      ]
     },
     onSearch (pattern, update, abort) {
       if (pattern.length < this.minLength) {
@@ -84,16 +93,19 @@ export default {
       // Can be null on clear
       this.model = (result ? result.value : {})
     },
-    onMapClicked () {
-      this.$refs.map.open(this.model)
+    onShowMap () {
+      this.$refs.modal.open()
+      // If the modal has already been created the map is ready otherwise wait for event
+      if (this.$refs.locationMap) this.initializeMap()
+    },
+    initializeMap () {
+      this.$refs.locationMap.initialize(this.model)
     }
   },
   created () {
     // load the required components
+    this.$options.components['k-modal'] = this.$load('frame/KModal')
     this.$options.components['k-location-map'] = this.$load('KLocationMap')
-  },
-  async mounted () {
-    await this.loadRefs()
   }
 }
 </script>
