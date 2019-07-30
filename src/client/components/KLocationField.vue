@@ -21,7 +21,7 @@
     <k-modal ref="modal" :toolbar="toolbar()">
       <div slot="modal-content">
         <k-location-map ref="locationMap" :draggable="properties.draggable"
-          v-bind="properties.field.locationMap" @map-ready="initializeMap" />
+          :options="properties.field.map" @map-ready="initializeMap" />
       </div>
     </k-modal>
     </div>
@@ -64,7 +64,7 @@ export default {
     },
     toolbar () {
       return [
-        { name: 'close-action', label: this.$t('KLocationMap.CLOSE_ACTION'), icon: 'close', handler: () => this.$refs.modal.close() }
+        { name: 'close-action', label: this.$t('KLocationField.CLOSE_LOCATION_MAP'), icon: 'close', handler: () => this.$refs.modal.close() }
       ]
     },
     onSearch (pattern, update, abort) {

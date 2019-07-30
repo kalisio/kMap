@@ -164,10 +164,8 @@
   },
   "KLocationField": {
     "PLACEHOLDER": "$t(SEARCH)",
-    "NO_RESULTS": "$t(EMPTY)"
-  },
-  "KLocationMap": {
-    "CLOSE_ACTION": "$t(CLOSE)"
+    "NO_RESULTS": "$t(EMPTY)",
+    "CLOSE_LOCATION_MAP": "$t(CLOSE)"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Base Layers",

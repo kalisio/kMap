@@ -21,7 +21,7 @@ export default {
       type: Boolean,
       default: false
     },
-    mapOptions: {
+    options: {
       type: Object,
       default: () => {
         return {
@@ -57,7 +57,7 @@ export default {
       if (_.isNil(location.name)) throw Error('Invalid location: undefined name property')
       this.location = location
       this.title = location.name
-      this.center(location.longitude, location.latitude, this.mapOptions.zoom)
+      this.center(location.longitude, location.latitude, this.options.zoom)
       if (!this.marker) {
         this.marker = L.marker([location.latitude, location.longitude], {
           icon: L.icon.fontAwesome(this.markerStyle), draggable: this.draggable
@@ -86,7 +86,7 @@ export default {
   },
   async mounted () {
     await this.loadRefs()
-    this.setupMap(this.$refs.map, this.mapOptions)
+    this.setupMap(this.$refs.map, this.options)
     await this.refreshBaseLayer()
     this.$emit('map-ready')
   }
