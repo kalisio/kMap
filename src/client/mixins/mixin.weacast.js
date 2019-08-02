@@ -9,7 +9,8 @@ export default {
   data () {
     return {
       forecastModel: null,
-      forecastModels: []
+      forecastModels: [],
+      forecastLevel: null
     }
   },
   methods: {
@@ -63,6 +64,10 @@ export default {
       this.forecastModel = model
       this.$emit('forecast-model-changed', this.forecastModel)
     },
+    setForecastLevel (level) {
+      this.forecastLevel = level
+      this.$emit('forecast-level-changed', this.forecastLevel)
+    },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
       if (!this.forecastModel) return
@@ -85,10 +90,13 @@ export default {
 
       this.setCursor('processing-cursor')
       try {
+        let elements = this.forecastModel.elements.map(element => element.name)
+        // Filter available elements according to current level if any
+        if (this.forecastLevel) elements = elements.filter(element => element.endsWith(this.forecastLevel.toString()))
         let response = await this.weacastApi.getService('probes')
         .create({
           forecast: this.forecastModel.name,
-          elements: this.forecastModel.elements.map(element => element.name)
+          elements
         }, { query })
         if (response.features.length > 0) {
           this.probedLocation = response.features[0]
@@ -130,6 +138,16 @@ export default {
 
       this.setCursor('processing-cursor')
       try {
+        let elements = this.forecastModel.elements.map(element => element.name)
+        // Filter available elements according to current level if any
+        if (this.forecastLevel) {
+          elements = elements.filter(element => element.endsWith(this.forecastLevel.toString()))
+        }
+        // Need to add derived values for static probes as they are not computed on the fly
+        const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
+        const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
+        elements = elements.concat([windDirection, windSpeed])
+        
         let results = await this.weacastApi.getService('probe-results').find({
           query: {
             probeId: this.probe._id,
@@ -139,7 +157,7 @@ export default {
             },
             [this.probe.featureId]: featureId,
             $groupBy: this.probe.featureId,
-            $aggregate: this.forecastModel.elements.map(element => element.name).concat(['windDirection', 'windSpeed'])
+            $aggregate: elements
           }
         })
         if (results.length > 0) {
@@ -181,13 +199,17 @@ export default {
     },
     getProbedLocationForecastMarker (feature, latlng) {
       const properties = feature.properties
-      if (!properties || !properties.windDirection || !properties.windSpeed) return null
+      if (!properties) return null
+      const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
+      const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
+      const temperature = (this.forecastLevel ? `temperature-${this.forecastLevel}` : 'temperature')
+      if (!_.has(properties, windDirection) || !_.has(properties, windSpeed)) return null
       // Use wind barbs on probed features
       let icon = new L.WindBarb.Icon({
-        deg: properties.windDirection,
-        speed: properties.windSpeed / 0.514, // Expressed as knots
+        deg: _.get(properties, windDirection),
+        speed: _.get(properties, windSpeed) / 0.514, // Expressed as knots
         pointRadius: 10,
-        pointColor: '#2B85C7',
+        pointColor: '#2B85C7', // TODO: colorize according to temperature scale if
         pointStroke: '#111',
         strokeWidth: 2,
         strokeColor: '#000',

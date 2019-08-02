@@ -21,7 +21,20 @@ export default {
     updateVisualForecastModel () {
       // Update layers
       _.forOwn(this.leafletLayers, layer => {
-        if (layer instanceof L.weacast.ForecastLayer) layer.setForecastModel(this.getVisualForecastModel(layer.options))
+        if (layer instanceof L.weacast.ForecastLayer) {
+          layer.setForecastModel(this.getVisualForecastModel(layer.options))
+        }
+      })
+    },
+    updateForecastElements () {
+      // Update layers
+      _.forOwn(this.leafletLayers, layer => {
+        if (layer instanceof L.weacast.ForecastLayer) {
+          const leafletOptions = layer.options
+          if (leafletOptions.baseElements) { // Check if the layer supports different levels
+            layer.setForecastElements(leafletOptions.baseElements.map(element => `${element}-${this.forecastLevel}`))
+          }
+        }
       })
     },
     createLeafletForecastLayer (options) {
@@ -33,6 +46,16 @@ export default {
       // Copy as well color map options
       const colorMap = _.get(options, 'variables[0].chromajs')
       if (colorMap) Object.assign(leafletOptions, colorMap)
+      // Check for multiple levels if any
+      const levels = _.get(options, 'levels.values')
+      if (levels && levels.length > 0) {
+        // Keep track of available elements
+        leafletOptions.baseElements = leafletOptions.elements
+        // Select first available level or current one by default
+        const level = this.forecastLevel || levels[0]
+        this.forecastLevel = level
+        leafletOptions.elements = leafletOptions.baseElements.map(element => `${element}-${level}`)
+      }
       let layer = this.createLeafletLayer(options)
       // For visualization we might decimate the data resolution for performance reasons
       layer.setForecastModel(this.getVisualForecastModel(leafletOptions))
@@ -44,8 +67,10 @@ export default {
   },
   mounted () {
     this.$on('forecast-model-changed', this.updateVisualForecastModel)
+    this.$on('forecast-level-changed', this.updateForecastElements)
   },
   beforeDestroy () {
     this.$off('forecast-model-changed', this.updateVisualForecastModel)
+    this.$off('forecast-level-changed', this.updateForecastElements)
   }
 }

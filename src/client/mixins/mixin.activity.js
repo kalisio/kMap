@@ -28,6 +28,9 @@ export default function (name) {
       },
       viewStyle () {
         return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
+      },
+      variablesForCurrentLevel () {
+        return this.variables.map(variable => Object.assign(variable, { name: `${variable.name}-${this.forecastLevel}` }))
       }
     },
     methods: {
