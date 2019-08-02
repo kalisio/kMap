@@ -30,7 +30,10 @@ export default function (name) {
         return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
       },
       variablesForCurrentLevel () {
-        return this.variables.map(variable => Object.assign(variable, { name: `${variable.name}-${this.forecastLevel}` }))
+        return this.variables.map(variable => Object.assign({ name: `${variable.name}-${this.forecastLevel}` }, _.omit(variable, ['name'])))
+      },
+      currentVariables () {
+        return this.hasForecastLevels ? this.variablesForCurrentLevel : this.variables
       }
     },
     methods: {
