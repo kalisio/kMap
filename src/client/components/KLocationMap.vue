@@ -66,7 +66,7 @@ export default {
           markerColor: colors.getBrand('primary'),
           iconColor: '#FFFFFF',
           iconXOffset: 1,
-		      iconYOffset: 0
+          iconYOffset: 0
         }
       }
     }
@@ -107,7 +107,7 @@ export default {
       this.isModified = false
     },
     onLocationDragged () {
-      this.location.name = formatcoords(this.marker.getLatLng().lat, this.marker.getLatLng().lng).format($store.get('locationFormat', 'FFf'))
+      this.location.name = formatcoords(this.marker.getLatLng().lat, this.marker.getLatLng().lng).format(this.$store.get('locationFormat', 'FFf'))
       this.location.latitude = this.marker.getLatLng().lat
       this.location.longitude = this.marker.getLatLng().lng
       this.isModified = true

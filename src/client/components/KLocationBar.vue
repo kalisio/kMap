@@ -18,6 +18,8 @@
 </template>
 
 <script>
+import * as mixins from '../mixins'
+
 export default {
   name: 'k-location-bar',
   mixins: [
@@ -29,7 +31,7 @@ export default {
     },
     isToggleDense () {
       return this.isVisible
-    }
+    },
   },
   data () {
     return {

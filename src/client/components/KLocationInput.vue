@@ -99,10 +99,10 @@ export default {
   methods: {
     geolocate () {
       this.updatePosition()
-      let position = $store.get('user.position')
+      let position = this.$store.get('user.position')
       if (position) {
         this.location = {
-          name: formatcoords(position.latitude, position.longitude).format($store.get('locationFormat', 'FFf')),
+          name: formatcoords(position.latitude, position.longitude).format(this.$store.get('locationFormat', 'FFf')),
           latitude: position.latitude,
           longitude: position.longitude
         }
