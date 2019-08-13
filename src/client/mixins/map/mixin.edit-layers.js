@@ -129,7 +129,7 @@ export default {
         message: this.$t('mixins.editLayers.REMOVE_FEATURE_DIALOG_MESSAGE'),
         html: true,
         ok: {
-          label: this.$t('OK'), 
+          label: this.$t('OK')
         },
         cancel: {
           label: this.$t('CANCEL')

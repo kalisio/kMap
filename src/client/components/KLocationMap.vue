@@ -24,9 +24,8 @@
 
 <script>
 import L from 'leaflet'
-import _ from 'lodash'
 import formatcoords from 'formatcoords'
-import { colors, Dialog } from 'quasar'
+import { colors } from 'quasar'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 import * as mapMixins from '../mixins/map'
 
@@ -66,8 +65,8 @@ export default {
           iconClasses: 'fas fa-circle 0.75rem',
           markerColor: colors.getBrand('primary'),
           iconColor: '#FFFFFF',
-          iconXOffset: 1, 
-		      iconYOffset: 0,
+          iconXOffset: 1,
+		      iconYOffset: 0
         }
       }
     }
@@ -77,13 +76,13 @@ export default {
       location: this.defaultLocation(),
       isModified: false
     }
-  },  
+  },
   methods: {
     defaultLocation () {
       return {
         name: '',
-        latitude: $store.get('user.position.latitude', 0),
-        longitude: $store.get('user.position.longitude', 0)
+        latitude: this.$store.get('user.position.latitude', 0),
+        longitude: this.$store.get('user.position.longitude', 0)
       }
     },
     centerMap () {
@@ -97,7 +96,7 @@ export default {
       // Updated the marker
       if (!this.marker) {
         this.marker = L.marker([this.location.latitude, this.location.longitude], {
-          icon: L.icon.fontAwesome(this.markerStyle), 
+          icon: L.icon.fontAwesome(this.markerStyle),
           draggable: this.editable
         })
         this.marker.addTo(this.map)
@@ -105,11 +104,11 @@ export default {
       } else {
         this.marker.setLatLng([this.location.latitude, this.location.longitude])
       }
-      this.isModified = false 
+      this.isModified = false
     },
     onLocationDragged () {
       this.location.name = formatcoords(this.marker.getLatLng().lat, this.marker.getLatLng().lng).format($store.get('locationFormat', 'FFf'))
-      this.location.latitude = this.marker.getLatLng().lat 
+      this.location.latitude = this.marker.getLatLng().lat
       this.location.longitude = this.marker.getLatLng().lng
       this.isModified = true
     },
@@ -137,7 +136,7 @@ export default {
   },
   destroyed () {
     if (this.isModified) this.$emit('input', this.location)
-  },
+  }
 }
 </script>
 

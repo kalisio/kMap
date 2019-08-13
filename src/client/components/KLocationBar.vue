@@ -18,9 +18,6 @@
 </template>
 
 <script>
-import formatcoords from 'formatcoords'
-import * as mixins from '../mixins'
-
 export default {
   name: 'k-location-bar',
   mixins: [
@@ -32,7 +29,7 @@ export default {
     },
     isToggleDense () {
       return this.isVisible
-    },
+    }
   },
   data () {
     return {

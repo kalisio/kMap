@@ -74,9 +74,9 @@ export default {
       this.forecastLevel = level
       this.$emit('forecast-level-changed', this.forecastLevel)
     },
-    getFormatedForecastLevel(level) {
+    getFormatedForecastLevel (level) {
       const unit = _.get(this.forecastLevels, 'units[0]')
-      return `${level ? level : this.forecastLevel} ${unit}`
+      return `${level || this.forecastLevel} ${unit}`
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
@@ -157,7 +157,7 @@ export default {
         const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
         const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
         elements = elements.concat([windDirection, windSpeed])
-        
+
         let results = await this.weacastApi.getService('probe-results').find({
           query: {
             probeId: this.probe._id,

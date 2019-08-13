@@ -256,7 +256,7 @@ export default function (name) {
           message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
           html: true,
           ok: {
-            label: this.$t('OK'), 
+            label: this.$t('OK')
           },
           cancel: {
             label: this.$t('CANCEL')

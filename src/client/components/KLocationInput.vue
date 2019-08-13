@@ -42,7 +42,6 @@
 </template>
 
 <script>
-import _ from 'lodash'
 import formatcoords from 'formatcoords'
 import { formatGeocodingResult } from '../utils'
 import * as mixins from '../mixins'
@@ -104,7 +103,7 @@ export default {
       if (position) {
         this.location = {
           name: formatcoords(position.latitude, position.longitude).format($store.get('locationFormat', 'FFf')),
-          latitude: position.latitude, 
+          latitude: position.latitude,
           longitude: position.longitude
         }
       } else {
