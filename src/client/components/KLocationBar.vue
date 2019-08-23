@@ -3,7 +3,7 @@
     <!--
       The location input
      -->
-    <div v-show="isVisible" style="min-width: 40vw; max-width: 40vw;">
+    <div v-show="isVisible" :style="inputWidth()">
       <k-location-input
         class="k-location-bar-frame q-pa-none"
         :location-map="null"
@@ -13,7 +13,7 @@
     <!-- 
         The toggle control
       -->
-    <q-btn :icon="toggleIcon" :dense="isToggleDense" color="accent" @click="toggle()" />
+    <q-btn :icon="isVisible ? 'chevron_left' : 'search'" :dense="isVisible" color="secondary" @click="toggle()" />
   </div>
 </template>
 
@@ -25,20 +25,19 @@ export default {
   mixins: [
     mixins.geolocation
   ],
-  computed: {
-    toggleIcon () {
-      return this.isVisible ? 'chevron_left' : 'search'
-    },
-    isToggleDense () {
-      return this.isVisible
-    },
-  },
   data () {
     return {
       isVisible: false
     }
   },
   methods: {
+    inputWidth () {
+      if (this.$q.screen.lt.xs) return 'width: 65vw'
+      if (this.$q.screen.lt.sm) return 'width: 70vw'
+      if (this.$q.screen.lt.md) return 'width: 75vw'
+      if (this.$q.screen.lt.lg) return 'width: 80vw'
+      return 'width: 90vw'
+    },
     toggle () {
       this.isVisible = !this.isVisible
     },
