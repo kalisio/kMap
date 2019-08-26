@@ -350,7 +350,7 @@ export default function (name) {
       },
       geolocate () {
         if (!this.engineReady) {
-          logger.error('Engine not ready to geolocate')
+          // logger.error('Engine not ready to geolocate')
           return
         }
         if (_.get(this.$route, 'query.south')) return
@@ -361,8 +361,7 @@ export default function (name) {
         }
       },
       onLocationChanged (location) {
-        console.log(location)
-        this.center(location.longitude, location.latitude)
+        if (location) this.center(location.longitude, location.latitude)
       },
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
