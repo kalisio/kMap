@@ -52,8 +52,6 @@ export default function (name) {
         if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['create-layer'])
         const actions = _.get(this, 'activityOptions.actions', defaultActions)
         const hasFullscreenAction = (typeof this.onToggleFullscreen === 'function') && actions.includes('fullscreen')
-        const hasGeolocateAction = (typeof this.onGeolocate === 'function') && actions.includes('geolocate')
-        const hasGeocodingAction = (typeof this.onGeocoding === 'function') && actions.includes('geocode')
         const hasLocationIndicatorAction = (typeof this.createLocationIndicator === 'function') && actions.includes('track-location')
         const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && actions.includes('probe-location') && this.weacastApi && this.forecastModel
         const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && actions.includes('create-layer')
@@ -61,16 +59,6 @@ export default function (name) {
         if (hasFullscreenAction) {
           this.registerFabAction({
             name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
-          })
-        }
-        if (hasGeolocateAction) {
-          this.registerFabAction({
-            name: 'geolocate', label: this.$t('mixins.activity.GEOLOCATE'), icon: 'my_location', handler: this.onGeolocate
-          })
-        }
-        if (hasGeocodingAction) {
-          this.registerFabAction({
-            name: 'geocode', label: this.$t('mixins.activity.GEOCODE'), icon: 'location_searching', handler: this.onGeocoding
           })
         }
         if (hasLocationIndicatorAction) {
@@ -327,7 +315,7 @@ export default function (name) {
         this.geocodingModal.close(done)
         this.geocodingModal = null
       },
-      async onGeocoding () {
+      /*async onGeocoding () {
         const schema = await this.$load('geocoding', 'schema')
         this.geocodingModal = await this.$createComponent('frame/KModal', {
           propsData: {
@@ -355,14 +343,14 @@ export default function (name) {
           }
         }
         this.onCloseGeocoding(done)
-      },
+      },*/
       onTrackLocation () {
         if (!this.locationIndicator) this.createLocationIndicator()
         else this.removeLocationIndicator()
       },
       geolocate () {
         if (!this.engineReady) {
-          // logger.error('Engine not ready to geolocate')
+          logger.error('Engine not ready to geolocate')
           return
         }
         if (_.get(this.$route, 'query.south')) return
@@ -371,6 +359,10 @@ export default function (name) {
         if (position) {
           this.center(position.longitude, position.latitude)
         }
+      },
+      onLocationChanged (location) {
+        console.log(location)
+        this.center(location.longitude, location.latitude)
       },
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
@@ -456,6 +448,7 @@ export default function (name) {
     },
     created () {
       // Load the required components
+      this.$options.components['k-location-bar'] = this.$load('KLocationBar')
       this.$options.components['k-modal'] = this.$load('frame/KModal')
       this.$options.components['k-form'] = this.$load('form/KForm')
     },

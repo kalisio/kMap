@@ -5,7 +5,7 @@
      -->
     <div v-show="isVisible" :style="inputWidth()">
       <k-location-input
-        class="k-location-bar-frame q-pa-none"
+        class="k-location-bar-frame"
         :location-map="null"
         :dense="true"  
         @input="onLocationChanged" />
@@ -13,7 +13,7 @@
     <!-- 
         The toggle control
       -->
-    <q-btn :icon="isVisible ? 'chevron_left' : 'search'" :dense="isVisible" color="secondary" @click="toggle()" />
+    <q-btn :icon="isVisible ? 'chevron_left' : 'search'" :dense="isVisible" color="accent" @click="toggle()" />
   </div>
 </template>
 
@@ -32,17 +32,17 @@ export default {
   },
   methods: {
     inputWidth () {
-      if (this.$q.screen.lt.xs) return 'width: 65vw'
-      if (this.$q.screen.lt.sm) return 'width: 70vw'
-      if (this.$q.screen.lt.md) return 'width: 75vw'
+      if (this.$q.screen.lt.xs) return 'width: 50vw'
+      if (this.$q.screen.lt.sm) return 'width: 60vw'
+      if (this.$q.screen.lt.md) return 'width: 70vw'
       if (this.$q.screen.lt.lg) return 'width: 80vw'
-      return 'width: 90vw'
+      return 'width: 85vw'
     },
     toggle () {
       this.isVisible = !this.isVisible
     },
     onLocationChanged (location) {
-      this.$emit('location-changed', location)
+      if (location) this.$emit('location-changed', location)
     }
   },
   created () {
