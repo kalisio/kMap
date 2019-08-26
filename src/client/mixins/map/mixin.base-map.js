@@ -289,6 +289,6 @@ export default {
     this.$off('current-time-changed', this.onCurrentMapTimeChanged)
   },
   destroyed () {
-    this.map.remove()
+    if (this.map) this.map.remove()
   }
 }

@@ -26,7 +26,7 @@
     "url": "https://github.com/kalisio/kMap/issues"
   },
   "engines": {
-    "node": ">= 4.6.0"
+    "node": ">= 8"
   },
   "scripts": {
     "prepublish": "npm run compile",
@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@kalisio/kdk-core": "^1.1.0",
+    "@quasar/extras": "^1.2.0",
     "@turf/turf": "^5.1.6",
     "Leaflet.Geodesic": "https://github.com/henrythasler/Leaflet.Geodesic",
     "cesium": "^1.38.0",
@@ -89,24 +90,19 @@
     "moment": "^2.22.2",
     "node-geocoder": "^3.21.1",
     "pixi.js": "5.0.4",
-    "quasar-extras": "0.0.8",
-    "quasar-framework": "0.14.7",
+    "quasar": "^1.0.5",
     "sift": "^6.0.0",
     "togeojson": "^0.16.0",
-    "vue": "2.5.17",
     "weacast-core": "^1.0.0",
     "weacast-leaflet": "^1.0.0",
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-core": "^6.24.1",
+    "@quasar/app": "^1.0.4",
+    "babel-cli": "^6.26.0",
     "babel-eslint": "^7.2.3",
-    "babel-loader": "^7.1.2",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-transform-export-extensions": "^6.22.0",
-    "babel-plugin-transform-runtime": "^6.0.0",
-    "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.7.0",
     "chai": "^3.5.0",
     "chai-lint": "^0.1.1",
@@ -120,10 +116,7 @@
     "npm-run-all": "^4.1.1",
     "shx": "^0.2.2",
     "standard": "^10.0.2",
-    "superagent": "^3.5.2",
-    "vue-loader": "~12.2.2",
-    "vue-style-loader": "3.0.1",
-    "vue-template-compiler": "2.5.2"
+    "superagent": "^3.5.2"
   },
   "peerDependencies": {}
 }

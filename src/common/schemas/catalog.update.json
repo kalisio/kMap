@@ -43,6 +43,6 @@
       }
     }
   },
-  "required": ["name", "description", "schema"]
+  "required": ["name", "description", "featureId", "schema"]
 }
 

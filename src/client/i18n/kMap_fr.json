@@ -160,10 +160,11 @@
     "CATALOG_SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"
   },
   "KLocationField": {
-    "PLACEHOLDER": "$t(SEARCH)"
+    "NO_RESULTS": "$t(EMPTY)"
   },
   "KLocationMap": {
-    "CLOSE_ACTION": "$t(CLOSE)"
+    "RESTORE_BUTTON": "Restaurer la position",
+    "RECENTER_BUTTON": "Recentrer la carte"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Fonds cartographiques",

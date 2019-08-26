@@ -55,11 +55,17 @@ export default {
         this.hideColorLegend()
       }
     },
+    onColorLegendUpdateForecastLevel () {
+      const layer = this.legendLayer
+      const engineLayer = this.legendEngineLayer
+      this.updateColorLegend(null, null)
+      this.updateColorLegend(layer, engineLayer)
+    },
     addColorLegend (layer, engineLayer) {
       this.updateColorLegend(layer, engineLayer)
     },
     hideColorLegend () {
-      this.updateColorLegend(null)
+      this.updateColorLegend(null, null)
     },
     setColorLegend (visible, unit, hint, colorMap, colors, values, unitValues, showGradient) {
       this.colorLegend.visible = visible
@@ -203,6 +209,7 @@ export default {
     this.resetColorLegend()
     this.$on('layer-shown', this.onColorLegendShowLayer)
     this.$on('layer-hidden', this.onColorLegendHideLayer)
+    this.$on('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
   },
   beforeDestroy () {
     // Delete reference to the legend layer
@@ -211,5 +218,6 @@ export default {
     this.resetColorLegend()
     this.$off('layer-shown', this.onColorLegendShowLayer)
     this.$off('layer-hidden', this.onColorLegendHideLayer)
+    this.$off('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
   }
 }

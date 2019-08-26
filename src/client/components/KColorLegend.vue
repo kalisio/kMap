@@ -4,7 +4,7 @@
       ref="legend"
       @click="onClick"
   >
-    <q-resize-observable @resize="onResize" />  
+    <q-resize-observer @resize="onResize" />  
 
     <q-tooltip v-show="hint" v-html="hint"></q-tooltip>
 
@@ -31,14 +31,8 @@
 </template>
 
 <script>
-import { QResizeObservable, QTooltip } from 'quasar'
-
 export default {
   name: 'k-color-legend',
-  components: {
-    QResizeObservable,
-    QTooltip
-  },
   props: [
     'unit',
     'hint',

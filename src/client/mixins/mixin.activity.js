@@ -1,8 +1,6 @@
 import _ from 'lodash'
 import logger from 'loglevel'
-import moment from 'moment'
-import { Events, Dialog } from 'quasar'
-import { errors } from '../../common'
+import { Dialog } from 'quasar'
 
 export default function (name) {
   return {
@@ -32,7 +30,10 @@ export default function (name) {
         return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
       },
       variablesForCurrentLevel () {
-        return this.variables.map(variable => Object.assign(variable, { name: `${variable.name}-${this.forecastLevel}` }))
+        return this.variables.map(variable => Object.assign({ name: `${variable.name}-${this.forecastLevel}` }, _.omit(variable, ['name'])))
+      },
+      currentVariables () {
+        return this.hasForecastLevels ? this.variablesForCurrentLevel : this.variables
       }
     },
     methods: {
@@ -43,7 +44,7 @@ export default function (name) {
       },
       getGeocodingButtons () {
         return [
-          { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: (event, done) => this.onGeocode(done) }
+          { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: () => this.onGeocode() }
         ]
       },
       registerActivityActions () {
@@ -253,25 +254,24 @@ export default function (name) {
         Dialog.create({
           title: this.$t('mixins.activity.REMOVE_DIALOG_TITLE', { layer: layer.name }),
           message: this.$t('mixins.activity.REMOVE_DIALOG_MESSAGE', { layer: layer.name }),
-          buttons: [
-            {
-              label: this.$t('OK'),
-              handler: async () => {
-                // Stop any running edition
-                if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
-                if (layer._id) {
-                  // If persistent feature layer remove features as well
-                  if (layer.service === 'features') {
-                    await this.removeFeatures(layer._id)
-                  }
-                  await this.$api.getService('catalog').remove(layer._id)
-                }
-                this.removeLayer(layer.name)
-              }
-            }, {
-              label: this.$t('CANCEL')
+          html: true,
+          ok: {
+            label: this.$t('OK')
+          },
+          cancel: {
+            label: this.$t('CANCEL')
+          }
+        }).onOk(async () => {
+          // Stop any running edition
+          if (this.isLayerEdited(layer.name)) await this.editLayer(layer.name)
+          if (layer._id) {
+            // If persistent feature layer remove features as well
+            if (layer.service === 'features') {
+              await this.removeFeatures(layer._id)
             }
-          ]
+            await this.$api.getService('catalog').remove(layer._id)
+          }
+          this.removeLayer(layer.name)
         })
       },
       onMapReady () {
@@ -344,7 +344,7 @@ export default function (name) {
         this.geocodingModal.$mount()
         this.geocodingModal.open()
       },
-      onGeocode (done) {
+      onGeocode () {
         const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
         if (geocodingForm) {
           let result = geocodingForm.validate()
@@ -463,18 +463,18 @@ export default function (name) {
       this.$on('map-ready', this.onMapReady)
       this.$on('globe-ready', this.onGlobeReady)
       this.$on('layer-added', this.onLayerAdded)
-      Events.$on('user-position-changed', this.geolocate)
+      this.$events.$on('user-position-changed', this.geolocate)
       // Whenever restore view settings are updated, update view as well
-      Events.$on('restore-view-changed', this.updateViewSettings)
-      Events.$on('error', this.onGeolocationError)
+      this.$events.$on('restore-view-changed', this.updateViewSettings)
+      this.$events.$on('error', this.onGeolocationError)
     },
     beforeDestroy () {
       this.$off('map-ready', this.onMapReady)
       this.$off('globe-ready', this.onGlobeReady)
       this.$off('layer-added', this.onLayerAdded)
-      Events.$off('user-position-changed', this.geolocate)
-      Events.$off('restore-view-changed', this.updateViewSettings)
-      Events.$off('error', this.onGeolocationError)
+      this.$events.$off('user-position-changed', this.geolocate)
+      this.$events.$off('restore-view-changed', this.updateViewSettings)
+      this.$events.$off('error', this.onGeolocationError)
     }
   }
 }

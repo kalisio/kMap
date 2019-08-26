@@ -1,15 +1,20 @@
 <template>
-  <div class="row justify-center">
-    <q-list dense no-border>
+  <div>
+    <q-list dense>
       <template v-for="model in forecastModels">
-        <q-item :id="model.name" :key="model.name" inset-separator link @click="onModelClicked(model)">
-        <q-item-side v-if="!model.iconUrl" :icon="model.icon || 'fa-globe'" left>
-        </q-item-side>
-        <q-item-side v-else :avatar="model.iconUrl" left>
-        </q-item-side>
-        <q-item-main :label="model.label" :sublabel="model.description" :tag="model.name === selected.name ? 'b' : 'i'"></q-item-main>
-        <q-item-side right>
-        </q-item-side>
+        <q-item :id="model.name" :key="model.name" :active="selected.name === model.name" active-class="selected" v-ripple clickable dense @click="onModelClicked(model)">
+          <q-item-section avatar>
+            <q-icon v-if="!model.iconUrl" :name="model.icon || 'fas fa-globe'" />
+            <img v-else :src="model.iconUrl" width="32" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label lines="1">
+             {{ model.label }}
+            </q-item-label>
+            <q-item-label caption lines="2">
+             {{ model.description }}
+            </q-item-label>
+          </q-item-section>
       </q-item>
       </template>
     </q-list>
@@ -17,21 +22,10 @@
 </template>
 
 <script>
-import { QCollapsible, QBtn, QIcon, QTooltip, QList, QItem, QItemSide, QItemTile, QItemMain } from 'quasar'
+import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-forecast-models-selector',
-  components: {
-    QCollapsible,
-    QBtn,
-    QIcon,
-    QList,
-    QItem,
-    QItemSide,
-    QItemTile,
-    QItemMain,
-    QTooltip
-  },
   data () {
     return {
       selected: {}
@@ -49,6 +43,11 @@ export default {
     forecastModel: {
       type: Object,
       default: () => {}
+    }
+  },
+  computed: {
+    iconName () {
+      return kCoreUtils.getIconName(this.selected)
     }
   },
   watch: {
@@ -70,3 +69,8 @@ export default {
 }
 </script>
 
+<style>
+.selected {
+  font-weight: bold;
+}
+</style>

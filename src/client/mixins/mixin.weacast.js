@@ -10,7 +10,13 @@ export default {
     return {
       forecastModel: null,
       forecastModels: [],
-      forecastLevel: null
+      forecastLevel: 0,
+      forecastLevels: {}
+    }
+  },
+  computed: {
+    hasForecastLevels () {
+      return _.get(this.forecastLevels, 'values', []).length > 0
     }
   },
   methods: {
@@ -67,6 +73,10 @@ export default {
     setForecastLevel (level) {
       this.forecastLevel = level
       this.$emit('forecast-level-changed', this.forecastLevel)
+    },
+    getFormatedForecastLevel (level) {
+      const unit = _.get(this.forecastLevels, 'units[0]')
+      return `${level || this.forecastLevel} ${unit}`
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
@@ -222,14 +232,30 @@ export default {
     },
     onCurrentForecastTimeChanged (time) {
       this.weacastApi.setForecastTime(time)
+    },
+    onWeacastShowLayer (layer, engineLayer) {
+      // Check for valid types
+      const levels = _.get(layer, 'levels')
+      if (!levels) return
+      this.forecastLevels = levels
+      this.forecastLevelsLayer = layer
+    },
+    onWeacastHideLayer (layer) {
+      if (this.forecastLevelsLayer && (this.forecastLevelsLayer._id === layer._id)) {
+        this.forecastLevels = []
+      }
     }
   },
   created () {
     this.$on('current-time-changed', this.onCurrentForecastTimeChanged)
+    this.$on('layer-shown', this.onWeacastShowLayer)
+    this.$on('layer-hidden', this.onWeacastHideLayer)
   },
   mounted () {
   },
   beforeDestroy () {
     this.$off('current-time-changed', this.onCurrentForecastTimeChanged)
+    this.$off('layer-shown', this.onWeacastShowLayer)
+    this.$off('layer-hidden', this.onWeacastHideLayer)
   }
 }

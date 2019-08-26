@@ -6,7 +6,6 @@
 </template>
 
 <script>
-
 import _ from 'lodash'
 import moment from 'moment'
 import Chart from 'chart.js'
@@ -251,6 +250,9 @@ export default {
 
       this.chart = new Chart(this.$refs.chart.getContext('2d'), this.config)
     }
+  },
+  async mounted () {
+    this.setupGraph()
   }
 }
 </script>

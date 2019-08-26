@@ -1,45 +1,42 @@
 <template>
-  <div class="row justify-center">
-    <q-list dense no-border>
+  <div>
+    <q-list dense>
       <template v-for="layer in layers">
-        <!--q-btn v-if="options.buttons"
-          :id ="layer.name" 
-          :key="layer.name" 
-          round
-          :icon="layer.icon"
-          :flat="!layer.isVisible" 
-          :outline="layer.isVisible" 
-          @click="onLayerClicked(layer, selection)">
-          <img v-if="!layer.icon" :src="layer.iconUrl" width="32" height="32" />
-          <q-tooltip>
-            {{layer.name}}
-          </q-tooltip>
-        </q-btn-->
-        <q-item :class="{ selected: layer.isVisible }" :id="layer.name | kebabCase" :key="layer.name" inset-separator link @click="onLayerClicked(layer, layers)">
-          <q-item-side v-if="!layer.iconUrl" :icon="layer.icon" left>
-          </q-item-side>
-          <q-item-side v-else :avatar="layer.iconUrl" left>
-          </q-item-side>
-          <q-item-main :label="layer.name" :sublabel="layer.description" :tag="layer.isVisible ? 'b' : 'i'"></q-item-main>
-          <q-item-side right>
-            <!-- Actions -->
-            <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" flat small round>
-              <q-popover id="layer-overflow-menu" :ref="'menu-' + layer.name">
-                <q-list>
-                  <template v-for="action in layer.actions">
-                    <q-item :id="action.name" link :key="key(layer, action.name)" @click="onActionTriggered(action, layer)">
-                      <q-item-side :icon="action.icon" />
-                      <q-item-main>
-                        {{action.label}}
-                      </q-item-main>
-                    </q-item>
-                  </template>
-                </q-list>
-              </q-popover>
-              <q-icon color="grey-7" name="more_vert"></q-icon>
-            </q-btn>
-          </q-item-side>
-          <q-tooltip v-if="layer.tooltip" :delay="1000">{{layer.tooltip}}</q-tooltip>
+        <q-item :id="layer.name" :key="layer.name" :active="layer.isVisible" active-class="selected" dense v-ripple clickable @click="onLayerClicked(layer)">
+          <q-item-section avatar @mouseover="onOverLayer(layer)">
+            <q-icon v-if="!layer.iconUrl" :name="layer.icon" />
+            <img v-else :src="layer.iconUrl" width="32" />
+          </q-item-section>
+          <q-item-section @mouseover="onOverLayer(layer)">
+            <q-item-label lines="1">
+             {{ layer.name }}
+            </q-item-label>
+            <q-item-label caption lines="2">
+             {{ layer.description }}
+            </q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <div class="q-gutter-xs">
+              <q-btn id="layer-overflow-menu-entry" v-if="layer.actions && layer.actions.length > 0" icon="more_vert" size="sm" flat round dense @mouseover="onOverLayerMenu(layer)">
+                <q-menu :ref="key(layer, 'menu')">
+                  <q-list dense>
+                    <template v-for="action in layer.actions">
+                      <q-item :id="action.name" :key="key(layer, action.name)" clickable @click="onActionTriggered(action, layer)">
+                        <q-item-section v-if="action.icon" avatar>
+                          <q-icon :name="action.icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label lines="1">
+                            {{action.label}}
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-list>
+                </q-menu>   
+              </q-btn>
+            </div>
+          </q-item-section>
         </q-item>
       </template>
     </q-list>
@@ -48,21 +45,10 @@
 
 <script>
 import _ from 'lodash'
-import { QBtn, QIcon, QPopover, QList, QItem, QItemSide, QItemTile, QItemMain, QTooltip } from 'quasar'
+import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-layers-selector',
-  components: {
-    QBtn,
-    QIcon,
-    QList,
-    QItem,
-    QItemSide,
-    QItemTile,
-    QItemMain,
-    QPopover,
-    QTooltip
-  },
   props: {
     layers: {
       type: Array,
@@ -81,19 +67,40 @@ export default {
     key (layer, action) {
       return layer.name + '-' + action
     },
+    layerIcon (layer) {
+      return kCoreUtils.getIconName(layer, 'icon')
+    },
     callHandler (action, layer) {
       if (this.layerHandlers[action.name]) this.layerHandlers[action.name](layer)
     },
-    onLayerClicked (layer, layers) {
+    onLayerClicked (layer) {
+      // Open menu whenever required
+      if (this.overMenu) {
+        // refs can be array due to v-for
+        let menu = _.get(this.$refs, `${layer.name}-menu`)
+        if (Array.isArray(menu)) menu = menu[0]
+        if (menu) menu.toggle()
+        return
+      }
+      // Otherwise standard selection
       if (this.options.exclusive) {
-        let selectedLayer = _.find(layers, { isVisible: true })
+        let selectedLayer = _.find(this.layers, { isVisible: true })
         if (selectedLayer) this.callHandler({ name: 'toggle' }, selectedLayer)
         if (layer === selectedLayer) return
       }
       this.callHandler({ name: 'toggle' }, layer)
     },
+    onOverLayer (layer) {
+      this.overMenu = false
+    },
+    onOverLayerMenu (layer) {
+      this.overMenu = true
+    },
     onActionTriggered (action, layer) {
-      this.$refs['menu-' + layer.name][0].close(() => this.callHandler(action, layer))
+      // refs are array due to v-for
+      const menu = _.get(this.$refs, `${layer.name}-menu[0]`)
+      if (menu) menu.hide()
+      this.callHandler(action, layer)
     }
   }
 }
@@ -101,6 +108,6 @@ export default {
 
 <style>
 .selected {
-  background: #e0e0e0;
+  font-weight: bold;
 }
 </style>

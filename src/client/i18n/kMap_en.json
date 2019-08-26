@@ -163,10 +163,11 @@
     "CATALOG_SCHEMA_FIELD_HELPER": "Select a data scheme"
   },
   "KLocationField": {
-    "PLACEHOLDER": "$t(SEARCH)"
+    "NO_RESULTS": "$t(EMPTY)"
   },
   "KLocationMap": {
-    "CLOSE_ACTION": "$t(CLOSE)"
+    "RESTORE_BUTTON": "Restore position",
+    "RECENTER_BUTTON": "Recenter map"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Base Layers",
