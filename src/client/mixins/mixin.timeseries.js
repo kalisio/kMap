@@ -4,9 +4,7 @@ import moment from 'moment'
 export default {
   data () {
     return {
-      probedLocation: null,
-      probedStartTime: null,
-      probedEndTime: null
+      probedLocation: null
     }
   },
   computed: {
