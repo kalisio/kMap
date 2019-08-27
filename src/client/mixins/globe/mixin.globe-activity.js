@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import Cesium from 'cesium/Source/Cesium.js'
 
 export default {

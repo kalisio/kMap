@@ -16,7 +16,7 @@ export function getNearestTime (time, times) {
   let timeIndex = -1
   let minDiff = Infinity
   times.forEach((currentTime, index) => {
-    let diff = Math.abs(time.diff(currentTime))
+    const diff = Math.abs(time.diff(currentTime))
     if (diff < minDiff) {
       minDiff = diff
       timeIndex = index
@@ -31,7 +31,7 @@ export function getTimeInterval (times, mode = 'minimum') {
   let interval = (mode === 'minimum' ? Infinity : 0)
   times.forEach((currentTime, index) => {
     if (index < (times.length - 1)) {
-      let diff = Math.abs(currentTime.diff(times[index + 1]))
+      const diff = Math.abs(currentTime.diff(times[index + 1]))
       if (mode === 'minimum') {
         if (diff < interval) interval = diff
       } else {

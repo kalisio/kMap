@@ -17,7 +17,7 @@ export default {
     refreshGlobe () {
     },
     setupGlobe (domEl, token, options) {
-      let viewerOptions = options || this.options.viewer
+      const viewerOptions = options || this.options.viewer
       if (token) Cesium.Ion.defaultAccessToken = token
       // Initialize the globe
       Object.assign(viewerOptions, {
@@ -39,7 +39,7 @@ export default {
     },
     processCesiumLayerOptions (options) {
       // Because we update objects in place and don't want cesium internal objects to be reactive
-      let processedOptions = _.cloneDeep(options)
+      const processedOptions = _.cloneDeep(options)
       // Transform from string to actual object
       processedOptions.cesium.iconUrl = Cesium.buildModuleUrl(processedOptions.iconUrl)
       // Copy generic options
@@ -79,7 +79,7 @@ export default {
       this.cesiumHandlers.removeInputAction(Cesium.ScreenSpaceEventType[eventType])
     },
     async createLayer (options) {
-      let processedOptions = this.processCesiumLayerOptions(options)
+      const processedOptions = this.processCesiumLayerOptions(options)
       let layer
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.cesiumFactory.length; i++) {
@@ -97,9 +97,9 @@ export default {
       return _.has(this.layers, name)
     },
     isLayerVisible (name) {
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return false
-      let cesiumLayer = this.getCesiumLayerByName(name)
+      const cesiumLayer = this.getCesiumLayerByName(name)
       if (this.isTerrainLayer(layer.cesium)) {
         return this.viewer.terrainProvider === cesiumLayer
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
@@ -116,7 +116,7 @@ export default {
     },
     async showLayer (name) {
       // Retieve the layer
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
@@ -137,13 +137,13 @@ export default {
     },
     hideLayer (name) {
       // retrieve the layer
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
       if (!this.isLayerVisible(name)) return
       layer.isVisible = false
       // Remove the cesium layer from globe
-      let cesiumLayer = this.cesiumLayers[name]
+      const cesiumLayer = this.cesiumLayers[name]
       if (this.isTerrainLayer(layer.cesium)) {
         this.viewer.terrainProvider = null
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
@@ -225,7 +225,7 @@ export default {
       const west = Cesium.Math.toDegrees(bounds.west)
       const north = Cesium.Math.toDegrees(bounds.north)
       const east = Cesium.Math.toDegrees(bounds.east)
-      return [ [south, west], [north, east] ]
+      return [[south, west], [north, east]]
     },
     setCursor (className) {
       this.viewer.container.classList.add(className)
@@ -262,7 +262,7 @@ export default {
       return position
     },
     getDefaultPickHandler (event) {
-      let emittedEvent = {}
+      const emittedEvent = {}
       let options
       let pickedPosition = this.viewer.camera.pickEllipsoid(event.endPosition || event.position, this.viewer.scene.globe.ellipsoid)
       if (pickedPosition) {

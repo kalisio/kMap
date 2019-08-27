@@ -3,7 +3,7 @@ import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
 import { GradientPath } from '../../leaflet/GradientPath'
-import { fetchGeoJson, LeafletEvents, LeafletStyleMappings, bindLeafletEvents } from '../../utils'
+import { fetchGeoJson, LeafletEvents, bindLeafletEvents } from '../../utils'
 
 // Override default Leaflet GeoJson utility to manage some specific use cases
 const geometryToLayer = L.GeoJSON.geometryToLayer
@@ -15,7 +15,7 @@ L.GeoJSON.geometryToLayer = function (geojson, options) {
       return new L.Geodesic([L.GeoJSON.coordsToLatLngs(geometry.coordinates, 0)],
         Object.assign({ steps: 100 }, options.style(geojson)))
     } else if (geometry.type === 'Point') {
-      let layer = new L.Geodesic([], Object.assign({ fill: true, steps: 360 }, options.style(geojson)))
+      const layer = new L.Geodesic([], Object.assign({ fill: true, steps: 360 }, options.style(geojson)))
       layer.createCircle(L.GeoJSON.coordsToLatLng(geometry.coordinates), properties.radius)
       return layer
     }
@@ -31,14 +31,14 @@ L.GeoJSON.geometryToLayer = function (geojson, options) {
 export default {
   methods: {
     processRealtimeGeoJsonLayerOptions (options) {
-      let leafletOptions = options.leaflet || options
+      const leafletOptions = options.leaflet || options
       // Alter type as required by the plugin
       leafletOptions.type = 'realtime'
       // We first need to create an underlying container or setup Id function
       const id = _.get(options, 'featureId', _.get(leafletOptions, 'id', '_id'))
       if (id) _.set(leafletOptions, 'getFeatureId', (feature) => _.get(feature, 'properties.' + id, _.get(feature, id)))
-      let container = _.get(leafletOptions, 'container')
-    // If container given and not already instanciated, do it
+      const container = _.get(leafletOptions, 'container')
+      // If container given and not already instanciated, do it
       if (typeof container === 'string') {
         leafletOptions.container = this.createLeafletLayer({ type: container })
       }
@@ -125,8 +125,8 @@ export default {
       }
     },
     async processGeoJsonLayerOptions (options) {
-      let leafletOptions = options.leaflet || options
-      let dataSource = _.get(leafletOptions, 'source')
+      const leafletOptions = options.leaflet || options
+      const dataSource = _.get(leafletOptions, 'source')
       if (_.isNil(dataSource)) {
         // Empty valid GeoJson
         _.set(leafletOptions, 'source', { type: 'FeatureCollection', features: [] })
@@ -142,11 +142,11 @@ export default {
       }
     },
     processClusterLayerOptions (options) {
-      let leafletOptions = options.leaflet || options
+      const leafletOptions = options.leaflet || options
       leafletOptions.container = this.createLeafletLayer(Object.assign({ type: 'markerClusterGroup' }, leafletOptions.cluster))
     },
     async createLeafletGeoJsonLayer (options) {
-      let leafletOptions = options.leaflet || options
+      const leafletOptions = options.leaflet || options
       // Check for valid type
       if (leafletOptions.type !== 'geoJson') return
 
@@ -167,7 +167,7 @@ export default {
           await this.processGeoJsonLayerOptions(options)
         }
         // Optimize templating by creating compilers up-front
-        let layerStyleTemplate = _.get(leafletOptions, 'template')
+        const layerStyleTemplate = _.get(leafletOptions, 'template')
         if (layerStyleTemplate) {
           // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
           leafletOptions.template = layerStyleTemplate.map(property => ({
@@ -183,7 +183,7 @@ export default {
           leafletOptions.tooltip.compiler = _.template(tooltipTemplate)
         }
         // Merge generic GeoJson options and layer options
-        let geoJsonOptions = this.getGeoJsonOptions(options)
+        const geoJsonOptions = this.getGeoJsonOptions(options)
         Object.keys(geoJsonOptions).forEach(key => {
           // If layer provided do not override
           if (!_.has(leafletOptions, key)) _.set(leafletOptions, key, _.get(geoJsonOptions, key))
@@ -214,14 +214,14 @@ export default {
       }
     },
     getGeoJsonOptions (options = {}) {
-      let geojsonOptions = {
+      const geojsonOptions = {
         onEachFeature: (feature, layer) => {
           // Check for custom onEachFeature function
           if (typeof this.onLeafletFeature === 'function') this.onLeafletFeature(feature, layer, options)
           // Then for tooltip/popup
           // First remove previous popup if any
           if (layer.getPopup()) layer.unbindPopup()
-          let popup = this.generateLeafletStyle('popup', feature, layer, options)
+          const popup = this.generateLeafletStyle('popup', feature, layer, options)
           if (popup) {
             // Because we build a new popup we need to restore previous state
             const wasOpen = (layer.getPopup() && layer.isPopupOpen())
@@ -231,7 +231,7 @@ export default {
           }
           // First remove previous tooltip if any
           if (layer.getTooltip()) layer.unbindTooltip()
-          let tooltip = this.generateLeafletStyle('tooltip', feature, layer, options)
+          const tooltip = this.generateLeafletStyle('tooltip', feature, layer, options)
           if (tooltip) {
             // Because we build a new tooltip we need to restore previous state
             const wasOpen = (layer.getTooltip() && layer.isTooltipOpen())
@@ -244,7 +244,7 @@ export default {
           return this.generateLeafletStyle('featureStyle', feature, options)
         },
         pointToLayer: (feature, latlng) => {
-          let marker = this.generateLeafletStyle('markerStyle', feature, latlng, options)
+          const marker = this.generateLeafletStyle('markerStyle', feature, latlng, options)
           if (latlng && marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
           return marker
         }

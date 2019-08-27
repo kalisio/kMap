@@ -55,7 +55,7 @@ export default {
             cluster: { disableClusteringAtZoom: 18 }
           }
         })
-        let fileLayer = this.getLeafletLayerByName(event.filename)
+        const fileLayer = this.getLeafletLayerByName(event.filename)
         event.layer.addTo(fileLayer)
         this.map.fitBounds(fileLayer.getBounds())
       })

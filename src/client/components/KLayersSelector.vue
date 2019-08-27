@@ -33,7 +33,7 @@
                       </q-item>
                     </template>
                   </q-list>
-                </q-menu>   
+                </q-menu>
               </q-btn>
             </div>
           </q-item-section>
@@ -84,7 +84,7 @@ export default {
       }
       // Otherwise standard selection
       if (this.options.exclusive) {
-        let selectedLayer = _.find(this.layers, { isVisible: true })
+        const selectedLayer = _.find(this.layers, { isVisible: true })
         if (selectedLayer) this.callHandler({ name: 'toggle' }, selectedLayer)
         if (layer === selectedLayer) return
       }

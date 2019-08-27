@@ -3,8 +3,8 @@ import { hooks as coreHooks } from '@kalisio/kdk-core'
 module.exports = {
   before: {
     all: [],
-    find: [ hook => {
-      let query = hook.params.query || {}
+    find: [hook => {
+      const query = hook.params.query || {}
       // Filter objects according to target type (either layers or services)
       if (query.type) {
         switch (query.type) {
@@ -19,9 +19,9 @@ module.exports = {
       }
     }],
     get: [],
-    create: [ coreHooks.convertObjectIDs(['baseQuery.layer']) ],
-    update: [ coreHooks.convertObjectIDs(['baseQuery.layer']) ],
-    patch: [ coreHooks.convertObjectIDs(['baseQuery.layer']) ],
+    create: [coreHooks.convertObjectIDs(['baseQuery.layer'])],
+    update: [coreHooks.convertObjectIDs(['baseQuery.layer'])],
+    patch: [coreHooks.convertObjectIDs(['baseQuery.layer'])],
     remove: []
   },
 
@@ -32,7 +32,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: [ coreHooks.removeAttachments('schema') ]
+    remove: [coreHooks.removeAttachments('schema')]
   },
 
   error: {

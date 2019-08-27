@@ -29,7 +29,7 @@ export default {
       const isWeatherProbe = (_.has(this.probedLocation, `properties.${windDirection}`) &&
                               _.has(this.probedLocation, `properties.${windSpeed}`))
       // Get any previous layer or create it the first time
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) {
         await this.addLayer({
           name,
@@ -76,7 +76,7 @@ export default {
       }
     },
     onProbeLocation () {
-      let probe = async (options, event) => {
+      const probe = async (options, event) => {
         this.unsetCursor('probe-cursor')
         await this.getForecastForLocation(event.latlng.lng, event.latlng.lat,
           moment.utc(this.timeline.start), moment.utc(this.timeline.end))
@@ -87,7 +87,7 @@ export default {
     },
     async onProbeFeatureClicked (options, event) {
       let feature = _.get(event, 'target.feature')
-      let entity = event.target
+      const entity = event.target
       if (!feature && !entity) return
       // For Cesium we have a different setup
       if (this.engine === 'cesium') {
@@ -98,8 +98,6 @@ export default {
       const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
       const isWeatherProbe = (_.has(feature, `properties.${windDirection}`) &&
                               _.has(feature, `properties.${windSpeed}`))
-      const isWeatherProbedLocation = (this.probedLocation && _.has(this.probedLocation, `properties.${windDirection}`) &&
-                                       _.has(this.probedLocation, `properties.${windSpeed}`))
       let hasTimeseries = true
       // Update timeseries data if required
       if (options.probe) { // Static weacast probe

@@ -10,9 +10,9 @@ export default {
     navigate (longitude, latitude) {
       if (this.$q.platform.is.cordova) {
         if (window.navigationApps.length > 1) {
-          let actions = []
+          const actions = []
           window.navigationApps.forEach((navApp) => {
-            let action = {
+            const action = {
               label: window.launchnavigator.getAppDisplayName(navApp),
               handler: () => window.launchnavigator.navigate([latitude, longitude], { app: navApp })
             }

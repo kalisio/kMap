@@ -14,7 +14,7 @@
       :options="options"
       option-label="name"
       option-value="name"
-      @filter="onSearch" 
+      @filter="onSearch"
       @input="onUpdated">
       <template v-slot:selected>
         {{ locationName }}
@@ -99,7 +99,7 @@ export default {
   methods: {
     geolocate () {
       this.updatePosition()
-      let position = this.$store.get('user.position')
+      const position = this.$store.get('user.position')
       if (position) {
         this.location = {
           name: formatcoords(position.latitude, position.longitude).format(this.$store.get('locationFormat', 'FFf')),
@@ -120,19 +120,19 @@ export default {
       const geocoderService = this.$api.getService('geocoder')
       if (!geocoderService) throw Error('Cannot find geocoder service')
       geocoderService.create({ address: pattern })
-      .then(response => {
-        let places = []
-        response.forEach(element => {
-          let label = formatGeocodingResult(element)
-          let place = {
-            name: label,
-            latitude: element.latitude,
-            longitude: element.longitude
-          }
-          places.push(place)
+        .then(response => {
+          const places = []
+          response.forEach(element => {
+            const label = formatGeocodingResult(element)
+            const place = {
+              name: label,
+              latitude: element.latitude,
+              longitude: element.longitude
+            }
+            places.push(place)
+          })
+          update(() => { this.options = places })
         })
-        update(() => { this.options = places })
-      })
     },
     onUpdated (value) {
       this.$emit('input', this.location)

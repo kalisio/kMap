@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import moment from 'moment'
 
 export default {
   data () {
@@ -40,7 +39,7 @@ export default {
     async onFeatureActionButtons (layer, event) {
       const leafletLayer = event && event.target
       if (!leafletLayer) return
-      let feature = _.get(leafletLayer, 'feature')
+      const feature = _.get(leafletLayer, 'feature')
       if (!feature) return
       this.refreshFeatureActions(feature, layer)
       // Nothing allowed on this feature or close menu on the same one

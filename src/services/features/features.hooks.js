@@ -4,17 +4,17 @@ import { marshallSpatialQuery, aggregateFeaturesQuery } from '../../hooks'
 
 module.exports = {
   before: {
-    all: [ coreHooks.marshallTimeQuery, coreHooks.convertObjectIDs(['layer']) ],
-    find: [ coreHooks.marshallComparisonQuery, coreHooks.marshallSortQuery, marshallSpatialQuery, aggregateFeaturesQuery ],
+    all: [coreHooks.marshallTimeQuery, coreHooks.convertObjectIDs(['layer'])],
+    find: [coreHooks.marshallComparisonQuery, coreHooks.marshallSortQuery, marshallSpatialQuery, aggregateFeaturesQuery],
     get: [],
-    create: [ coreHooks.processTime ],
-    update: [ coreHooks.processTime ],
-    patch: [ coreHooks.processTime ],
-    remove: [ coreHooks.marshallComparisonQuery, marshallSpatialQuery ]
+    create: [coreHooks.processTime],
+    update: [coreHooks.processTime],
+    patch: [coreHooks.processTime],
+    remove: [coreHooks.marshallComparisonQuery, marshallSpatialQuery]
   },
 
   after: {
-    all: [ coreHooks.unprocessTime ],
+    all: [coreHooks.unprocessTime],
     find: [
       (hook) => {
         const result = hook.result
@@ -28,10 +28,10 @@ module.exports = {
       }
     ],
     get: [],
-    create: [ coreHooks.skipEvents ], // Avoid emitting events on feature edition
-    update: [ coreHooks.skipEvents ],
-    patch: [ coreHooks.skipEvents ],
-    remove: [ coreHooks.skipEvents ]
+    create: [coreHooks.skipEvents], // Avoid emitting events on feature edition
+    update: [coreHooks.skipEvents],
+    patch: [coreHooks.skipEvents],
+    remove: [coreHooks.skipEvents]
   },
 
   error: {

@@ -40,7 +40,7 @@ export default {
   computed: {
     layersByCategory () {
       const layers = _.values(this.layers)
-      let layersByCategory = {}
+      const layersByCategory = {}
       this.categories.forEach(category => {
         layersByCategory[category.name] = sift(_.get(category, 'options.filter', {}), layers)
       })
@@ -52,4 +52,3 @@ export default {
   }
 }
 </script>
-

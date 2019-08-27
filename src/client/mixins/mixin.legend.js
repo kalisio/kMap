@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import math from 'mathjs'
 
 // TODO the following was taken from Weacast's legend mixin, however maybe we should get this from a config file?
@@ -93,7 +94,7 @@ export default {
         const units = this.getColorLegendUnits()
         const unit = !units || units.length === 0 ? null : units[0]
         const hint = this.getColorLegendHint(units, unit, this.legendLayer.name)
-        const [ showGradient, colors, values, unitValues ] =
+        const [showGradient, colors, values, unitValues] =
           this.getColorLegendValues(colorMap, scale, units, unit, COLOR_STEPS)
 
         // We don't have units or steps for this layer, hide it
@@ -120,7 +121,7 @@ export default {
       // Get next unit and recalculate hint and steps
       const nextUnit = this.getNextUnit(units, event.unit)
       const hint = this.getColorLegendHint(units, nextUnit, this.legendLayer.name)
-      const [ showGradient, colors, values, unitValues ] =
+      const [showGradient, colors, values, unitValues] =
         this.getColorLegendValues(colorMap, scale, units, nextUnit, COLOR_STEPS)
 
       // Units and steps (re)calculated, update the color legend
@@ -146,11 +147,11 @@ export default {
       let colors
       let values
       let unitValues
-      const unitFrom = units[0]   // base unit
+      const unitFrom = units[0] // base unit
       const unitTo = unit
 
       function valueMap (value) {
-        let unitValue = math.unit(value, unitFrom).toNumber(unitTo)
+        const unitValue = math.unit(value, unitFrom).toNumber(unitTo)
         return Math.round(unitValue, 0).toFixed(0)
       }
 
@@ -187,7 +188,7 @@ export default {
         unitValues = values.map(valueMap)
       }
 
-      return [ showGradient, colors, values, unitValues ]
+      return [showGradient, colors, values, unitValues]
     },
     getNextUnit (units, currentUnit) {
       // No available units

@@ -1,5 +1,5 @@
 module.exports = function (app, options) {
-  let db = options.db || app.db
+  const db = options.db || app.db
   options.Model = db.collection(options.collection)
   if (options.history) {
     options.Model.createIndex({ time: 1 }, { expireAfterSeconds: options.history })

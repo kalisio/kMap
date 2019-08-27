@@ -3,7 +3,7 @@ import moment from 'moment'
 
 export default {
   data () {
-    let now = moment.utc()
+    const now = moment.utc()
     return {
       timeline: {
         start: now.clone().subtract({ days: 7 }).valueOf(),
@@ -29,7 +29,7 @@ export default {
   },
   methods: {
     setupTimeline () {
-      let now = moment.utc()
+      const now = moment.utc()
       // Start just before the first available data
       let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
       // Override by config ?
@@ -67,16 +67,16 @@ export default {
       return {
         length,
         getIntervalStartValue (rangeStart) {
-          let startTime = moment.utc(rangeStart)
+          const startTime = moment.utc(rangeStart)
           startTime.local()
           const hour = startTime.hours()
           const minute = startTime.minutes()
           let startValue
           // range starts on a day (ignoring seconds)
-          if (hour == 0 && minute == 0) {
+          if (hour === 0 && minute === 0) {
             startValue = rangeStart
           } else {
-            let startOfDay = startTime.startOf('day')
+            const startOfDay = startTime.startOf('day')
             startOfDay.add({ days: 1 })
             startValue = startOfDay.valueOf()
           }

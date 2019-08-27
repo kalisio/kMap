@@ -4,12 +4,12 @@ export default {
   methods: {
     applyTooltips (entities, options) {
       for (let i = 0; i < entities.values.length; i++) {
-        let entity = entities.values[i]
+        const entity = entities.values[i]
         const tooltip = this.generateCesiumStyle('tooltip', entity, options)
         if (tooltip) {
           // Default tooltip position (can change in sticky mode)
           const position = this.getPositionForEntity(entity)
-          let tooltipEntity = this.viewer.entities.add({ parent: entity, position, label: tooltip })
+          const tooltipEntity = this.viewer.entities.add({ parent: entity, position, label: tooltip })
           // This option is not cesium specific so we have to manage it manually
           if (tooltip.sticky) tooltipEntity.sticky = true
         }
@@ -18,9 +18,9 @@ export default {
     getDefaultTooltip (entity, options) {
       let tooltip
       if (entity.properties) {
-        let properties = entity.properties.getValue(0)
-        let cesiumOptions = options.cesium || options
-        let tooltipStyle = _.merge({}, this.options.tooltip,
+        const properties = entity.properties.getValue(0)
+        const cesiumOptions = options.cesium || options
+        const tooltipStyle = _.merge({}, this.options.tooltip,
           cesiumOptions.tooltip, properties.tooltip)
         // Default content
         let text = tooltipStyle.text
@@ -43,20 +43,19 @@ export default {
     },
     isTooltipOpen (entity) {
       if (this.getNbChildrenForEntity(entity) > 0) {
-        let tooltip = this.getChildForEntity(entity)
         return _.get(entity, 'label.show', false)
       } else return false
     },
     openTooltip (entity, position) {
       if (this.getNbChildrenForEntity(entity) > 0) {
-        let tooltip = this.getChildForEntity(entity)
+        const tooltip = this.getChildForEntity(entity)
         if (tooltip.label) tooltip.label.show = true
         if (tooltip.sticky) tooltip.position = position
       }
     },
     closeTooltip (entity) {
       if (this.getNbChildrenForEntity(entity) > 0) {
-        let tooltip = this.getChildForEntity(entity)
+        const tooltip = this.getChildForEntity(entity)
         if (tooltip.label) tooltip.label.show = false
       }
     },

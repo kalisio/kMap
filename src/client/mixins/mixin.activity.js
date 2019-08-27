@@ -94,7 +94,7 @@ export default function (name) {
           remove: (layer) => this.onRemoveLayer(layer)
         }
         this.variables = []
-        let catalogLayers = await this.getCatalogLayers()
+        const catalogLayers = await this.getCatalogLayers()
         _.forEach(catalogLayers, (layer) => {
           if (layer[this.engine]) {
             // Process i18n
@@ -135,7 +135,7 @@ export default function (name) {
         let defaultActions = ['zoom-to', 'save', 'edit', 'remove']
         if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['edit-data'])
         const layerActions = _.get(this, 'activityOptions.layerActions', defaultActions)
-        let actions = []
+        const actions = []
         // Add supported actions
         if (layer.type === 'OverlayLayer') {
           if (layerActions.includes('zoom-to')) {
@@ -201,7 +201,7 @@ export default function (name) {
         // When saving from one engine copy options to the other one so that it will be available in both of them
         _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
         let createdLayer = await this.$api.getService('catalog')
-        .create(_.omit(layer, ['actions', 'isVisible']))
+          .create(_.omit(layer, ['actions', 'isVisible']))
         // layer._id = createdLayer._id
         // this.registerLayerActions(layer) // Refresh actions due to state change
         // Because we save all features in a single service use filtering to separate layers
@@ -315,7 +315,7 @@ export default function (name) {
         this.geocodingModal.close(done)
         this.geocodingModal = null
       },
-      /*async onGeocoding () {
+      /* async onGeocoding () {
         const schema = await this.$load('geocoding', 'schema')
         this.geocodingModal = await this.$createComponent('frame/KModal', {
           propsData: {
@@ -343,7 +343,7 @@ export default function (name) {
           }
         }
         this.onCloseGeocoding(done)
-      },*/
+      }, */
       onTrackLocation () {
         if (!this.locationIndicator) this.createLocationIndicator()
         else this.removeLocationIndicator()

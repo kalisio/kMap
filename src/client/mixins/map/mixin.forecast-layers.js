@@ -1,13 +1,14 @@
 import _ from 'lodash'
+import L from 'leaflet'
 import 'weacast-leaflet'
 
 export default {
   methods: {
     getVisualForecastModel (layerConfig) {
       // For visualization we might decimate the data resolution for performance reasons
-      let decimationFactor = layerConfig.decimationFactor || 2
+      const decimationFactor = layerConfig.decimationFactor || 2
       // Copy forecast model
-      let visualModel = Object.assign({}, this.forecastModel)
+      const visualModel = Object.assign({}, this.forecastModel)
       // Then assign visual configuration
       Object.assign(visualModel, {
         name: this.forecastModel.name,
@@ -38,7 +39,7 @@ export default {
       })
     },
     createLeafletForecastLayer (options) {
-      let leafletOptions = options.leaflet || options
+      const leafletOptions = options.leaflet || options
       // Check for valid types
       if (!leafletOptions.type.startsWith('weacast')) return
       // We need to add Weacast API object as argument before creating the layer
@@ -56,7 +57,7 @@ export default {
         this.forecastLevel = level
         leafletOptions.elements = leafletOptions.baseElements.map(element => `${element}-${level}`)
       }
-      let layer = this.createLeafletLayer(options)
+      const layer = this.createLeafletLayer(options)
       // For visualization we might decimate the data resolution for performance reasons
       layer.setForecastModel(this.getVisualForecastModel(leafletOptions))
       return layer

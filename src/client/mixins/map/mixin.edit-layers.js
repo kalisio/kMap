@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import L from 'leaflet'
-import logger from 'loglevel'
 import 'leaflet-draw/dist/leaflet.draw-src.js'
 import 'leaflet-draw/dist/leaflet.draw-src.css'
 import { Dialog } from 'quasar'
@@ -12,8 +11,8 @@ export default {
       return this.editedLayer && (this.editedLayer.name === name)
     },
     async editLayer (name) {
-      let options = this.getLayerByName(name)
-      let leafletLayer = this.getLeafletLayerByName(name)
+      const options = this.getLayerByName(name)
+      const leafletLayer = this.getLeafletLayerByName(name)
       if (!options || !leafletLayer) return
 
       if (this.editControl) { // Stop edition
@@ -29,9 +28,9 @@ export default {
       } else { // Start edition
         this.editedLayer = options
         // Move source layers to edition layers, required as eg clusters are not supported
-        let geoJson = leafletLayer.toGeoJSON()
+        const geoJson = leafletLayer.toGeoJSON()
         leafletLayer.clearLayers()
-        this.editableLayer = new L.geoJson(geoJson, this.getGeoJsonOptions(options))
+        this.editableLayer = L.geoJson(geoJson, this.getGeoJsonOptions(options))
         this.map.addLayer(this.editableLayer)
         // Add UI
         this.editControl = new L.Control.Draw({
@@ -80,7 +79,7 @@ export default {
         if (popup) leafletLayer.bindPopup(popup)
         // Save in DB and in memory
         await this.editFeaturesProperties(updatedFeature)
-        let geoJson = leafletLayer.toGeoJSON()
+        const geoJson = leafletLayer.toGeoJSON()
         Object.assign(geoJson, _.pick(updatedFeature, ['properties']))
         this.editableLayer.removeLayer(leafletLayer)
         this.editableLayer.addData(geoJson)
@@ -96,7 +95,7 @@ export default {
     async onEditFeatureProperties (layer, event) {
       const leafletLayer = event && event.target
       if (!leafletLayer) return
-      let feature = _.get(leafletLayer, 'feature')
+      const feature = _.get(leafletLayer, 'feature')
       if (!feature || !this.isLayerEdited(layer.name)) return
       if (!this.editedLayerSchema) return // No edition schema
       // Check if not currently in the edition workspace for removal
@@ -135,7 +134,7 @@ export default {
           label: this.$t('CANCEL')
         }
       }).onOk(async () => {
-        let parentLeafletLayer = this.getLeafletLayerByName(layer.name)
+        const parentLeafletLayer = this.getLeafletLayerByName(layer.name)
         if (!parentLeafletLayer) return
         await this.removeFeatures(feature)
         parentLeafletLayer.removeLayer(leafletLayer)

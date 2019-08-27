@@ -6,7 +6,7 @@ import moment from 'moment'
 import { GridRenderer } from 'weacast-leaflet'
 import { Grid } from 'weacast-core/client'
 
-let GeorasterLayer = L.Layer.extend({
+const GeorasterLayer = L.Layer.extend({
 
   initialize (options) {
     Object.assign(this, options)
@@ -31,7 +31,7 @@ let GeorasterLayer = L.Layer.extend({
       return
     }
     // Setup the colormap
-    let scale = this.scale ? this.scale : ''
+    const scale = this.scale ? this.scale : ''
     if (this.classes) {
       this.colorMap = chroma.scale(scale).classes(this.classes)
     } else if (this.domain) {
@@ -39,7 +39,7 @@ let GeorasterLayer = L.Layer.extend({
     }
 
     // Setup the grid
-    let grid = new Grid({
+    const grid = new Grid({
       bounds: [raster.xmin, raster.ymin, raster.xmax, raster.ymax],
       origin: [raster.xmin, raster.ymax],
       size: [raster.width, raster.height],
@@ -73,9 +73,9 @@ let GeorasterLayer = L.Layer.extend({
 
   async setCurrentTime (datetime) {
     if (!this.interval) return
-    let timelag = this.timelag ? this.timelag : 0
+    const timelag = this.timelag ? this.timelag : 0
     const timestamp = datetime.valueOf()
-    let nearestTime = moment(Math.floor(timestamp / this.interval) * this.interval + timelag).utc()
+    const nearestTime = moment(Math.floor(timestamp / this.interval) * this.interval + timelag).utc()
     if (this.currentTime !== nearestTime) {
       // Store the time
       this.currentTime = nearestTime
@@ -88,7 +88,7 @@ let GeorasterLayer = L.Layer.extend({
 export default {
   methods: {
     async createLeafletGeorasterLayer (options) {
-      let leafletOptions = options.leaflet || options
+      const leafletOptions = options.leaflet || options
 
       // Check for valid type
       if (leafletOptions.type !== 'georaster') return

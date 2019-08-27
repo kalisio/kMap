@@ -1,11 +1,11 @@
 import _ from 'lodash'
 
 export const CesiumStyleMappings = {
-  'stroke': 'stroke',
+  stroke: 'stroke',
   'stroke-color': 'stroke',
   'stroke-opaciy': 'stroke.alpha',
   'stroke-width': 'strokeWidth',
-  'fill': 'fill',
+  fill: 'fill',
   'fill-color': 'fill',
   'fill-opacity': 'fill.alpha',
   'marker-size': 'markerSize',

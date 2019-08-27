@@ -1,7 +1,7 @@
 import Cesium from 'cesium/Source/Cesium.js'
 import logger from 'loglevel'
 import _ from 'lodash'
-import { fetchGeoJson, getTextTable } from '../../utils'
+import { fetchGeoJson } from '../../utils'
 
 export default {
   methods: {
@@ -16,8 +16,8 @@ export default {
       await dataSource.load(geoJson, cesiumOptions)
       // Process specific entities
       const entities = dataSource.entities.values
-      let entitiesToAdd = []
-      let entitiesToRemove = []
+      const entitiesToAdd = []
+      const entitiesToRemove = []
       for (let i = 0; i < entities.length; i++) {
         const entity = entities[i]
         const properties = entity.properties.getValue(0)
@@ -107,7 +107,7 @@ export default {
     async updateRealtimeGeoJsonData (dataSource, options, geoJson) {
       const featureId = _.get(options, 'featureId')
       const cesiumOptions = options.cesium
-      let source = _.get(cesiumOptions, 'source')
+      const source = _.get(cesiumOptions, 'source')
       let queryInterval
       if (cesiumOptions.queryInterval) queryInterval = cesiumOptions.queryInterval
       // If query interval not given use 2 x refresh interval as default value
@@ -120,7 +120,7 @@ export default {
           await this.loadGeoJson(dataSource, this.getProbeFeatures(options), cesiumOptions)
         }
         // Then get last available measures
-        let measureSource = new Cesium.GeoJsonDataSource()
+        const measureSource = new Cesium.GeoJsonDataSource()
         await this.loadGeoJson(measureSource, this.getFeatures(options, queryInterval), cesiumOptions)
         // Then merge with probes
         const probes = dataSource.entities.values
@@ -178,13 +178,13 @@ export default {
         else cesiumOptions.cluster = Object.assign({}, this.options.cluster)
       }
       // Merge generic GeoJson options and layer options
-      let geoJsonOptions = this.getGeoJsonOptions(options)
+      const geoJsonOptions = this.getGeoJsonOptions(options)
       Object.keys(geoJsonOptions).forEach(key => {
         // If layer provided do not override
         if (!_.has(cesiumOptions, key)) _.set(cesiumOptions, key, geoJsonOptions[key])
       })
       // Optimize templating by creating compilers up-front
-      let entityStyleTemplate = _.get(cesiumOptions, 'entityStyle.template')
+      const entityStyleTemplate = _.get(cesiumOptions, 'entityStyle.template')
       if (entityStyleTemplate) {
         // We allow to template style properties according to feature, because it can be slow you have to specify a subset of properties
         _.set(cesiumOptions, 'entityStyleTemplate', entityStyleTemplate.map(property => ({

@@ -5,22 +5,22 @@ import makeDebug from 'debug'
 const debug = makeDebug('kalisio:kMap:query:hooks')
 
 export function marshallGeometryQuery (hook) {
-  let query = hook.params.query
+  const query = hook.params.query
   if (_.isNil(query)) return
-  let geometry = query.geometry
+  const geometry = query.geometry
   if (_.isNil(geometry)) return
   marshallGeometry(geometry)
 }
 
 export function marshallSpatialQuery (hook) {
-  let query = hook.params.query
+  const query = hook.params.query
   if (query) {
     if (!_.isNil(query.geometry)) marshallGeometry(query.geometry)
     // Shortcut for proximity query
     if (!_.isNil(query.centerLon) && !_.isNil(query.centerLat) && !_.isNil(query.distance)) {
-      let lon = _.toNumber(query.centerLon)
-      let lat = _.toNumber(query.centerLat)
-      let d = _.toNumber(query.distance)
+      const lon = _.toNumber(query.centerLon)
+      const lat = _.toNumber(query.centerLat)
+      const d = _.toNumber(query.distance)
       // Transform to MongoDB spatial request
       delete query.centerLon
       delete query.centerLat
@@ -39,18 +39,18 @@ export function marshallSpatialQuery (hook) {
 }
 
 export async function aggregateFeaturesQuery (hook) {
-  let query = hook.params.query
+  const query = hook.params.query
   const service = hook.service
   if (!query) return
   // Perform aggregation
   if (query.$aggregate) {
     const collection = service.Model
     const featureId = (service.options ? service.options.featureId : '')
-    const ids = typeof query.$groupBy === 'string'  // Group by matching ID(s), ie single ID or array of field to create a compound ID
-        ? { [query.$groupBy]: '$properties.' + query.$groupBy }
-        // Aggregated in an accumulator to avoid conflict with feature properties
-        : query.$groupBy.reduce((object, id) => Object.assign(object, { [id]: '$properties.' + id }), {})
-    let groupBy = { _id: ids }
+    const ids = typeof query.$groupBy === 'string' // Group by matching ID(s), ie single ID or array of field to create a compound ID
+      ? { [query.$groupBy]: '$properties.' + query.$groupBy }
+    // Aggregated in an accumulator to avoid conflict with feature properties
+      : query.$groupBy.reduce((object, id) => Object.assign(object, { [id]: '$properties.' + id }), {})
+    const groupBy = { _id: ids }
     // Do we only keep first or last available time ?
     const singleTime = (_.toNumber(query.$limit) === 1)
     if (singleTime) {
@@ -61,20 +61,20 @@ export async function aggregateFeaturesQuery (hook) {
       Object.assign(groupBy, { feature: { $first: '$$ROOT' } })
     } else {
       Object.assign(groupBy, {
-        time: { $push: '$time' },                 // Keep track of all times
-        type: { $last: '$type' },                 // type is assumed similar for all results, keep last
-        properties: { $last: '$properties' }      // non-aggregated properties are assumed similar for all results, keep last
+        time: { $push: '$time' }, // Keep track of all times
+        type: { $last: '$type' }, // type is assumed similar for all results, keep last
+        properties: { $last: '$properties' } // non-aggregated properties are assumed similar for all results, keep last
       })
       // Check if we aggregate geometry or simply properties
       if (!query.$aggregate.includes('geometry')) {
         Object.assign(groupBy, {
-          geometry: { $last: '$geometry' }        // geometry is assumed similar for all results, keep last
+          geometry: { $last: '$geometry' } // geometry is assumed similar for all results, keep last
         })
       }
     }
     // The query contains the match stage except options relevent to the aggregation pipeline
-    let match = _.omit(query, ['$groupBy', '$aggregate', '$sort', '$limit', '$skip'])
-    let aggregateOptions = {}
+    const match = _.omit(query, ['$groupBy', '$aggregate', '$sort', '$limit', '$skip'])
+    const aggregateOptions = {}
     // Check if we could provide a hint to the aggregation when targeting feature ID
     if (featureId && _.has(match, 'properties.' + featureId)) {
       aggregateOptions.hint = { ['properties.' + featureId]: 1 }
@@ -87,7 +87,7 @@ export async function aggregateFeaturesQuery (hook) {
       // Geometry is a root property while others are feature properties
       const prefix = (isGeometry ? '' : 'properties.')
       // Find matching features only
-      let pipeline = [ { $match: Object.assign({ [prefix + element]: { $exists: true } }, match) } ]
+      const pipeline = [{ $match: Object.assign({ [prefix + element]: { $exists: true } }, match) }]
       // Ensure they are ordered by increasing time by default
       pipeline.push({ $sort: query.$sort || { time: 1 } })
       // Keep track of all feature values
@@ -101,7 +101,7 @@ export async function aggregateFeaturesQuery (hook) {
       pipeline.forEach(stage => {
         _.forOwn(stage, (value, key) => debug('Stage', key, value))
       })
-      let elementResults = await collection.aggregate(pipeline, aggregateOptions).toArray()
+      const elementResults = await collection.aggregate(pipeline, aggregateOptions).toArray()
       debug(`Generated ${elementResults.length} feature(s) for ${element} element`)
       // Rearrange data so that we get ordered arrays indexed by element
       elementResults.forEach(result => {
@@ -119,7 +119,7 @@ export async function aggregateFeaturesQuery (hook) {
         aggregatedResults = elementResults
       } else {
         elementResults.forEach(result => {
-          let previousResult = aggregatedResults.find(aggregatedResult => {
+          const previousResult = aggregatedResults.find(aggregatedResult => {
             let keys = _.keys(ids)
             // When single time no aggregation is perofrmed at all so we only have raw features
             if (singleTime) keys = keys.map(key => 'properties.' + key)

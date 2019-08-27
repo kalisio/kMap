@@ -5,10 +5,8 @@ import { CesiumStyleMappings, CesiumEntityTypes } from '../../utils'
 export default {
   methods: {
     applyStyle (entities, options) {
-      let cesiumOptions = options.cesium || options
-
       for (let i = 0; i < entities.values.length; i++) {
-        let entity = entities.values[i]
+        const entity = entities.values[i]
         const style = this.generateCesiumStyle('entityStyle', entity, options)
         // Loop over possible types
         CesiumEntityTypes.forEach(type => {
@@ -37,7 +35,7 @@ export default {
     },
     convertFromSimpleStyleSpec (style, inPlace = false) {
       if (!style) return {}
-      let convertedStyle = (inPlace ? style : {})
+      const convertedStyle = (inPlace ? style : {})
       _.forOwn(style, (value, key) => {
         if (_.has(CesiumStyleMappings, key)) {
           const mapping = _.get(CesiumStyleMappings, key)
@@ -54,10 +52,10 @@ export default {
     convertToCesiumObjects (style) {
       // Helper to convert from string to objects
       function createCesiumObject () {
-        let args = Array.from(arguments)
+        const args = Array.from(arguments)
         const constructor = args[0]
         args.shift()
-        let Class = _.get(Cesium, constructor)
+        const Class = _.get(Cesium, constructor)
         // Can be constant, constructable or callable
         if (typeof Class === 'function') {
           try { return Class(...args) } catch (error) { /* Simply avoid raising any error */ }
@@ -91,7 +89,7 @@ export default {
       _.pull(this[type + 'Factory'], generator)
     },
     generateCesiumStyle () {
-      let args = Array.from(arguments)
+      const args = Array.from(arguments)
       const type = args[0]
       args.shift()
       let style
@@ -106,13 +104,13 @@ export default {
     },
     getDefaultEntityStyle (entity, options) {
       const properties = (entity.properties ? entity.properties.getValue(0) : null)
-      let cesiumOptions = options.cesium || options
+      const cesiumOptions = options.cesium || options
       let style = _.merge({}, this.options.entityStyle || {})
       // We allow to template entity style properties according to feature,
       // because it can be slow you have to specify a subset of properties
       const entityStyleTemplate = _.get(cesiumOptions, 'entityStyleTemplate')
       if (entityStyleTemplate) {
-        let entityStyle = _.cloneDeep(cesiumOptions.entityStyle)
+        const entityStyle = _.cloneDeep(cesiumOptions.entityStyle)
         entityStyleTemplate.forEach(entry => {
           // Perform templating, set using simple spec mapping first then raw if property not found
           let value = entry.compiler({ properties })
@@ -140,15 +138,15 @@ export default {
       return style
     },
     getDefaultClusterStyle (entities, cluster, options) {
-      let cesiumOptions = options.cesium || options
-      let style = _.merge({},
+      const cesiumOptions = options.cesium || options
+      const style = _.merge({},
         this.options.clusterStyle || {},
         cesiumOptions.clusterStyle || {})
       // Look for templated options
       if (_.has(style, 'label.text')) {
-        let compiler = _.template(_.get(style, 'label.text'))
+        const compiler = _.template(_.get(style, 'label.text'))
         // To avoid erasing of initial value due to reference, duplicate
-        let labelStyle = _.cloneDeep(_.get(style, 'label'))
+        const labelStyle = _.cloneDeep(_.get(style, 'label'))
         _.set(labelStyle, 'text', compiler({ entities, cluster }))
         _.set(style, 'label', labelStyle)
       }

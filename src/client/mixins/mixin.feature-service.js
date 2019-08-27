@@ -6,18 +6,18 @@ import { getNearestTime } from '../utils'
 export default {
   methods: {
     async getProbeFeatures (options) {
-      let response = await this.$api.getService(options.probeService).find({})
+      const response = await this.$api.getService(options.probeService).find({})
       return response
     },
     async getProbeFeaturesFromLayer (name) {
       // Retrieve the layer
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return
       return this.getProbeFeatures(layer)
     },
     async getFeatures (options, queryInterval) {
       // Any base query to process ?
-      let baseQuery = {}
+      const baseQuery = {}
       if (options.baseQuery) {
         if (typeof options.baseQuery === 'function') {
           const result = await options.baseQuery()
@@ -57,12 +57,12 @@ export default {
           })
         }
       }
-      let response = await this.$api.getService(options.service).find({ query })
+      const response = await this.$api.getService(options.service).find({ query })
       return response
     },
     async getFeaturesFromLayer (name, queryInterval) {
       // Retrieve the layer
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return
       return this.getFeatures(layer, queryInterval)
     },
@@ -79,7 +79,7 @@ export default {
     },
     getProbedLocationMeasureAtCurrentTime () {
       // Create new geojson from raw response containing all times
-      let feature = _.cloneDeep(this.probedLocation)
+      const feature = _.cloneDeep(this.probedLocation)
       // Then check for the right value at time
       _.forOwn(feature.properties, (value, key) => {
         if (Array.isArray(value)) {
@@ -94,7 +94,7 @@ export default {
     async getMeasureForFeature (layer, feature, startTime, endTime) {
       this.setCursor('processing-cursor')
       try {
-        let result = await this.getFeatures(Object.assign({
+        const result = await this.getFeatures(Object.assign({
           baseQuery: { ['properties.' + layer.featureId]: _.get(feature, 'properties.' + layer.featureId) }
         }, layer), {
           $gte: startTime.format(),
@@ -112,9 +112,9 @@ export default {
     },
     async createFeatures (geoJson, layerId) {
       if (!layerId) return
-      let features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
-      features.forEach(feature => feature.layer = layerId)
-      return await this.$api.getService('features').create(features)
+      const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      features.forEach(feature => { feature.layer = layerId })
+      await this.$api.getService('features').create(features)
     },
     async editFeaturesGeometry (geoJson) {
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])

@@ -25,7 +25,7 @@ export default {
       if (config) {
         const catalogService = this.$api.getService('catalog')
         // Check for existing service in catalog overriding default config
-        let response = await catalogService.find({ query: { type: 'service', name: 'weacast' } })
+        const response = await catalogService.find({ query: { type: 'service', name: 'weacast' } })
         if (response.data.length > 0) config.apiUrl = response.data[0].endpoint
         this.weacastApi = weacast(config)
         // Ensure we also logout from weacast on app logout
@@ -84,7 +84,7 @@ export default {
       // From now to last available time
       const geometry = {
         type: 'Point',
-        coordinates: [ long, lat ]
+        coordinates: [long, lat]
       }
       const query = {
         forecastTime: {
@@ -103,11 +103,11 @@ export default {
         let elements = this.forecastModel.elements.map(element => element.name)
         // Filter available elements according to current level if any
         if (this.forecastLevel) elements = elements.filter(element => element.endsWith(this.forecastLevel.toString()))
-        let response = await this.weacastApi.getService('probes')
-        .create({
-          forecast: this.forecastModel.name,
-          elements
-        }, { query })
+        const response = await this.weacastApi.getService('probes')
+          .create({
+            forecast: this.forecastModel.name,
+            elements
+          }, { query })
         if (response.features.length > 0) {
           this.probedLocation = response.features[0]
           this.$emit('probed-location-changed', this.probedLocation)
@@ -158,7 +158,7 @@ export default {
         const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
         elements = elements.concat([windDirection, windSpeed])
 
-        let results = await this.weacastApi.getService('probe-results').find({
+        const results = await this.weacastApi.getService('probe-results').find({
           query: {
             probeId: this.probe._id,
             forecastTime: {
@@ -195,7 +195,7 @@ export default {
     },
     getProbedLocationForecastAtCurrentTime () {
       // Create new geojson from raw response containing all times
-      let feature = _.cloneDeep(this.probedLocation)
+      const feature = _.cloneDeep(this.probedLocation)
       // Then check for the right value at time
       _.forOwn(feature.properties, (value, key) => {
         if (Array.isArray(value)) {
@@ -212,10 +212,10 @@ export default {
       if (!properties) return null
       const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
       const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
-      const temperature = (this.forecastLevel ? `temperature-${this.forecastLevel}` : 'temperature')
+      // const temperature = (this.forecastLevel ? `temperature-${this.forecastLevel}` : 'temperature')
       if (!_.has(properties, windDirection) || !_.has(properties, windSpeed)) return null
       // Use wind barbs on probed features
-      let icon = new L.WindBarb.Icon({
+      const icon = new L.WindBarb.Icon({
         deg: _.get(properties, windDirection),
         speed: _.get(properties, windSpeed) / 0.514, // Expressed as knots
         pointRadius: 10,

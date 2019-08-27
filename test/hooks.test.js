@@ -8,10 +8,15 @@ describe('kMap:hooks', () => {
   })
 
   it('marshalls geometry queries', () => {
-    let hook = { type: 'before',
-      params: { query: { geometry:
+    const hook = {
+      type: 'before',
+      params: {
+        query: {
+          geometry:
       { $near: { $geometry: { type: 'Point', coordinates: ['56', '0.3'] }, $maxDistance: '1000.50' } }
-      } } }
+        }
+      }
+    }
     hooks.marshallGeometryQuery(hook)
     expect(typeof hook.params.query.geometry.$near.$geometry.coordinates[0]).to.equal('number')
     expect(typeof hook.params.query.geometry.$near.$geometry.coordinates[1]).to.equal('number')

@@ -4,7 +4,7 @@ import L from 'leaflet'
 import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
 
-let GradientPath = L.PixiOverlay.extend({
+const GradientPath = L.PixiOverlay.extend({
 
   initialize (geoJson, options) {
     L.setOptions(this, Object.assign({ stroke: '#FFFFFF', weight: 8 }, options))
@@ -69,7 +69,7 @@ let GradientPath = L.PixiOverlay.extend({
 
   getObjectUnderPointer (event) {
     const interaction = this.renderer.plugins.interaction
-    let point = new PIXI.Point()
+    const point = new PIXI.Point()
     // get global click position
     interaction.mapPositionToPoint(point, event.originalEvent.clientX, event.originalEvent.clientY)
     // get what is below the click if any
@@ -90,7 +90,6 @@ let GradientPath = L.PixiOverlay.extend({
 
   handleMoveEvent (event) {
     if (!this.getTooltip()) return
-    const tooltip = this.getTooltip()
     // Get what is below the move if any
     const target = this.getObjectUnderPointer(event)
     if (target) {
@@ -137,7 +136,7 @@ let GradientPath = L.PixiOverlay.extend({
       const points = this.path.coords.map(coord => utils.latLngToLayerPoint([coord[1], coord[0]]))
       let texture
       // FIXME: how to ensure a pixel constant size when zooming ?
-      let weight = 2048 * this.path.weight / Math.pow(2, zoom)
+      const weight = 2048 * this.path.weight / Math.pow(2, zoom)
       if (Array.isArray(this.path.gradient)) {
         texture = this.createGradientTexture(this.path.gradient, weight)
       } else {

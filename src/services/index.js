@@ -9,7 +9,7 @@ export function createFeaturesService (options) {
   const app = this
 
   debug('Creating features service with options', options)
-  let paginate = { default: 5000, max: 10000 }
+  const paginate = { default: 5000, max: 10000 }
   if (app.get(options.collection)) {
     Object.assign(paginate, app.get(options.collection).paginate || {})
   }
@@ -32,7 +32,7 @@ export function createCatalogService (options) {
   const app = this
 
   debug('Creating catalog service with options', options)
-  let paginate = { default: 100, max: 100 }
+  const paginate = { default: 100, max: 100 }
   if (app.get('catalog')) {
     Object.assign(paginate, app.get('catalog').paginate || {})
   }

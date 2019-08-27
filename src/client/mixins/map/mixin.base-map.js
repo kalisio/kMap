@@ -32,7 +32,7 @@ export default {
       if (this.map) this.map.invalidateSize()
     },
     setupMap (domEl, options) {
-      let viewerOptions = options || this.options.viewer
+      const viewerOptions = options || this.options.viewer
       // Initialize the map
       this.map = L.map(domEl, Object.assign({ zoomControl: false }, viewerOptions))
       bindLeafletEvents(this.map, LeafletEvents.Map, this, viewerOptions)
@@ -40,8 +40,8 @@ export default {
     },
     processLeafletLayerOptions (options) {
       // Because we update objects in place and don't want leaflet internal objects to be reactive
-      let processedOptions = _.cloneDeep(options)
-      let leafletOptions = processedOptions.leaflet
+      const processedOptions = _.cloneDeep(options)
+      const leafletOptions = processedOptions.leaflet
       // Transform from string to actual objects when required in some of the layer options
       this.leafletObjectOptions.forEach(option => {
         if (typeof _.get(leafletOptions, option) === 'string') {
@@ -82,16 +82,16 @@ export default {
         // Filter only some panes ?
         if (panes && panes.includes(paneName)) return
         if (!_.has(pane, 'minZoom') && !_.has(pane, 'maxZoom')) return
-        if (!pane.style) pane['style'] = {}
+        if (!pane.style) pane.style = {}
         if (_.has(pane, 'minZoom') && (zoom < _.get(pane, 'minZoom'))) {
-          pane.style['display'] = 'none'
+          pane.style.display = 'none'
           return
         }
         if (_.has(pane, 'maxZoom') && (zoom > _.get(pane, 'maxZoom'))) {
-          pane.style['display'] = 'none'
+          pane.style.display = 'none'
           return
         }
-        pane.style['display'] = 'block'
+        pane.style.display = 'block'
       })
     },
     createLeafletLayer (options) {
@@ -109,10 +109,10 @@ export default {
         _.set(leafletOptions, 'pane', zIndex.toString())
       }
       // Different panes inside a layer can be used to manage visibility according to zoom level
-      let panes = _.get(leafletOptions, 'panes')
+      const panes = _.get(leafletOptions, 'panes')
       if (panes) {
         panes.forEach(paneOptions => {
-          let pane = this.createLeafletPane(paneOptions.name || paneOptions.zIndex)
+          const pane = this.createLeafletPane(paneOptions.name || paneOptions.zIndex)
           Object.assign(pane, paneOptions)
         })
         this.updateLeafletPanesVisibility(panes.map(paneOptions => paneOptions.name || paneOptions.zIndex.toString()))
@@ -130,7 +130,7 @@ export default {
       this.leafletFactory.push(constructor)
     },
     async createLayer (options) {
-      let processedOptions = this.processLeafletLayerOptions(options)
+      const processedOptions = this.processLeafletLayerOptions(options)
       let layer
       // Iterate over all registered constructors until we find one
       for (let i = 0; i < this.leafletFactory.length; i++) {
@@ -145,7 +145,7 @@ export default {
       return _.has(this.layers, name)
     },
     isLayerVisible (name) {
-      let leafetLayer = this.getLeafletLayerByName(name)
+      const leafetLayer = this.getLeafletLayerByName(name)
       return leafetLayer && this.map.hasLayer(leafetLayer)
     },
     getLayerByName (name) {
@@ -156,7 +156,7 @@ export default {
     },
     async showLayer (name) {
       // Retrieve the layer
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
@@ -179,15 +179,15 @@ export default {
     },
     hideLayer (name) {
       // Retrieve the layer
-      let layer = this.getLayerByName(name)
+      const layer = this.getLayerByName(name)
       if (!layer) return
       // Check the visibility state
       if (!this.isLayerVisible(name)) return
       layer.isVisible = false
       // Remove the leaflet layer from map
-      let leafletLayer = this.leafletLayers[name]
+      const leafletLayer = this.leafletLayers[name]
       this.map.removeLayer(leafletLayer)
-      let panes = _.get(layer, 'leaflet.panes')
+      const panes = _.get(layer, 'leaflet.panes')
       if (panes) panes.forEach(pane => this.removeLeafletPane(pane.name || pane.zIndex))
       this.$emit('layer-hidden', layer, leafletLayer)
     },
@@ -257,7 +257,7 @@ export default {
       const west = this.viewBounds.getWest()
       const north = this.viewBounds.getNorth()
       const east = this.viewBounds.getEast()
-      return [ [south, west], [north, east] ]
+      return [[south, west], [north, east]]
     },
     setCursor (className) {
       L.DomUtil.addClass(this.map._container, className)

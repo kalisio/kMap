@@ -18,8 +18,8 @@ export default {
             return
           }
           window.navigator.geolocation.getCurrentPosition((position) => {
-            let latitude = position.coords.latitude
-            let longitude = position.coords.longitude
+            const latitude = position.coords.latitude
+            const longitude = position.coords.longitude
             resolve({ latitude, longitude })
           }, (error) => reject(error), { timeout: 30000, enableHighAccuracy: true })
         }))
@@ -37,7 +37,7 @@ export default {
         logger.debug('New user position: ', position)
       } catch (error) {
         const code = error.code
-        let geolocationError = new errors.KGeolocationError()
+        const geolocationError = new errors.KGeolocationError()
         // Since error codes are not globally available in the geolocation API
         // and we use it for translation create new ones for our own usage
         if (code === error.PERMISSION_DENIED) {

@@ -8,7 +8,7 @@ export default {
       let properties = feature.properties
       let popup
       if (properties) {
-        let leafletOptions = options.leaflet || options
+        const leafletOptions = options.leaflet || options
         const popupStyle = Object.assign({}, this.options.popup,
           leafletOptions.popup, properties.popup)
         // Default content

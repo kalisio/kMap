@@ -7,8 +7,8 @@ export default {
       let popup
       if (entity.properties) {
         let properties = entity.properties.getValue(0)
-        let cesiumOptions = options.cesium || options
-        let popupStyle = _.merge({}, this.options.popup,
+        const cesiumOptions = options.cesium || options
+        const popupStyle = _.merge({}, this.options.popup,
           cesiumOptions.popup, properties.popup)
         // Default content
         let text = popupStyle.text

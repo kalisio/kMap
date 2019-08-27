@@ -4,7 +4,7 @@
       ref="legend"
       @click="onClick"
   >
-    <q-resize-observer @resize="onResize" />  
+    <q-resize-observer @resize="onResize" />
 
     <q-tooltip v-show="hint" v-html="hint"></q-tooltip>
 
@@ -58,7 +58,7 @@ export default {
   computed: {
     // Height of the unit box (in pixels)
     colorUnitHeight () {
-      return this.componentHeight / (this.values.length + 1)  // + 1: the unit itself is an extra "box"
+      return this.componentHeight / (this.values.length + 1) // + 1: the unit itself is an extra "box"
     },
     // Height of the legend (in pixels) WITHOUT the unit box
     colorLegendHeight () {
@@ -94,7 +94,7 @@ export default {
       }
     },
     getUnitValueStyle (index) {
-      let height = this.colorLegendHeight / this.values.length
+      const height = this.colorLegendHeight / this.values.length
 
       let top = index * height
 
@@ -107,7 +107,7 @@ export default {
         top = this.colorUnitHeight + top
       }
 
-      let css = {
+      const css = {
         width: '100%',
         height: height + 'px',
         top: top + 'px'
@@ -141,7 +141,7 @@ export default {
       }
     },
     onClick () {
-      this.$emit('click', {unit: this.unit})
+      this.$emit('click', { unit: this.unit })
     }
   }
 }
@@ -150,7 +150,7 @@ export default {
 <style>
   .k-legend {
     position: relative;
-    cursor: pointer;    
+    cursor: pointer;
   }
 
   .k-unit-box {
@@ -159,7 +159,7 @@ export default {
     background-color: #f2f2f2;
     display: flex;
     align-items: center;
-    justify-content: center;    
+    justify-content: center;
   }
 
   .k-value-step {
@@ -167,7 +167,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-color: #f2f2f2; 
+    border-color: #f2f2f2;
   }
 
   .k-gradient-step {

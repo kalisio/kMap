@@ -7,10 +7,10 @@
       <k-location-input
         class="k-location-bar-frame"
         :location-map="null"
-        :dense="true"  
+        :dense="true"
         @input="onLocationChanged" />
     </div>
-    <!-- 
+    <!--
         The toggle control
       -->
     <q-btn :icon="isVisible ? 'chevron_left' : 'search'" :dense="isVisible" color="accent" @click="toggle()" />

@@ -23,7 +23,7 @@ export default {
     },
     convertFromSimpleStyleSpec (style, inPlace) {
       if (!style) return {}
-      let convertedStyle = (inPlace ? style : {})
+      const convertedStyle = (inPlace ? style : {})
       let isIconSpec = false
       _.forOwn(style, (value, key) => {
         if (_.has(LeafletStyleMappings, key)) {
@@ -65,7 +65,7 @@ export default {
       _.pull(this[type + 'Factory'], generator)
     },
     generateLeafletStyle () {
-      let args = Array.from(arguments)
+      const args = Array.from(arguments)
       const type = args[0]
       args.shift()
       let style
@@ -80,8 +80,8 @@ export default {
     },
     getDefaultMarker (feature, latlng, options) {
       const properties = feature.properties
-      let leafletOptions = options.leaflet || options
-      let style = Object.assign({}, this.options.pointStyle,
+      const leafletOptions = options.leaflet || options
+      const style = Object.assign({}, this.options.pointStyle,
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
 
@@ -99,8 +99,8 @@ export default {
     },
     getDefaultStyle (feature, options) {
       const properties = feature.properties
-      let leafletOptions = options.leaflet || options
-      let style = Object.assign({}, this.options.featureStyle,
+      const leafletOptions = options.leaflet || options
+      const style = Object.assign({}, this.options.featureStyle,
         leafletOptions.layerStyle,
         this.convertFromSimpleStyleSpec(feature.style || feature.properties))
 

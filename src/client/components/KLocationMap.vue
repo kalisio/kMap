@@ -4,17 +4,17 @@
       <span class="ellipsis-2">{{ location.name }}</span>
       <q-space />
       <q-btn v-if="editable" icon="home" flat round dense @click="refreshLocation">
-        <q-tooltip> 
+        <q-tooltip>
           {{ $t('KLocationMap.RESTORE_BUTTON') }}
         </q-tooltip>
       </q-btn>
       <q-btn icon="center_focus_strong" flat round dense @click="centerMap">
-        <q-tooltip> 
+        <q-tooltip>
           {{ $t('KLocationMap.RECENTER_BUTTON') }}
         </q-tooltip>
       </q-btn>
     </q-toolbar>
-    <q-card-section class="bg-secondary q-pa-none"> 
+    <q-card-section class="bg-secondary q-pa-none">
       <div ref="map" style="width: 360px; height: 360px; fontWeight: normal; zIndex: 0; position: relative">
         <q-resize-observer @resize="onMapResized" />
       </div>
@@ -50,7 +50,7 @@ export default {
       type: Object,
       default: () => {
         return {
-          maxBounds: [ [-90, -180], [90, 180] ],
+          maxBounds: [[-90, -180], [90, 180]],
           maxBoundsViscosity: 0.25,
           minZoom: 2,
           maxZoom: 18,
@@ -125,7 +125,7 @@ export default {
       this.layers = {}
       const catalogService = this.$api.getService('catalog', '')
       // Get first visible base layer
-      let response = await catalogService.find({ query: { type: 'BaseLayer', 'leaflet.isVisible': true } })
+      const response = await catalogService.find({ query: { type: 'BaseLayer', 'leaflet.isVisible': true } })
       if (response.data.length > 0) this.addLayer(response.data[0])
     },
     async onMapResized (size) {

@@ -50,7 +50,7 @@ export default {
       this.timeStepSize = Math.ceil(this.timeStepSize / interval) * interval
       // We can update in place when possible
       if (this.chart) {
-        let xAxis = _.find(this.config.options.scales.xAxes, axis => axis.type === 'time')
+        const xAxis = _.find(this.config.options.scales.xAxes, axis => axis.type === 'time')
         if (xAxis && xAxis.time) {
           xAxis.time.stepSize = this.timeStepSize
           this.chart.update(this.config)
@@ -123,9 +123,9 @@ export default {
     },
     toggleVariable (variableItem) {
       const dataset = this.datasets[variableItem.datasetIndex]
-      let metadata = this.chart.getDatasetMeta(variableItem.datasetIndex)
+      const metadata = this.chart.getDatasetMeta(variableItem.datasetIndex)
       // Check if there is others variables using the same unit axis
-      let datasetsWithYAxis = []
+      const datasetsWithYAxis = []
       this.datasets.forEach((otherDataset, index) => {
         if ((dataset.label !== otherDataset.label) &&
             (dataset.yAxisID === otherDataset.yAxisID)) {
@@ -140,18 +140,18 @@ export default {
       }
 
       // Check if there is another variable using the same unit axis
-      let yAxis = _.find(this.config.options.scales.yAxes, axis => axis.id === dataset.yAxisID)
+      const yAxis = _.find(this.config.options.scales.yAxes, axis => axis.id === dataset.yAxisID)
       if (metadata.hidden) {
         let hideYAxis = true
         datasetsWithYAxis.forEach(otherDataset => {
-          let otherMetadata = this.chart.getDatasetMeta(otherDataset)
+          const otherMetadata = this.chart.getDatasetMeta(otherDataset)
           if (!otherMetadata.hidden) hideYAxis = false
         })
         if (hideYAxis) yAxis.display = false
       } else {
         let showYAxis = true
         datasetsWithYAxis.forEach(otherDataset => {
-          let otherMetadata = this.chart.getDatasetMeta(otherDataset)
+          const otherMetadata = this.chart.getDatasetMeta(otherDataset)
           if (!otherMetadata.hidden) showYAxis = false
         })
         if (showYAxis) yAxis.display = true

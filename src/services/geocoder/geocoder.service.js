@@ -6,7 +6,7 @@ import makeDebug from 'debug'
 const debug = makeDebug('kalisio:kMap:geocoder:service')
 
 export default function (name, app, options) {
-    // Keep track of config
+  // Keep track of config
   Object.assign(options, app.get('geocoder'))
   debug('geocoder created with config ', options)
   let geocoders = []
@@ -38,7 +38,7 @@ export default function (name, app, options) {
     async create (data, params) {
       const nbResults = _.get(this, 'paginate.default', 10)
       debug('geocoder service called for create', data)
-      let aggregatedResults = await Promise.all(geocoders.map(geocoder => {
+      const aggregatedResults = await Promise.all(geocoders.map(geocoder => {
         if (data.address) return this.geocode(geocoder, data.address)
         // All geocoders cannot do reverse geocoding
         else if (geocoder.reverse) {
@@ -48,7 +48,7 @@ export default function (name, app, options) {
           return this.reverse(geocoder, lon, lat)
         } else return Promise.resolve([])
       }))
-      let results = []
+      const results = []
       let processing = true
       // Iterate to take best results for each provider in same order
       while (processing) {

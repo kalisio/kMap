@@ -45,16 +45,16 @@ describe('kMap', () => {
     server.once('listening', _ => done())
   })
   // Let enough time to process
-  .timeout(5000)
+    .timeout(5000)
 
   it('creates a test user', async () => {
     userObject = await userService.create({ email: 'test-user@test.org', name: 'test-user' }, { checkAuthorisation: true })
-    let users = await userService.find({ query: { 'profile.name': 'test-user' }, user: userObject, checkAuthorisation: true })
+    const users = await userService.find({ query: { 'profile.name': 'test-user' }, user: userObject, checkAuthorisation: true })
     expect(users.data.length > 0).beTrue()
   })
 
   it('registers the default layer catalog', async () => {
-    let layers = await fs.readJson('./test/config/layers.json')
+    const layers = await fs.readJson('./test/config/layers.json')
     expect(layers.length > 0)
     // Create a global catalog service
     layersArray = await catalogService.create(layers)
@@ -76,7 +76,7 @@ describe('kMap', () => {
     // Create the spatial index
     vigicruesStationsService.Model.ensureIndex({ geometry: '2dsphere' })
     // Feed the collection
-    let stations = require('./data/vigicrues.stations.json').features
+    const stations = require('./data/vigicrues.stations.json').features
     await vigicruesStationsService.create(stations)
   })
 
@@ -93,7 +93,7 @@ describe('kMap', () => {
     vigicruesObsService = app.getService(vigicruesObsLayer.service)
     expect(vigicruesObsService).toExist()
     // Feed the collection
-    let observations = require('./data/vigicrues.observations.json')
+    const observations = require('./data/vigicrues.observations.json')
     await vigicruesObsService.create(observations)
   })
 
@@ -110,18 +110,18 @@ describe('kMap', () => {
     adsbObsService = app.getService(adsbObsLayer.service)
     expect(adsbObsService).toExist()
     // Feed the collection
-    let observations = require('./data/adsb.observations.json')
+    const observations = require('./data/adsb.observations.json')
     await adsbObsService.create(observations)
   })
 
   it('performs spatial filtering on vigicrues stations service', async () => {
-    let result = await vigicruesStationsService.find({
+    const result = await vigicruesStationsService.find({
       query: {
         geometry: {
           $near: {
             $geometry: {
               type: 'Point',
-              coordinates: [ 6.39, 48.31 ]
+              coordinates: [6.39, 48.31]
             },
             $maxDistance: 100000 // 100 Kms around
           }
@@ -132,7 +132,7 @@ describe('kMap', () => {
   })
 
   it('performs value filtering on vigicrues observations service', async () => {
-    let result = await vigicruesObsService.find({
+    const result = await vigicruesObsService.find({
       query: {
         'properties.H': { $gt: 0.33, $lt: 0.5 }
       }
@@ -141,7 +141,7 @@ describe('kMap', () => {
   })
 
   it('performs temporal filtering on vigicrues observations service', async () => {
-    let result = await vigicruesObsService.find({
+    const result = await vigicruesObsService.find({
       query: {
         time: {
           $gt: new Date('2018-11-08T18:00:00').toISOString(),
@@ -152,7 +152,7 @@ describe('kMap', () => {
     expect(result.features.length > 0).beTrue()
   })
 
-  let aggregationQuery = {
+  const aggregationQuery = {
     time: {
       $gte: new Date('2018-11-08T18:00:00Z').toISOString(),
       $lte: new Date('2018-11-08T22:00:00Z').toISOString()
@@ -163,7 +163,7 @@ describe('kMap', () => {
   }
 
   it('performs element aggregation on vigicrues observations service', async () => {
-    let result = await vigicruesObsService.find({ query: Object.assign({}, aggregationQuery) })
+    const result = await vigicruesObsService.find({ query: Object.assign({}, aggregationQuery) })
     expect(result.features.length).to.equal(1)
     const feature = result.features[0]
     expect(feature.time).toExist()
@@ -174,7 +174,7 @@ describe('kMap', () => {
   })
 
   it('performs sorted element aggregation on vigicrues observations service', async () => {
-    let result = await vigicruesObsService.find({ query: Object.assign({ $sort: { time: -1 } }, aggregationQuery) })
+    const result = await vigicruesObsService.find({ query: Object.assign({ $sort: { time: -1 } }, aggregationQuery) })
     expect(result.features.length).to.equal(1)
     const feature = result.features[0]
     expect(feature.time).toExist()
@@ -185,7 +185,7 @@ describe('kMap', () => {
   })
 
   it('performs geometry aggregation on ADS-B observations service', async () => {
-    let aggregationQuery = {
+    const aggregationQuery = {
       time: {
         $lte: new Date('2019-01-04T13:58:54.767Z').toISOString()
       },
@@ -193,7 +193,7 @@ describe('kMap', () => {
       $groupBy: 'icao',
       $aggregate: ['geometry']
     }
-    let result = await adsbObsService.find({ query: Object.assign({}, aggregationQuery) })
+    const result = await adsbObsService.find({ query: Object.assign({}, aggregationQuery) })
     expect(result.features.length).to.equal(1)
     const feature = result.features[0]
     expect(feature.time).toExist()
@@ -204,14 +204,14 @@ describe('kMap', () => {
   })
 
   it('geocode an address', async () => {
-    let address = '80 chemin des tournesols, 11400 Castelnaudary'
-    let response = await geocoderService.create({ address: address }, { user: userObject, checkAuthorisation: true })
+    const address = '80 chemin des tournesols, 11400 Castelnaudary'
+    const response = await geocoderService.create({ address: address }, { user: userObject, checkAuthorisation: true })
     expect(response.length === 1).beTrue()
     expect(response[0].latitude).toExist()
     expect(response[0].longitude).toExist()
   })
   // Let enough time to process
-  .timeout(5000)
+    .timeout(5000)
 
   it('clears the layers', async () => {
     for (let i = 0; i < layersArray.length; ++i) {
@@ -226,17 +226,18 @@ describe('kMap', () => {
       user: userObject,
       checkAuthorisation: true
     })
-    let users = await userService.find({ query: { name: 'test-user' } })
+    const users = await userService.find({ query: { name: 'test-user' } })
     expect(users.data.length === 0).beTrue()
   })
 
   // Cleanup
-  after(() => {
-    if (server) server.close()
-    vigicruesStationsService.Model.drop()
-    vigicruesObsService.Model.drop()
-    adsbObsService.Model.drop()
-    catalogService.Model.drop()
-    userService.Model.drop()
+  after(async () => {
+    if (server) await server.close()
+    await vigicruesStationsService.Model.drop()
+    await vigicruesObsService.Model.drop()
+    await adsbObsService.Model.drop()
+    await catalogService.Model.drop()
+    await userService.Model.drop()
+    await app.db.disconnect()
   })
 })

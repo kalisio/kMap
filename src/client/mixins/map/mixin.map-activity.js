@@ -1,6 +1,3 @@
-import _ from 'lodash'
-import L from 'leaflet'
-
 export default {
   methods: {
     async initializeMap () {
