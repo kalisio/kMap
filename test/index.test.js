@@ -2,7 +2,7 @@ import chai, { util, expect } from 'chai'
 import chailint from 'chai-lint'
 import _ from 'lodash'
 import fs from 'fs-extra'
-import core, { kalisio, permissions } from '@kalisio/kdk-core'
+import core, { kalisio, hooks, permissions } from '@kalisio/kdk-core'
 import map, { permissions as mapPermissions, createFeaturesService, createCatalogService } from '../src'
 
 describe('kMap', () => {
@@ -20,6 +20,11 @@ describe('kMap', () => {
     permissions.defineAbilities.registerHook(mapPermissions.defineUserAbilities)
 
     app = kalisio()
+    // Register authorisation/log hook
+    app.hooks({
+      before: { all: [hooks.authorise] },
+      error: { all: hooks.log }
+    })
     port = app.get('port')
     // baseUrl = `http://localhost:${port}${app.get('apiPath')}`
     return app.db.connect()

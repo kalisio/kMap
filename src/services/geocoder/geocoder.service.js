@@ -1,4 +1,3 @@
-import logger from 'winston'
 import _ from 'lodash'
 import NodeGeocoder from 'node-geocoder'
 import makeDebug from 'debug'
@@ -22,7 +21,7 @@ export default function (name, app, options) {
       try {
         results = await geocoder.geocode(address)
       } catch (error) {
-        logger.error(error)
+        app.logger.error(error)
       }
       return results
     },
@@ -31,7 +30,7 @@ export default function (name, app, options) {
       try {
         results = await geocoder.reverse({ lat, lon })
       } catch (error) {
-        logger.error(error)
+        app.logger.error(error)
       }
       return results
     },
