@@ -15,10 +15,8 @@
       option-label="name"
       option-value="name"
       @filter="onSearch"
-      @input="onUpdated">
-      <template v-slot:hint>
-        {{ $t('KLocationField.SEARCH') }}
-      </template>
+      @input="onUpdated"
+      :label="$t('KLocationField.SEARCH')">
       <template v-slot:selected>
         {{ locationName }}
       </template>
