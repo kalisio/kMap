@@ -33,7 +33,6 @@ export default {
         top: 0.25 * this.engineContainerHeight + 'px',
         height: 0.50 * this.engineContainerHeight + 'px',
         width: '40px',
-        border: '1px solid lightgrey',
         fontSize: '12px'
       }
     }

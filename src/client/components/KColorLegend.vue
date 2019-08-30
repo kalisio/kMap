@@ -1,18 +1,17 @@
 <template>
 
-  <div class="k-legend"
+  <div class="k-legend shadow-2"
       ref="legend"
       @click="onClick"
   >
     <q-resize-observer @resize="onResize" />
 
-    <q-tooltip v-show="hint" v-html="hint"></q-tooltip>
-
-    <div class="k-unit-box"
+    <span class="k-unit-box bg-secondary text-white text-caption"
       :style="colorUnitStyle"
     >
       {{unit}}
-    </div>
+      <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 20]" v-show="hint">{{hint}}</q-tooltip>
+    </span>
 
     <span class="k-gradient-step"
       v-for="gradientStep in gradientSteps" :key="'step'+gradientStep"
@@ -20,12 +19,12 @@
     >
     </span>
 
-    <div class="k-value-step"
+    <span class="k-value-step text-white"
       v-for="(unitValue, index) in unitValues" :key="index"
       :style="getUnitValueStyle(index)"
     >
       {{unitValue}}
-    </div>
+    </span>
   </div>
 
 </template>
@@ -147,31 +146,26 @@ export default {
 }
 </script>
 
-<style>
-  .k-legend {
-    position: relative;
-    cursor: pointer;
-  }
+<style lang="stylus">
+.k-legend
+  position: relative;
+  cursor: pointer;
+  border: none
 
-  .k-unit-box {
-    position: absolute;
-    top: 0;
-    background-color: #f2f2f2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.k-unit-box
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  .k-value-step {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-color: #f2f2f2;
-  }
+.k-value-step
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  .k-gradient-step {
-    position: absolute;
-    display: inline-block;
-  }
+.k-gradient-step
+  position: absolute;
+  display: inline-block;
 </style>
