@@ -16,6 +16,9 @@
       option-value="name"
       @filter="onSearch"
       @input="onUpdated">
+      <template v-slot:hint>
+        {{ $t('KLocationField.SEARCH') }}
+      </template>
       <template v-slot:selected>
         {{ locationName }}
       </template>
@@ -29,7 +32,9 @@
       <!-- Additionnal actions -->
       <template  v-slot:before>
          <!-- User location -->
-        <q-btn v-if="isUserLocationEnabled" icon="my_location" color="primary" flat dense round @click="geolocate()" />
+        <q-btn v-if="isUserLocationEnabled" icon="my_location" color="primary" flat dense round @click="geolocate()">
+          <q-tooltip>{{ $t('KLocationInput.GEOLOCATE') }}</q-tooltip>
+        </q-btn>
          <!-- Location map -->
         <q-btn v-if="isLocationMapEnabled" icon="place" color="primary" flat dense round>
           <q-popup-proxy transition-show="scale" transition-hide="scale">

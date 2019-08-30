@@ -40,11 +40,6 @@
       "TOGGLE_FULLSCREEN": "Fullscreen",
       "TOGGLE_CATALOG": "Catalog",
       "TOGGLE_VR": "VR",
-      "GEOLOCATE": "My position",
-      "GEOCODE": "Find",
-      "GEOCODING": "Find a location",
-      "GEOCODE_BUTTON": "Geocode",
-      "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
       "TRACK_LOCATION": "Track location",
       "PROBE": "Probe"
     },
@@ -170,11 +165,15 @@
     "CATALOG_SCHEMA_FIELD_HELPER": "Select a data scheme"
   },
   "KLocationField": {
+    "SEARCH": "$t(SEARCH)",
     "NO_RESULTS": "$t(EMPTY)"
   },
   "KLocationMap": {
     "RESTORE_BUTTON": "Restore position",
     "RECENTER_BUTTON": "Recenter map"
+  },
+  "KLocationInput": {
+    "GEOLOCATE": "My position"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Base Layers",

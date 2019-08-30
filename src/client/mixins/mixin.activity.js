@@ -38,16 +38,6 @@ export default function (name) {
       }
     },
     methods: {
-      getGeocodingToolbar () {
-        return [
-          { name: 'close-action', label: this.$t('mixins.activity.CLOSE_GEOCODING_ACTION'), icon: 'close', handler: this.onCloseGeocoding }
-        ]
-      },
-      getGeocodingButtons () {
-        return [
-          { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: () => this.onGeocode() }
-        ]
-      },
       setNavigationBar (locationInput, beforeActions, afterActions) {
         const navigationBar = { locationInput, actions: { before: beforeActions, after: afterActions } }
         this.$store.patch('navigationBar', navigationBar)
@@ -350,39 +340,6 @@ export default function (name) {
           this.unregisterFabAction('geolocate')
         }
       },
-      onCloseGeocoding (done) {
-        this.geocodingModal.close(done)
-        this.geocodingModal = null
-      },
-      /* async onGeocoding () {
-        const schema = await this.$load('geocoding', 'schema')
-        this.geocodingModal = await this.$createComponent('frame/KModal', {
-          propsData: {
-            title: this.$t('mixins.activity.GEOCODING'),
-            toolbar: this.getGeocodingToolbar(),
-            buttons: this.getGeocodingButtons(),
-            route: false
-          }
-        })
-        // Slots require VNodes not components
-        this.geocodingModal.$slots['modal-content'] = [
-          await this.$createComponentVNode('form/KForm', { props: { schema } })
-        ]
-        this.geocodingModal.$mount()
-        this.geocodingModal.open()
-      },
-      onGeocode () {
-        const geocodingForm = _.get(this.geocodingModal.$slots, 'modal-content[0].componentInstance')
-        if (geocodingForm) {
-          let result = geocodingForm.validate()
-          const longitude = _.get(result, 'values.location.longitude')
-          const latitude = _.get(result, 'values.location.latitude')
-          if (longitude && latitude) {
-            this.center(longitude, latitude)
-          }
-        }
-        this.onCloseGeocoding(done)
-      }, */
       onTrackLocation () {
         if (!this.locationIndicator) this.createLocationIndicator()
         else this.removeLocationIndicator()

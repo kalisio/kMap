@@ -40,11 +40,6 @@
       "TOGGLE_FULLSCREEN": "Plein écran",
       "TOGGLE_CATALOG": "Catalogue",
       "TOGGLE_VR": "VR",
-      "GEOLOCATE": "Ma position",
-      "GEOCODE": "Rechercher",
-      "GEOCODING": "Rechercher un lieu",
-      "GEOCODE_BUTTON": "Géocoder",
-      "CLOSE_GEOCODING_ACTION": "$t(CLOSE)",
       "TRACK_LOCATION": "Suivi de coordonnées",
       "PROBE": "Sonder"
     },
@@ -170,11 +165,15 @@
     "CATALOG_SCHEMA_FIELD_HELPER": "Sélectionnez un schéma de données"
   },
   "KLocationField": {
+    "SEARCH": "$t(SEARCH)",
     "NO_RESULTS": "$t(EMPTY)"
   },
   "KLocationMap": {
     "RESTORE_BUTTON": "Restaurer la position",
     "RECENTER_BUTTON": "Recentrer la carte"
+  },
+  "KLocationInput": {
+    "GEOLOCATE": "Ma position"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Fonds cartographiques",
