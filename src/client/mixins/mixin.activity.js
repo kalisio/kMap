@@ -4,6 +4,7 @@ import { Dialog } from 'quasar'
 
 export default function (name) {
   return {
+    inject: ['klayout'],
     data () {
       return {
         forecastModelHandlers: {},
@@ -47,12 +48,12 @@ export default function (name) {
           { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: () => this.onGeocode() }
         ]
       },
-      setNavigationBar (beforeActions, locationInput, afterActions) {
-        const navigationBar = { beforeActions, locationInput, afterActions }
+      setNavigationBar (locationInput, beforeActions, afterActions) {
+        const navigationBar = { locationInput, actions: { before: beforeActions, after: afterActions } }
         this.$store.patch('navigationBar', navigationBar)
       },
       clearNavigationBar () {
-        const navigationBar = { beforeActions: [], locationInput: false, afterActions: [] }
+        const navigationBar = { locationInput: false, actions: { before: [], afte: [] } }
         this.$store.patch('navigationBar', navigationBar)
       },
       registerActivityActions () {
@@ -84,6 +85,9 @@ export default function (name) {
             name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
           })
         }
+      },
+      toggleCatalogLayers () {
+        this.klayout.toggleRightDrawer()
       },
       async getCatalogLayers () {
         const catalogService = this.$api.getService('catalog')

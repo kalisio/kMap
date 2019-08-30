@@ -37,6 +37,7 @@
       "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloir supprimer {{layer}} de votre espace de travail ?",
       "ZOOM_TO_LABEL": "Zoomer sur",
       "TOGGLE_FULLSCREEN": "Plein écran",
+      "TOGGLE_CATALOG": "Catalogue",
       "GEOLOCATE": "Ma position",
       "GEOCODE": "Rechercher",
       "GEOCODING": "Rechercher un lieu",

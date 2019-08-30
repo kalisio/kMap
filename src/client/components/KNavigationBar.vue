@@ -3,7 +3,7 @@
     <!-- 
       Before section
     -->
-    <k-tool-bar :actions="navigationBar.beforeActions" />
+    <k-tool-bar :actions="navigationBar.actions.before" />
     <!--
       The location input
     -->
@@ -17,7 +17,7 @@
       After section
     -->
     <q-space />
-    <k-tool-bar :actions="navigationBar.afterActions" />
+    <k-tool-bar :actions="navigationBar.actions.after" />
   </q-toolbar>
 </template>
 

@@ -37,6 +37,7 @@
       "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",
       "ZOOM_TO_LABEL": "Zoom to",
       "TOGGLE_FULLSCREEN": "Fullscreen",
+      "TOGGLE_CATALOG": "Catalog",
       "GEOLOCATE": "My position",
       "GEOCODE": "Find",
       "GEOCODING": "Find a location",
