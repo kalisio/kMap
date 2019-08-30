@@ -57,24 +57,12 @@ export default function (name) {
         this.$store.patch('navigationBar', navigationBar)
       },
       registerActivityActions () {
-        let defaultActions = ['fullscreen', 'geolocate', 'geocode', 'track-location', 'probe-location']
+        // FAB
+        let defaultActions = ['track-location', 'probe-location']
         if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['create-layer'])
         const actions = _.get(this, 'activityOptions.actions', defaultActions)
-        const hasFullscreenAction = (typeof this.onToggleFullscreen === 'function') && actions.includes('fullscreen')
-        const hasLocationIndicatorAction = (typeof this.createLocationIndicator === 'function') && actions.includes('track-location')
         const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && actions.includes('probe-location') && this.weacastApi && this.forecastModel
         const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && actions.includes('create-layer')
-        // FAB
-        if (hasFullscreenAction) {
-          this.registerFabAction({
-            name: 'toggle-fullscreen', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
-          })
-        }
-        if (hasLocationIndicatorAction) {
-          this.registerFabAction({
-            name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
-          })
-        }
         if (hasProbeLocationAction) {
           this.registerFabAction({
             name: 'probe', label: this.$t('mixins.activity.PROBE'), icon: 'colorize', handler: this.onProbeLocation
@@ -85,9 +73,48 @@ export default function (name) {
             name: 'create-layer', label: this.$t('mixins.activity.CREATE_LAYER'), icon: 'add', handler: this.onCreateLayer
           })
         }
-      },
-      toggleCatalogLayers () {
-        this.klayout.toggleRightDrawer()
+        // Nav bar
+        let defaultTools = ['side-nav', 'fullscreen', 'location-bar', 'catalog']
+        if (this.engine === 'cesium') defaultTools = defaultTools.concat(['vr'])
+        const tools = _.get(this, 'activityOptions.tools', defaultTools)
+        const hasSideNavTool = tools.includes('side-nav')
+        const hasVrTool = tools.includes('vr')
+        const hasFullscreenTool = (typeof this.onToggleFullscreen === 'function') && tools.includes('fullscreen')
+        const hasTrackLocationTool = (typeof this.createLocationIndicator === 'function') && tools.includes('track-location')
+        const hasLocationTool = tools.includes('location-bar')
+        const hasPanelTool = tools.includes('catalog')
+        let beforeActions = []
+        if (hasSideNavTool) {
+          beforeActions.push({
+            name: 'sidenav-toggle', label: this.$t('mixins.activity.TOGGLE_SIDENAV'), icon: 'menu',
+            handler: () => { this.klayout.toggleLeftDrawer() }
+          })
+          beforeActions.push({ name: 'separator' })
+        }
+        if (hasTrackLocationTool) {
+          beforeActions.push({
+            name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
+          })
+        }
+        let afterActions = []
+        if (hasVrTool) {
+          afterActions.push({
+            name: 'vr-toggle', label: this.$t('GlobeActivity.TOGGLE_VR'), icon: 'terrain', handler: this.onToggleVr
+          })
+        }
+        if (hasFullscreenTool) {
+          afterActions.push({
+            name: 'fullscreen-toggle', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
+          })
+        }
+        if (hasPanelTool) {
+          afterActions.push({ name: 'separator' })
+          afterActions.push({
+            name: 'catalog-toggle', label: this.$t('mixins.activity.TOGGLE_CATALOG'), icon: 'layers',
+            handler: () => { this.klayout.toggleRightDrawer() }
+          })
+        }
+        this.setNavigationBar(hasLocationTool, beforeActions, afterActions)
       },
       async getCatalogLayers () {
         const catalogService = this.$api.getService('catalog')
