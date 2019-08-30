@@ -361,10 +361,10 @@ export default function (name) {
           // logger.error('Engine not ready to geolocate')
           return
         }
-        if (_.get(this.$route, 'query.south')) return
         const position = this.$store.get('user.position')
         // 3D or 2D centering ?
-        if (position) {
+        if (this.locateControl) this.locateControl.start()
+        else if (position) {
           this.center(position.longitude, position.latitude)
         }
       },
@@ -423,6 +423,8 @@ export default function (name) {
         // Geolocate by default if view has not been restored
         if (!this.restoreView()) {
           if (this.$store.get('user.position')) this.geolocate()
+            // Provided by geolocation mixin if available
+          else if (this.updatePosition) await this.updatePosition()
         }
         // Retrieve the forecast models
         if (this.setupWeacast) {

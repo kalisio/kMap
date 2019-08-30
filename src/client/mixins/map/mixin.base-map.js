@@ -11,6 +11,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import 'leaflet.markercluster'
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js'
 import 'Leaflet.Geodesic'
+import 'leaflet.locatecontrol'
+import 'leaflet.locatecontrol/dist/L.Control.Locate.css'
 import { LeafletEvents, bindLeafletEvents } from '../../utils'
 
 // Fix to make Leaflet assets be correctly inserted by webpack
@@ -36,7 +38,29 @@ export default {
       // Initialize the map
       this.map = L.map(domEl, Object.assign({ zoomControl: false }, viewerOptions))
       bindLeafletEvents(this.map, LeafletEvents.Map, this, viewerOptions)
+      this.setupGeolocateControl()
       this.$emit('map-ready')
+    },
+    setupGeolocateControl () {
+      this.locateControl = new L.control.locate({
+        locateOptions: {
+          maxZoom: 16,
+          watch: false,
+          setView: false,
+          timeout: 30000,
+          enableHighAccuracy: true
+        },
+        strings: {
+          title: this.$t("mixins.geolocation.TITLE"),
+          metersUnit: this.$t("mixins.geolocation.METERS"),
+          feetUnit: this.$t("mixins.geolocation.FEET"),
+          popup: this.$t("mixins.geolocation.POPUP"),
+          outsideMapBoundsMsg: this.$t("mixins.geolocation.OUTSIDE_MAP_BOUNDS"),
+        }
+      })
+      this.locateControl.addTo(this.map)
+      // We'd like to use control features but without actually displaying it
+      this.locateControl._container.style.display = 'none'
     },
     processLeafletLayerOptions (options) {
       // Because we update objects in place and don't want leaflet internal objects to be reactive
