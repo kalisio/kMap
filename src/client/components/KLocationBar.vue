@@ -13,7 +13,7 @@
     <!--
         The toggle control
       -->
-    <q-btn :icon="isVisible ? 'chevron_left' : 'search'" :dense="isVisible" color="accent" @click="toggle()" />
+    <q-btn :icon="isVisible ? 'chevron_left' : 'search'" :dense="isVisible" color="secondary" @click="toggle()" />
   </div>
 </template>
 
