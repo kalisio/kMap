@@ -10,6 +10,10 @@ export default function init () {
   // Declare the services
   api.declareService('geocoder')
 
+  // Initialize the nabigation bar
+  const navigationBar = { beforeActions: [], locationInput: true, afterActions: [] }
+  Store.set('navigationBar', navigationBar)  
+
   // Default time formatting settings
   Store.set('timeFormat', {
     time: {

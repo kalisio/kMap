@@ -47,6 +47,14 @@ export default function (name) {
           { name: 'geocode-button', label: this.$t('mixins.activity.GEOCODE_BUTTON'), color: 'primary', handler: () => this.onGeocode() }
         ]
       },
+      setNavigationBar (beforeActions, locationInput, afterActions) {
+        const navigationBar = { beforeActions, locationInput, afterActions }
+        this.$store.patch('navigationBar', navigationBar)
+      },
+      clearNavigationBar () {
+        const navigationBar = { beforeActions: [], locationInput: false, afterActions: [] }
+        this.$store.patch('navigationBar', navigationBar)
+      },
       registerActivityActions () {
         let defaultActions = ['fullscreen', 'geolocate', 'geocode', 'track-location', 'probe-location']
         if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['create-layer'])
