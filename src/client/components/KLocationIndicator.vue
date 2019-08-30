@@ -1,6 +1,6 @@
 <template>
   <div class="column items-center fixed-bottom" style="bottom: 32px" >
-    <q-chip color="secondary" text-color="white" closable  @click="onClick()" @close="onClose()">
+    <q-chip color="secondary" text-color="white" removable @remove="onRemove()">
       {{ currentFormattedLocation }}
     </q-chip>
   </div>
@@ -27,10 +27,7 @@ export default {
     }
   },
   methods: {
-    onClick () {
-      this.$emit('click')
-    },
-    onClose () {
+    onRemove () {
       this.$emit('close')
     }
   }
