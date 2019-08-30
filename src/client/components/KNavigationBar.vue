@@ -1,5 +1,5 @@
 <template>
-  <q-toolbar class="k-navigation-bar q-pa-sm" :style="width()">
+  <q-toolbar class="k-navigation-bar">
     <!-- 
       Before section
     -->
@@ -7,16 +7,12 @@
     <!--
       The location input
     -->
-    <template v-if="navigationBar.locationInput">
-      <div style="width: 70%">
-        <k-location-input :location-map="null" :dense="true" @input="onLocationChanged" />
-      </div>
-      <q-separator vertical inset />
-    </template>
+    <div v-if="navigationBar.locationInput" style="width: 50vw;">
+      <k-location-input :location-map="null" :dense="true" @input="onLocationChanged" />
+    </div>
     <!--
       After section
     -->
-    <q-space />
     <k-tool-bar :actions="navigationBar.actions.after" />
   </q-toolbar>
 </template>
@@ -30,10 +26,6 @@ export default {
     }
   },
   methods: {
-    width () {
-      if (this.$q.screen.lt.xs) return 'width: 100vw'
-      return 'width: 95vw'
-    },
     onLocationChanged (location) {
       if (location) this.$emit('location-changed', location)
     }
@@ -53,6 +45,6 @@ export default {
 }
 
 .k-navigation-bar:hover {
-  border: solid 2px $primary;
+  border: solid 1px $primary;
 }
 </style>

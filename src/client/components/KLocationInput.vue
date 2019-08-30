@@ -1,47 +1,47 @@
 <template>
-  <div class="row full-width q-pr-xs">
-    <!--
-      The location input
-     -->
-    <q-select
-      class="col-12"
-      borderless
-      :dense="dense"
-      clearable
-      use-input
-      v-model="location"
-      hide-dropdown-icon
-      :options="options"
-      option-label="name"
-      option-value="name"
-      @filter="onSearch"
-      @input="onUpdated"
-      :label="$t('KLocationField.SEARCH')">
-      <template v-slot:selected>
-        {{ locationName }}
-      </template>
-      <template v-slot:no-option>
-        <q-item>
-          <q-item-section class="text-grey">
-            {{ $t('KLocationField.NO_RESULTS') }}
-          </q-item-section>
-        </q-item>
-      </template>
-      <!-- Additionnal actions -->
-      <template  v-slot:before>
-         <!-- User location -->
-        <q-btn v-if="isUserLocationEnabled" icon="my_location" color="primary" flat dense round @click="geolocate()">
-          <q-tooltip>{{ $t('KLocationInput.GEOLOCATE') }}</q-tooltip>
-        </q-btn>
-         <!-- Location map -->
-        <q-btn v-if="isLocationMapEnabled" icon="place" color="primary" flat dense round>
-          <q-popup-proxy transition-show="scale" transition-hide="scale">
-            <k-location-map v-model="location" :editable="locationMap.editable" @input="onUpdated" />
-          </q-popup-proxy>
-        </q-btn>
-      </template>
-    </q-select>
-  </div>
+  <!--
+    The location input
+    -->
+  <q-select
+    class="full-width"
+    borderless
+    :dense="dense"
+    clearable
+    use-input
+    v-model="location"
+    hide-dropdown-icon
+    :options="options"
+    option-label="name"
+    option-value="name"
+    @filter="onSearch"
+    @input="onUpdated">
+    <template v-slot:prepend>
+      <q-icon :dense="dense" name="search" />
+    </template>
+    <template v-slot:selected>
+      {{ locationName }}
+    </template>
+    <template v-slot:no-option>
+      <q-item>
+        <q-item-section class="text-grey">
+          {{ $t('KLocationField.NO_RESULTS') }}
+        </q-item-section>
+      </q-item>
+    </template>
+    <!-- Additionnal actions -->
+    <template  v-slot:before>
+        <!-- User location -->
+      <q-btn v-if="isUserLocationEnabled" icon="my_location" color="primary" flat dense round @click="geolocate()">
+        <q-tooltip>{{ $t('KLocationInput.GEOLOCATE') }}</q-tooltip>
+      </q-btn>
+        <!-- Location map -->
+      <q-btn v-if="isLocationMapEnabled" icon="place" color="primary" flat dense round>
+        <q-popup-proxy transition-show="scale" transition-hide="scale">
+          <k-location-map v-model="location" :editable="locationMap.editable" @input="onUpdated" />
+        </q-popup-proxy>
+      </q-btn>
+    </template>
+  </q-select>
 </template>
 
 <script>
