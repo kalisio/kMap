@@ -11,7 +11,7 @@ export default {
         this.geolocation = utils.createQuerablePromise(new Promise((resolve, reject) => {
           if (!window.navigator.geolocation) {
             this.$events.$emit('error', {
-              message: this.$t('mixins.geolocation.NOT_SUPPORTED_MESSAGE'),
+              message: this.$t('errors.GEOLOCATION_NOT_SUPPORTED'),
               // By default we only show geolocation errors, nothing if unsupported
               ignore: true
             })
@@ -60,7 +60,6 @@ export default {
     }
   },
   created () {
-    this.updatePosition()
     // Whenever the user is updated, update position as well
     this.$events.$on('user-changed', this.updatePosition)
   },
