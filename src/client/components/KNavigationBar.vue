@@ -14,13 +14,13 @@
         <q-tooltip>{{ $t('KNavigationBar.BACK') }}</q-tooltip>
       </q-btn>
       <k-location-input
-        :class="(mode=='searchbar' || !$q.screen.lt.sm) ? 'full-width' : ''"
+        :class="(mode=='searchbar' || !$q.screen.lt.md) ? 'full-width q-pr-xs' : ''"
         :user="mode=='toolbar'"
         :map="null" 
-        :search="mode=='searchbar' || (mode == 'toolbar' && !$q.screen.lt.sm)"
+        :search="mode=='searchbar' || (mode == 'toolbar' && !$q.screen.lt.md)"
         :dense="true" 
         @input="onLocationChanged" />
-      <q-btn v-if="mode=='toolbar' && $q.screen.lt.sm" icon="search" color="primary" round flat @click="mode='searchbar'" >
+      <q-btn v-if="mode=='toolbar' && $q.screen.lt.md" icon="search" color="primary" round flat @click="mode='searchbar'" >
         <q-tooltip>{{ $t('KNavigationBar.SEARCH') }}</q-tooltip>
       </q-btn>
     </template>

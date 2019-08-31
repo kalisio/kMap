@@ -173,7 +173,12 @@
     "RECENTER_BUTTON": "Recenter map"
   },
   "KLocationInput": {
-    "GEOLOCATE": "My position"
+    "GEOLOCATE": "My position",
+    "LOCATION_MAP": "Location map"
+  },
+  "KNavigationBar": {
+    "SEARCH": "Search",
+    "BACK": "Back"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Base Layers",

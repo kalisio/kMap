@@ -173,7 +173,12 @@
     "RECENTER_BUTTON": "Recentrer la carte"
   },
   "KLocationInput": {
-    "GEOLOCATE": "Ma position"
+    "GEOLOCATE": "Ma position",
+    "LOCATION_MAP": "Carte de localisation"
+  },
+  "KNavigationBar": {
+    "SEARCH": "Rechercher",
+    "BACK": "Retour"
   },
   "KCatalogPanel": {
     "BASE_LAYERS": "Fonds cartographiques",

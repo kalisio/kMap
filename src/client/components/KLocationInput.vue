@@ -19,7 +19,7 @@
       Search location
     -->
     <q-select
-      v-if="search"
+      v-show="search"
       class="col-grow"
       borderless
       :dense="dense"
