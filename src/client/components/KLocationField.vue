@@ -5,7 +5,7 @@
     no-error-icon
   >
     <!-- Location input -->
-    <k-location-input v-model="model" />
+    <k-location-input v-model="model" class="full-width" />
     <!--Helper -->
     <template v-if="helper" v-slot:hint>
       <span v-html="helper"></span>

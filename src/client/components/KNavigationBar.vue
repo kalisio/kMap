@@ -1,20 +1,37 @@
 <template>
-  <q-toolbar class="k-navigation-bar">
+  <div class="row items-center k-navigation-bar no-wrap" :style="width()">
     <!-- 
       Before section
     -->
-    <k-tool-bar :actions="navigationBar.actions.before" />
+    <template v-if="mode=='toolbar'">
+      <k-tool-bar :actions="navigationBar.actions.before" />
+    </template>
     <!--
       The location input
     -->
-    <div v-if="navigationBar.locationInput" style="width: 50vw;">
-      <k-location-input :location-map="null" :dense="true" @input="onLocationChanged" />
-    </div>
+    <template v-if="navigationBar.locationInput">
+      <q-btn v-if="mode=='searchbar'" icon="arrow_back" color="primary" round flat @click="mode='toolbar'" >
+        <q-tooltip>{{ $t('KNavigationBar.BACK') }}</q-tooltip>
+      </q-btn>
+      <k-location-input
+        :class="(mode=='searchbar' || !$q.screen.lt.sm) ? 'full-width' : ''"
+        :user="mode=='toolbar'"
+        :map="null" 
+        :search="mode=='searchbar' || (mode == 'toolbar' && !$q.screen.lt.sm)"
+        :dense="true" 
+        @input="onLocationChanged" />
+      <q-btn v-if="mode=='toolbar' && $q.screen.lt.sm" icon="search" color="primary" round flat @click="mode='searchbar'" >
+        <q-tooltip>{{ $t('KNavigationBar.SEARCH') }}</q-tooltip>
+      </q-btn>
+    </template>
     <!--
       After section
     -->
-    <k-tool-bar :actions="navigationBar.actions.after" />
-  </q-toolbar>
+    <template v-if="mode=='toolbar'">
+      <q-space  />
+      <k-tool-bar :actions="navigationBar.actions.after" />
+    </template>
+  </div>
 </template>
 
 <script>
@@ -22,10 +39,17 @@ export default {
   name: 'k-navigation-bar',
   data () {
     return {
-      navigationBar: this.$store.get('navigationBar')
+      navigationBar: this.$store.get('navigationBar'),
+      mode: 'toolbar'
     }
   },
   methods: {
+    width() {
+      if (this.$q.screen.lt.sm) return 'width: 100vw'
+      if (this.$q.screen.lt.md) return 'width: 90vw'
+      if (this.$q.screen.lt.lg) return 'width: 80vw'
+      return 'width: 60vw'
+    },
     onLocationChanged (location) {
       if (location) this.$emit('location-changed', location)
     }
