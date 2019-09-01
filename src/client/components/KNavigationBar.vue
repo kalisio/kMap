@@ -14,7 +14,7 @@
         <q-tooltip>{{ $t('KNavigationBar.BACK') }}</q-tooltip>
       </q-btn>
       <k-location-input
-        :class="(mode=='searchbar' || !$q.screen.lt.md) ? 'full-width q-pr-xs' : ''"
+        :class="(mode=='searchbar' || !$q.screen.lt.md) ? 'full-width q-pr-sm' : ''"
         :user="mode=='toolbar'"
         :map="null" 
         :search="mode=='searchbar' || (mode == 'toolbar' && !$q.screen.lt.md)"

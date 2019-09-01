@@ -89,7 +89,7 @@ export default function (name) {
         let afterActions = []
         if (hasVrTool) {
           afterActions.push({
-            name: 'vr-toggle', label: this.$t('GlobeActivity.TOGGLE_VR'), icon: 'terrain', handler: this.onToggleVr
+            name: 'vr-toggle', label: this.$t('mixins.activity.TOGGLE_VR'), icon: 'terrain', handler: this.onToggleVr
           })
         }
         if (hasFullscreenTool) {
