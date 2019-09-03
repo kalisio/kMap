@@ -136,7 +136,7 @@ export default function (name) {
           }
           // Filter layers with variables, not just visible ones because we might want to
           // probe weather even if there is no visual representation (e.g. in globe)
-          if (layer.variables) this.variables = this.variables.concat(layer.variables)
+          if (layer.variables) this.variables = _.uniqBy(this.variables.concat(layer.variables), (variable) => variable.name)
         })
         // We need at least an active background
         const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)

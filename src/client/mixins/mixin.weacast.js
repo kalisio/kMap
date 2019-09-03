@@ -103,6 +103,12 @@ export default {
         let elements = this.forecastModel.elements.map(element => element.name)
         // Filter available elements according to current level if any
         if (this.forecastLevel) elements = elements.filter(element => element.endsWith(this.forecastLevel.toString()))
+        else {
+          elements = elements.filter(element => {
+            const tokens = element.split('-')
+            return (tokens.length === 0) || !_.isFinite(_.toNumber(tokens[tokens.length - 1]))
+          })
+        }
         const response = await this.weacastApi.getService('probes')
           .create({
             forecast: this.forecastModel.name,
@@ -152,6 +158,11 @@ export default {
         // Filter available elements according to current level if any
         if (this.forecastLevel) {
           elements = elements.filter(element => element.endsWith(this.forecastLevel.toString()))
+        } else {
+          elements = elements.filter(element => {
+            const tokens = element.split('-')
+            return (tokens.length === 0) || !_.isFinite(_.toNumber(tokens[tokens.length - 1]))
+          })
         }
         // Need to add derived values for static probes as they are not computed on the fly
         const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
@@ -243,6 +254,7 @@ export default {
     onWeacastHideLayer (layer) {
       if (this.forecastLevelsLayer && (this.forecastLevelsLayer._id === layer._id)) {
         this.forecastLevels = []
+        this.forecastLevel = 0
       }
     }
   },
