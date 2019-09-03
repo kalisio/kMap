@@ -32,8 +32,11 @@ export default {
       _.forOwn(this.leafletLayers, layer => {
         if (layer instanceof L.weacast.ForecastLayer) {
           const leafletOptions = layer.options
-          if (leafletOptions.baseElements) { // Check if the layer supports different levels
-            layer.setForecastElements(leafletOptions.baseElements.map(element => `${element}-${this.forecastLevel}`))
+          if (leafletOptions.baseElements && this.forecastLevel) { // Check if the layer supports different levels
+            const elements = leafletOptions.baseElements.map(element => `${element}-${this.forecastLevel}`)
+            if (!_.isEqual(layer.forecastElements, elements)) {
+              layer.setForecastElements(elements)
+            }
           }
         }
       })
@@ -52,9 +55,8 @@ export default {
       if (levels && levels.length > 0) {
         // Keep track of available elements
         leafletOptions.baseElements = leafletOptions.elements
-        // Select first available level or current one by default
-        const level = this.forecastLevel || levels[0]
-        this.forecastLevel = level
+        // Select first available level by default
+        const level = levels[0]
         leafletOptions.elements = leafletOptions.baseElements.map(element => `${element}-${level}`)
       }
       const layer = this.createLeafletLayer(options)

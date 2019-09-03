@@ -116,6 +116,8 @@ export default {
           }, { query })
         if (response.features.length > 0) {
           this.probedLocation = response.features[0]
+          // Fake ID used to ensure matching when updating data
+          this.probedLocation._id = 'probe'
           this.$emit('probed-location-changed', this.probedLocation)
         } else throw new Error('Cannot find valid forecast at location')
       } catch (error) {
@@ -183,6 +185,8 @@ export default {
         })
         if (results.length > 0) {
           this.probedLocation = results[0]
+          // Fake ID used to ensure matching when updating data
+          this.probedLocation._id = 'probe'
           this.$emit('probed-location-changed', this.probedLocation)
         } else throw new Error('Cannot find valid forecast for feature')
       } catch (error) {
@@ -246,14 +250,22 @@ export default {
     },
     onWeacastShowLayer (layer, engineLayer) {
       // Check for valid types
-      const levels = _.get(layer, 'levels')
-      if (!levels) return
-      this.forecastLevels = levels
-      this.forecastLevelsLayer = layer
+      if (engineLayer instanceof L.weacast.ForecastLayer) {
+        const levels = _.get(layer, 'levels')
+        if (!levels || !levels.values || _.isEmpty(levels.values)) {
+          this.setForecastLevel(0)
+          return
+        }
+        this.forecastLevels = levels
+        this.forecastLevelsLayer = layer
+        // Select first available level by default
+        this.setForecastLevel(levels.values[0])
+      }
     },
     onWeacastHideLayer (layer) {
       if (this.forecastLevelsLayer && (this.forecastLevelsLayer._id === layer._id)) {
         this.forecastLevels = []
+        this.forecastLevelsLayer = null
         this.forecastLevel = 0
       }
     }

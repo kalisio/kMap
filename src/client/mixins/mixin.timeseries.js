@@ -20,7 +20,7 @@ export default {
     }
   },
   methods: {
-    async createProbedLocationLayer () {
+    async updateProbedLocationLayer () {
       if (!this.probedLocation) return
       const name = this.$t('mixins.timeseries.PROBED_LOCATION')
       const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
@@ -60,13 +60,12 @@ export default {
       if (state !== 'closed') this.$refs.timeseries.setupTimeTicks()
       else this.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
     },
-    onShowProbedLocationLayer (layer) {
+    async onShowProbedLocationLayer (layer) {
       // Show timeseries on probed location
-      if (layer.name === this.$t('mixins.timeseries.PROBED_LOCATION')) {
-        if (!this.isTimeseriesOpen()) {
-          this.openTimeseries()
-          this.center(...this.probedLocation.geometry.coordinates)
-        }
+      const name = this.$t('mixins.timeseries.PROBED_LOCATION')
+      if ((layer.name === name) && !this.isTimeseriesOpen()) {
+        this.openTimeseries()
+        this.center(...this.probedLocation.geometry.coordinates)
       }
     },
     onHideProbedLocationLayer (layer) {
@@ -162,15 +161,19 @@ export default {
   mounted () {
     this.$on('layer-shown', this.onShowProbedLocationLayer)
     this.$on('layer-hidden', this.onHideProbedLocationLayer)
-    this.$on('probed-location-changed', this.createProbedLocationLayer)
+    this.$on('probed-location-changed', this.updateProbedLocationLayer)
+    this.$on('current-time-changed', this.updateProbedLocationLayer)
     this.$on('forecast-model-changed', this.updateProbedLocationForecast)
+    this.$on('forecast-level-changed', this.updateProbedLocationForecast)
     this.$on('click', this.onProbeFeatureClicked)
   },
   beforeDestroy () {
     this.$off('layer-shown', this.onShowProbedLocationLayer)
     this.$off('layer-hidden', this.onHideProbedLocationLayer)
-    this.$off('probed-location-changed', this.createProbedLocationLayer)
+    this.$off('probed-location-changed', this.updateProbedLocationLayer)
+    this.$off('current-time-changed', this.updateProbedLocationLayer)
     this.$off('forecast-model-changed', this.updateProbedLocationForecast)
+    this.$off('forecast-level-changed', this.updateProbedLocationForecast)
     this.$off('click', this.onProbeFeatureClicked)
   }
 }
