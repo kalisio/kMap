@@ -36,6 +36,8 @@
       "REMOVE_DIALOG_TITLE": "Supprimer {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Etes vous sûr de vouloir supprimer {{layer}} de votre espace de travail ?",
       "ZOOM_TO_LABEL": "Zoomer sur",
+      "ZOOM_IN": "Zoomer",
+      "ZOOM_OUT": "Dézoomer",
       "TOGGLE_SIDENAV": "Menu",
       "TOGGLE_FULLSCREEN": "Plein écran",
       "TOGGLE_CATALOG": "Catalogue",

@@ -36,6 +36,8 @@
       "REMOVE_DIALOG_TITLE": "Remove {{layer}} ?",
       "REMOVE_DIALOG_MESSAGE": "Are you sure you want to remove <b>{{layer}}</b> from your workspace ?",
       "ZOOM_TO_LABEL": "Zoom to",
+      "ZOOM_IN": "Zoom in",
+      "ZOOM_OUT": "Zoom out",
       "TOGGLE_SIDENAV": "Menu",
       "TOGGLE_FULLSCREEN": "Fullscreen",
       "TOGGLE_CATALOG": "Catalog",

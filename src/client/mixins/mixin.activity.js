@@ -64,12 +64,13 @@ export default function (name) {
           })
         }
         // Nav bar
-        let defaultTools = ['side-nav', 'track-location', 'location-bar', 'fullscreen', 'catalog']
+        let defaultTools = ['side-nav', 'zoom', 'track-location', 'location-bar', 'fullscreen', 'catalog']
         if (this.engine === 'cesium') defaultTools = defaultTools.concat(['vr'])
         const tools = _.get(this, 'activityOptions.tools', defaultTools)
         const hasSideNavTool = tools.includes('side-nav')
         const hasVrTool = tools.includes('vr')
         const hasFullscreenTool = (typeof this.onToggleFullscreen === 'function') && tools.includes('fullscreen')
+        const hasZoomTool = tools.includes('zoom')
         const hasTrackLocationTool = (typeof this.createLocationIndicator === 'function') && tools.includes('track-location')
         const hasLocationTool = tools.includes('location-bar')
         const hasPanelTool = tools.includes('catalog')
@@ -78,6 +79,16 @@ export default function (name) {
           beforeActions.push({
             name: 'sidenav-toggle', label: this.$t('mixins.activity.TOGGLE_SIDENAV'), icon: 'menu',
             handler: () => { this.klayout.toggleLeftDrawer() }
+          })
+          beforeActions.push({ name: 'separator' })
+        }
+        if (hasZoomTool) {
+          beforeActions.push({
+            name: 'zoom-in', label: this.$t('mixins.activity.ZOOM_IN'), icon: 'add', handler: this.onZoomIn
+          })
+          beforeActions.push({ name: 'separator' })
+          beforeActions.push({
+            name: 'zoom-out', label: this.$t('mixins.activity.ZOOM_OUT'), icon: 'remove', handler: this.onZoomOut
           })
           beforeActions.push({ name: 'separator' })
         }
@@ -217,6 +228,14 @@ export default function (name) {
         } else {
           this.hideLayer(layer.name)
         }
+      },
+      onZoomIn () {
+        const center = this.getCenter()
+        this.center(center.longitude, center.latitude, center.zoomLevel ? center.zoomLevel + 1 : center.altitude * 0.5)
+      },
+      onZoomOut () {
+        const center = this.getCenter()
+        this.center(center.longitude, center.latitude, center.zoomLevel ? center.zoomLevel - 1 : center.altitude * 2)
       },
       onZoomToLayer (layer) {
         this.zoomToLayer(layer.name)
