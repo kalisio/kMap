@@ -56,8 +56,8 @@ export default {
         ? this.getProbedLocationForecastAtCurrentTime()
         : this.getProbedLocationMeasureAtCurrentTime())
     },
-    onUpdateTimeseries (state) {
-      if (state !== 'closed') this.$refs.timeseries.setupTimeTicks()
+    updateTimeseries (state) {
+      if (state !== 'closed') this.$refs.timeseries.setupGraph()
       else this.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
     },
     async onShowProbedLocationLayer (layer) {
