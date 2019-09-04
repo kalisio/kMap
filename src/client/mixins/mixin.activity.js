@@ -86,7 +86,6 @@ export default function (name) {
           beforeActions.push({
             name: 'zoom-in', label: this.$t('mixins.activity.ZOOM_IN'), icon: 'add', handler: this.onZoomIn
           })
-          beforeActions.push({ name: 'separator' })
           beforeActions.push({
             name: 'zoom-out', label: this.$t('mixins.activity.ZOOM_OUT'), icon: 'remove', handler: this.onZoomOut
           })
