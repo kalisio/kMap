@@ -1,5 +1,5 @@
 <template>
-  <div class="row items-center k-navigation-bar no-wrap" :style="width()">
+  <div class="row items-center k-navigation-bar no-wrap">
     <!-- 
       Before section
     -->
@@ -44,12 +44,6 @@ export default {
     }
   },
   methods: {
-    width() {
-      if (this.$q.screen.lt.sm) return 'width: 100vw'
-      if (this.$q.screen.lt.md) return 'width: 90vw'
-      if (this.$q.screen.lt.lg) return 'width: 80vw'
-      return 'width: 60vw'
-    },
     onLocationChanged (location) {
       if (location) this.$emit('location-changed', location)
     }
