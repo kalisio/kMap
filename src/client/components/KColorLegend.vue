@@ -109,7 +109,8 @@ export default {
       const css = {
         width: '100%',
         height: height + 'px',
-        top: top + 'px'
+        top: top + 'px',
+        'text-shadow': '1px 1px 2px black'
       }
 
       if (!this.showGradient) {
