@@ -56,9 +56,8 @@ export default {
         ? this.getProbedLocationForecastAtCurrentTime()
         : this.getProbedLocationMeasureAtCurrentTime())
     },
-    updateTimeseries (state) {
-      if (state !== 'closed') this.$refs.timeseries.setupGraph()
-      else this.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
+    resizeTimeseries (width, height) {
+      this.$refs.timeseries.resizeGraph(width, height)
     },
     async onShowProbedLocationLayer (layer) {
       // Show timeseries on probed location
@@ -136,16 +135,14 @@ export default {
       return (this.$refs.timeseriesWidget && this.$refs.timeseriesWidget.isOpen())
     },
     openTimeseries () {
+      this.showLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
       if (this.isTimeseriesOpen()) return
       this.$refs.timeseriesWidget.open()
-      // Minimized widget is 40vw, if we have a small zie open wide directly (eg on mobile)
-      if (0.4 * this.engineContainerWidth < 500) this.$refs.timeseriesWidget.setMode('maximized')
-      this.showLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
     },
     closeTimeseries () {
+      this.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
       if (!this.isTimeseriesOpen()) return
       this.$refs.timeseriesWidget.close()
-      this.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
     },
     toggleTimeseries () {
       this.$refs.timeseriesWidget.toggle()

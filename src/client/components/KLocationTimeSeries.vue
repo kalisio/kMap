@@ -1,8 +1,6 @@
 <template>
-  <div ref="timeseries">
-    <canvas ref="chart">
-    </canvas>
-  </div>
+  <canvas ref="chart">
+  </canvas>
 </template>
 
 <script>
@@ -39,11 +37,10 @@ export default {
       return (index % this.decimationFactor) === 0
     },
     setupTimeTicks () {
-      const size = this.$el.getBoundingClientRect()
-      if (!this.times || !size.width) return
+      if (!this.times || !this.width) return
       // Choose the right step size to ensure we have almost 100px between hour ticks
       // If the time interval is less than hour act as if we have only 1 time per hour
-      const pixelsPerTick = this.$el.getBoundingClientRect().width / (this.times.length * Math.min(1, this.timeInterval))
+      const pixelsPerTick = this.width / (this.times.length * Math.min(1, this.timeInterval))
       this.timeStepSize = Math.ceil(Math.max(1, Math.round(100 / pixelsPerTick)))
       // Round to nearest multiple of time interval in hours
       const interval = Math.max(1, Math.floor(this.timeInterval))
@@ -217,7 +214,9 @@ export default {
           },
           legend: {
             onClick: (event, legendItem) => this.toggleVariable(legendItem)
-          }
+          },
+          responsive: false,
+          maintainAspectRatio: false
         }
       }
       // Is current time visible in data time range ?
@@ -249,10 +248,19 @@ export default {
       }
 
       this.chart = new Chart(this.$refs.chart.getContext('2d'), this.config)
+      this.chart.canvas.parentNode.style.width = `${this.width}px`
+      this.chart.canvas.parentNode.style.height = `${this.height}px`
+      this.chart.resize()
+    },
+    resizeGraph (width, height) {
+      this.width = width
+      this.height = height
+      this.setupGraph()
     }
   },
   async mounted () {
-    this.setupGraph()
+    this.width = 512
+    this.height = 512
   }
 }
 </script>
