@@ -9,7 +9,6 @@
         :label="$t(category.label)">
         <k-layers-selector
           :layers="layersByCategory[category.name]"
-          :layerHandlers="layerHandlers"
           :options="category.options || {}" />
       </q-expansion-item>
     </template>
@@ -25,10 +24,6 @@ export default {
   name: 'k-layers-panel',
   props: {
     layers: {
-      type: Object,
-      default: () => {}
-    },
-    layerHandlers: {
       type: Object,
       default: () => {}
     },

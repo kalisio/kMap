@@ -9,7 +9,6 @@ export default function (name) {
       return {
         forecastModelHandlers: {},
         layerCategories: [],
-        layerHandlers: {},
         variables: [],
         engine: 'leaflet',
         engineReady: false,
@@ -118,14 +117,6 @@ export default function (name) {
       async refreshLayers () {
         this.layers = {}
         this.layerCategories = _.get(this, 'activityOptions.catalog.categories', [])
-        this.layerHandlers = {
-          toggle: (layer) => this.onTriggerLayer(layer),
-          'zoom-to': (layer) => this.onZoomToLayer(layer),
-          save: (layer) => this.onSaveLayer(layer),
-          edit: (layer) => this.onEditLayer(layer),
-          'edit-data': (layer) => this.onEditLayerData(layer),
-          remove: (layer) => this.onRemoveLayer(layer)
-        }
         this.variables = []
         const catalogLayers = await this.getCatalogLayers()
         _.forEach(catalogLayers, (layer) => {
@@ -168,28 +159,31 @@ export default function (name) {
         let defaultActions = ['zoom-to', 'save', 'edit', 'remove']
         if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['edit-data'])
         const layerActions = _.get(this, 'activityOptions.layerActions', defaultActions)
-        const actions = []
+        const actions = [{ name: 'toggle', handler: () => this.onTriggerLayer(layer) }]
         // Add supported actions
         if (layer.type === 'OverlayLayer') {
           if (layerActions.includes('zoom-to')) {
             actions.push({
               name: 'zoom-to',
               label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
-              icon: 'zoom_out_map'
+              icon: 'zoom_out_map',
+              handler: () => this.onZoomToLayer(layer)
             })
           }
           if (this.isLayerStorable(layer) && !layer._id && layerActions.includes('save')) {
             actions.push({
               name: 'save',
               label: this.$t('mixins.activity.SAVE_LABEL'),
-              icon: 'save'
+              icon: 'save',
+              handler: () => this.onSaveLayer(layer)
             })
           }
           if (this.isLayerEditable(layer) && layerActions.includes('edit')) {
             actions.push({
               name: 'edit',
               label: this.$t('mixins.activity.EDIT_LABEL'),
-              icon: 'description'
+              icon: 'description',
+              handler: () => this.onEditLayer(layer)
             })
             // Supported by underlying engine ?
             if ((typeof this.editLayer === 'function') && layerActions.includes('edit-data')) {
@@ -198,7 +192,8 @@ export default function (name) {
                 label: this.isLayerEdited(layer.name)
                   ? this.$t('mixins.activity.STOP_EDIT_DATA_LABEL')
                   : this.$t('mixins.activity.START_EDIT_DATA_LABEL'),
-                icon: 'edit_location'
+                icon: 'edit_location',
+                handler: () => this.onEditLayerData(layer)
               })
             }
           }
@@ -206,7 +201,8 @@ export default function (name) {
             actions.push({
               name: 'remove',
               label: this.$t('mixins.activity.REMOVE_LABEL'),
-              icon: 'remove_circle'
+              icon: 'remove_circle',
+              handler: () => this.onRemoveLayer(layer)
             })
           }
         }

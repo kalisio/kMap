@@ -1,5 +1,5 @@
 <template>
-  <k-layers-panel :layers="layers" :layerHandlers="layerHandlers" :categories="layerCategories" >
+  <k-layers-panel :layers="layers" :categories="layerCategories" >
     <q-expansion-item slot="panel-footer" v-if="forecastModels.length > 0" icon="fas fa-globe" :label="$t('KCatalogPanel.FORECASTS_LABEL')">
       <k-forecast-models-selector :forecastModels="forecastModels" :forecastModelHandlers="forecastModelHandlers" :forecastModel="forecastModel" />
     </q-expansion-item>
@@ -17,10 +17,6 @@ export default {
     layerCategories: {
       type: Array,
       default: () => []
-    },
-    layerHandlers: {
-      type: Object,
-      default: () => {}
     },
     forecastModels: {
       type: Array,
