@@ -21,12 +21,6 @@ export default function (name) {
       appName () {
         return this.$config('appName')
       },
-      sideNavToggle () {
-        return _.get(this, 'activityOptions.buttons', ['side-nav']).includes('side-nav')
-      },
-      panelToggle () {
-        return _.get(this, 'activityOptions.buttons', ['panel']).includes('panel')
-      },
       viewStyle () {
         return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
       },
@@ -73,7 +67,7 @@ export default function (name) {
         const hasZoomTool = tools.includes('zoom')
         const hasTrackLocationTool = (typeof this.createLocationIndicator === 'function') && tools.includes('track-location')
         const hasLocationTool = tools.includes('location-bar')
-        const hasPanelTool = tools.includes('catalog')
+        const hasCatalogTool = tools.includes('catalog')
         let beforeActions = []
         if (hasSideNavTool) {
           beforeActions.push({
@@ -107,7 +101,7 @@ export default function (name) {
             name: 'fullscreen-toggle', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
           })
         }
-        if (hasPanelTool) {
+        if (hasCatalogTool) {
           afterActions.push({ name: 'separator' })
           afterActions.push({
             name: 'catalog-toggle', label: this.$t('mixins.activity.TOGGLE_CATALOG'), icon: 'layers',
@@ -123,7 +117,7 @@ export default function (name) {
       },
       async refreshLayers () {
         this.layers = {}
-        this.layerCategories = _.get(this, 'activityOptions.panel.categories', [])
+        this.layerCategories = _.get(this, 'activityOptions.catalog.categories', [])
         this.layerHandlers = {
           toggle: (layer) => this.onTriggerLayer(layer),
           'zoom-to': (layer) => this.onZoomToLayer(layer),
@@ -458,7 +452,7 @@ export default function (name) {
       this.name = name
       this.options = this.$config(`${this.name}`)
       this.activityOptions = Object.assign({
-        panel: this.$config(`${this.name}Panel`)
+        catalog: this.$config(`${this.name}Catalog`)
       }, this.$config(`${this.name}Activity`))
     },
     created () {
