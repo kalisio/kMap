@@ -28,23 +28,11 @@ export default {
     }
   },
   methods: {
-    setupTimeline () {
-      const now = moment.utc()
-      // Start just before the first available data
-      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
-      // Override by config ?
-      start = _.get(this, 'activityOptions.timeline.start', start)
-      // Start just after the last available data
-      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
-      // Override by config ?
-      end = _.get(this, 'activityOptions.timeline.end', end)
-      this.timeline.start = now.clone().add({ seconds: start }).valueOf()
-      this.timeline.end = now.clone().add({ seconds: end }).valueOf()
+    updateTimeline (options) {
+      if (options.start) this.timeline.start = options.start
+      if (options.end) this.timeline.end = options.end
       // Clamp current time to range
-      this.timeline.current = Math.max(Math.min(this.timeline.current, this.timeline.end), this.timeline.start)
-      this.timelineInterval = this.getTimelineInterval()
-      this.timelineFormatter = this.getTimelineFormatter()
-      this.setCurrentTime(moment.utc(this.timeline.current))
+      this.timeline.current = Math.max(Math.min(options.current, this.timeline.end), this.timeline.start)
       //
       // Make the component aware that it needs to refresh.
       //
@@ -58,6 +46,25 @@ export default {
       // changing any/all of its props), forcing an update (using the ":key" technique) seem the simplest solution.
       //
       this.timelineRefreshKey = this.timelineRefreshKey + 1
+    },
+    setupTimeline () {
+      this.timelineInterval = this.getTimelineInterval()
+      this.timelineFormatter = this.getTimelineFormatter()
+      const now = moment.utc()
+      // Start just before the first available data
+      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
+      // Override by config ?
+      start = _.get(this, 'activityOptions.timeline.start', start)
+      // Start just after the last available data
+      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
+      // Override by config ?
+      end = _.get(this, 'activityOptions.timeline.end', end)
+      this.updateTimeline({
+        start: now.clone().add({ seconds: start }).valueOf(),
+        end: now.clone().add({ seconds: end }).valueOf(),
+        current: this.timeline.current
+      })
+      this.setCurrentTime(moment.utc(this.timeline.current))
       this.$emit('timeline-changed', this.timeline)
     },
     getTimelineInterval () {
