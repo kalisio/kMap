@@ -1,29 +1,31 @@
 <template>
-  <div>
-    <q-list dense>
-      <template v-for="layer in layers">
-        <q-item :id="layer.name" :key="layer.name" :active="layer.isVisible"
-          active-class="selected" dense class="cursor-pointer"
-          >
-          <q-item-section avatar @click="onLayerClicked(layer)">
-            <q-icon v-if="!layer.iconUrl" :name="layerIcon(layer)" />
-            <img v-else :src="layer.iconUrl" width="32" />
-          </q-item-section>
-          <q-item-section @click="onLayerClicked(layer)">
-            <q-item-label lines="1">
-             {{ layer.name }}
-            </q-item-label>
-            <q-item-label caption lines="2">
-             {{ layer.description }}
-            </q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <k-overflow-menu :actions="layerActions(layer)" :dense="$q.screen.lt.md" />
-          </q-item-section>
-        </q-item>
-      </template>
-    </q-list>
-  </div>
+  <q-list dense>
+    <template v-for="layer in layers">
+      <q-item 
+        :id="layer.name" 
+        :key="layer.name" 
+        :active="layer.isVisible"
+        active-class="selected"
+        class="cursor-pointer" 
+        dense>
+        <q-item-section avatar @click="onLayerClicked(layer)">
+          <q-icon v-if="!layer.iconUrl" :name="layerIcon(layer)" />
+          <img v-else :src="layer.iconUrl" width="32" />
+        </q-item-section>
+        <q-item-section @click="onLayerClicked(layer)">
+          <q-item-label lines="1">
+            {{ layer.name }}
+          </q-item-label>
+          <q-item-label caption lines="2">
+            {{ layer.description }}
+          </q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <k-overflow-menu :actions="layerActions(layer)" :context="layer" :dense="$q.screen.lt.md" />
+        </q-item-section>
+      </q-item>
+    </template>
+  </q-list>
 </template>
 
 <script>
