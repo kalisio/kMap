@@ -233,7 +233,7 @@ export default {
       // Use wind barbs on probed features
       const icon = new L.WindBarb.Icon({
         deg: _.get(properties, windDirection),
-        speed: _.get(properties, windSpeed) / 0.514, // Expressed as knots
+        speed: _.get(properties, windSpeed), // Expressed as m/s
         pointRadius: 10,
         pointColor: '#2B85C7', // TODO: colorize according to temperature scale if
         pointStroke: '#111',

@@ -95,7 +95,8 @@ export default {
       const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
       const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
       const isWeatherProbe = (_.has(feature, `properties.${windDirection}`) &&
-                              _.has(feature, `properties.${windSpeed}`))
+                              _.has(feature, `properties.${windSpeed}`) &&
+                              (options.name === this.$t('mixins.timeseries.PROBED_LOCATION')))
       let hasTimeseries = true
       // Update timeseries data if required
       if (options.probe) { // Static weacast probe
