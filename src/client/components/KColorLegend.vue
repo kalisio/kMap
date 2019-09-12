@@ -33,7 +33,7 @@ const COLOR_STEPS = 10
 
 export default {
   name: 'k-color-legend',
-  inject: ['activity'],
+  inject: ['kActivity'],
   props: {
     // Height of the unit box (in pixels)
     unitHeight: {
@@ -65,7 +65,7 @@ export default {
     },
     // Height of the legend (in pixels) WITHOUT the unit box
     colorLegendHeight () {
-      const height = 0.50 * this.activity.engineContainerHeight
+      const height = 0.50 * this.kActivity.engineContainerHeight
       return height - this.unitHeight
     },
     colorLegendStyle () {
@@ -287,18 +287,18 @@ export default {
   },
   mounted () {
     this.resetColorLegend()
-    this.activity.$on('layer-shown', this.onColorLegendShowLayer)
-    this.activity.$on('layer-hidden', this.onColorLegendHideLayer)
-    this.activity.$on('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
+    this.kActivity.$on('layer-shown', this.onColorLegendShowLayer)
+    this.kActivity.$on('layer-hidden', this.onColorLegendHideLayer)
+    this.kActivity.$on('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
   },
   beforeDestroy () {
     // Delete reference to the legend layer
     this.legendLayer = null
     this.legendEngineLayer = null
     this.resetColorLegend()
-    this.activity.$off('layer-shown', this.onColorLegendShowLayer)
-    this.activity.$off('layer-hidden', this.onColorLegendHideLayer)
-    this.activity.$off('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
+    this.kActivity.$off('layer-shown', this.onColorLegendShowLayer)
+    this.kActivity.$off('layer-hidden', this.onColorLegendHideLayer)
+    this.kActivity.$off('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
   }
 }
 </script>
