@@ -1,5 +1,9 @@
+import math from 'mathjs'
 export * from './leaflet/utils'
 export * from './cesium/utils'
+
+// Add knot unit not defined by default
+math.createUnit('knot', { definition: '0.514444 m/s', aliases: ['knots', 'kt', 'kts'] })
 
 export async function fetchGeoJson (dataSource) {
   const response = await fetch(dataSource)
