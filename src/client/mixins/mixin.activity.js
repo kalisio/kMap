@@ -451,12 +451,6 @@ export default function (name) {
         catalog: this.$config(`${this.name}Catalog`)
       }, this.$config(`${this.name}Activity`))
     },
-    created () {
-      // Load the required components
-      this.$options.components['k-location-bar'] = this.$load('KLocationBar')
-      this.$options.components['k-modal'] = this.$load('frame/KModal')
-      this.$options.components['k-form'] = this.$load('form/KForm')
-    },
     mounted () {
       this.$on('map-ready', this.onMapReady)
       this.$on('globe-ready', this.onGlobeReady)
