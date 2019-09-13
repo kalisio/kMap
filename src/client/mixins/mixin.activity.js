@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
 
@@ -28,6 +29,11 @@ export default function (name) {
       },
       currentVariables () {
         return this.hasForecastLevels ? this.variablesForCurrentLevel : this.variables
+      },
+      timelineEnabled () {
+        // For now only weather forecast requires timeline
+        return (_.values(this.layers).find(layer => layer.isVisible && layer.tags && layer.tags.includes('weather')) ||
+            ((typeof this.isTimeseriesOpen === 'function') && this.isTimeseriesOpen()))
       }
     },
     methods: {
@@ -439,8 +445,23 @@ export default function (name) {
         } catch (error) {
           logger.error(error)
         }
-        // TimeLine
-        if (this.setupTimeline) this.setupTimeline()
+      },
+      getTimeRange () {
+        const now = moment.utc()
+        // Start just before the first available data
+        let start = this.forecastModel ?
+          this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
+        // Override by config ?
+        start = _.get(this, 'activityOptions.timeline.start', start)
+        // Start just after the last available data
+        let end = this.forecastModel ?
+          this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
+        // Override by config ?
+        end = _.get(this, 'activityOptions.timeline.end', end)
+        return {
+          start: now.clone().add({ seconds: start }),
+          end: now.clone().add({ seconds: end })
+        }
       }
     },
     beforeCreate () {

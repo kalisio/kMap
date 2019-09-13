@@ -1,7 +1,26 @@
+<template>
+  <div :style="timelineContainerStyle">
+    <k-time-controller
+      :key="timelineRefreshKey"
+      :min="timeline.start" 
+      :max="timeline.end"
+      :step="'h'"
+      :value="timeline.current"
+      :timeInterval="timelineInterval"
+      :timeFormatter="timelineFormatter"
+      @change="onTimelineUpdated"
+      style="width: 100%;"
+    />
+  </div>
+</template>
+
+<script>
 import _ from 'lodash'
 import moment from 'moment'
 
 export default {
+  name: 'k-timeline',
+  inject: ['kActivity'],
   data () {
     const now = moment.utc()
     return {
@@ -10,21 +29,16 @@ export default {
         end: now.clone().add({ days: 7 }).valueOf(),
         current: now.clone().valueOf()
       },
-      timelineInterval: null,
-      timelineFormatter: null,
+      timelineInterval: this.getTimelineInterval(),
+      timelineFormatter: this.getTimelineFormatter(),
       timelineRefreshKey: 0
     }
   },
   computed: {
     timelineContainerStyle () {
       return {
-        width: 0.8 * this.engineContainerWidth + 'px'
+        width: 0.8 * this.kActivity.engineContainerWidth + 'px'
       }
-    },
-    timelineEnabled () {
-      // For now only weather forecast requires timeline
-      return (_.values(this.layers).find(layer => layer.isVisible && layer.tags && layer.tags.includes('weather')) ||
-          this.isTimeseriesOpen())
     }
   },
   methods: {
@@ -48,24 +62,13 @@ export default {
       this.timelineRefreshKey = this.timelineRefreshKey + 1
     },
     setupTimeline () {
-      this.timelineInterval = this.getTimelineInterval()
-      this.timelineFormatter = this.getTimelineFormatter()
-      const now = moment.utc()
-      // Start just before the first available data
-      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
-      // Override by config ?
-      start = _.get(this, 'activityOptions.timeline.start', start)
-      // Start just after the last available data
-      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
-      // Override by config ?
-      end = _.get(this, 'activityOptions.timeline.end', end)
+      const { start, end } = this.kActivity.getTimeRange()
       this.updateTimeline({
-        start: now.clone().add({ seconds: start }).valueOf(),
-        end: now.clone().add({ seconds: end }).valueOf(),
+        start: start.valueOf(),
+        end: end.valueOf(),
         current: this.timeline.current
       })
-      this.setCurrentTime(moment.utc(this.timeline.current))
-      this.$emit('timeline-changed', this.timeline)
+      this.kActivity.setCurrentTime(moment.utc(this.timeline.current))
     },
     getTimelineInterval () {
       // interval length: length of 1 day in milliseconds
@@ -121,16 +124,16 @@ export default {
           switch (type) {
             case 'interval':
               if (displayOptions.width >= 110) {
-                label = this.formatTime('date.long', time)
+                label = this.kActivity.formatTime('date.long', time)
               } else {
-                label = this.formatTime('date.short', time)
+                label = this.kActivity.formatTime('date.short', time)
               }
               break
             case 'pointer':
-              label = `${this.formatTime('date.long', time)} - ${this.formatTime('time.short', time)}`
+              label = `${this.kActivity.formatTime('date.long', time)} - ${this.kActivity.formatTime('time.short', time)}`
               break
             case 'indicator':
-              label = this.formatTime('time.short', time)
+              label = this.kActivity.formatTime('time.short', time)
               break
           }
           return label
@@ -140,7 +143,7 @@ export default {
     onTimelineUpdated (event) {
       // Only when drag stops to avoid fetching data permanently
       if (event.final) {
-        this.setCurrentTime(moment.utc(event.value))
+        this.kActivity.setCurrentTime(moment.utc(event.value))
       }
     }
   },
@@ -149,9 +152,15 @@ export default {
     this.$options.components['k-time-controller'] = this.$load('time/KTimeController')
   },
   mounted () {
-    this.$on('forecast-model-changed', this.setupTimeline)
+    this.kActivity.$on('forecast-model-changed', this.setupTimeline)
+    // The event could have been raised before the component has been initialized, so initialize
+    this.setupTimeline()
   },
   beforeDestroy () {
-    this.$off('forecast-model-changed', this.setupTimeline)
+    this.kActivity.$off('forecast-model-changed', this.setupTimeline)
   }
 }
+</script>
+
+<style lang="stylus">
+</style>

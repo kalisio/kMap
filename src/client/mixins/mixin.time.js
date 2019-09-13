@@ -58,6 +58,7 @@ export default {
     },
     setTimeFormat (format) {
       this.currentTimeFormat = format
+      this.$emit('current-time-format-changed', this.currentTime)
     },
     formatTime (format, datetime) {
       let currentTime = (datetime ? this.convertToMoment(datetime) : this.currentTime)

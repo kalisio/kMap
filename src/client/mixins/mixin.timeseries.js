@@ -76,8 +76,8 @@ export default {
     onProbeLocation () {
       const probe = async (options, event) => {
         this.unsetCursor('probe-cursor')
-        await this.getForecastForLocation(event.latlng.lng, event.latlng.lat,
-          moment.utc(this.timeline.start), moment.utc(this.timeline.end))
+        const { start, end } = this.getTimeRange()
+        await this.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
         this.openTimeseries()
       }
       this.setCursor('probe-cursor')
@@ -99,18 +99,17 @@ export default {
                               (options.name === this.$t('mixins.timeseries.PROBED_LOCATION')))
       let hasTimeseries = true
       // Update timeseries data if required
+      const { start, end } = this.getTimeRange()
       if (options.probe) { // Static weacast probe
         const probe = await this.getForecastProbe(options.probe)
         if (probe) {
-          await this.getForecastForFeature(_.get(feature, this.probe.featureId),
-            moment.utc(this.timeline.start), moment.utc(this.timeline.end))
+          await this.getForecastForFeature(_.get(feature, this.probe.featureId), start, end)
         }
       } else if (options.variables && options.service) { // Static measure probe
         await this.getMeasureForFeature(options, feature,
-          moment.utc(this.timeline.current).clone().subtract({ seconds: options.history }), moment.utc(this.timeline.current))
+          this.currentTime.clone().subtract({ seconds: options.history }), this.currentTime.clone())
       } else if (isWeatherProbe) { // Dynamic weacast probe
-        this.getForecastForLocation(event.latlng.lng, event.latlng.lat,
-          moment.utc(this.timeline.start), moment.utc(this.timeline.end))
+        this.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
       } else {
         hasTimeseries = false
       }
@@ -119,16 +118,16 @@ export default {
     async updateProbedLocationForecast (model) {
       // Update probed location if any
       if (this.probedLocation) {
+        const { start, end } = this.getTimeRange()
         // Feature mode
         if (this.probe && this.probedLocation.probeId) {
           const probe = await this.getForecastProbe(this.probe.name)
           if (probe) {
-            await this.getForecastForFeature(_.get(this.probedLocation, this.probe.featureId),
-              moment.utc(this.timeline.start), moment.utc(this.timeline.end))
+            await this.getForecastForFeature(_.get(this.probedLocation, this.probe.featureId), start, end)
           }
         } else { // Location mode
-          await this.getForecastForLocation(this.probedLocation.geometry.coordinates[0], this.probedLocation.geometry.coordinates[1],
-            moment.utc(this.timeline.start), moment.utc(this.timeline.end))
+          await this.getForecastForLocation(this.probedLocation.geometry.coordinates[0],
+                                            this.probedLocation.geometry.coordinates[1], start, end)
         }
       }
     },

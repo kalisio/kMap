@@ -13,6 +13,7 @@ import { getTimeInterval } from '../utils'
 
 export default {
   name: 'k-location-time-series',
+  inject: ['kActivity'],
   components: {
     QIcon,
     QTooltip
@@ -20,15 +21,11 @@ export default {
   props: {
     feature: { type: Object, default: () => null },
     variables: { type: Array, default: () => [] },
-    currentTimeFormat: { type: Object, default: () => {} },
-    currentFormattedTime: { type: Object, default: () => {} },
     decimationFactor: { type: Number, default: 1 }
   },
   watch: {
     feature: function () { this.setupGraph() },
     variables: function () { this.setupGraph() },
-    currentTimeFormat: function () { this.setupGraph() },
-    currentFormattedTime: function () { this.setupGraph() },
     decimationFactor: function () { this.setupGraph() }
   },
   methods: {
@@ -169,10 +166,10 @@ export default {
       this.setupAvailableDatasets()
       this.setupAvailableYAxes()
 
-      const date = _.get(this.currentFormattedTime, 'date.short')
-      const time = _.get(this.currentFormattedTime, 'time.short')
-      const dateFormat = _.get(this.currentTimeFormat, 'date.short')
-      const timeFormat = _.get(this.currentTimeFormat, 'time.short')
+      const date = _.get(this.kActivity.currentFormattedTime, 'date.short')
+      const time = _.get(this.kActivity.currentFormattedTime, 'time.short')
+      const dateFormat = _.get(this.kActivity.currentTimeFormat, 'date.short')
+      const timeFormat = _.get(this.kActivity.currentTimeFormat, 'time.short')
 
       this.config = {
         type: 'line',
@@ -220,7 +217,7 @@ export default {
         }
       }
       // Is current time visible in data time range ?
-      const currentTime = moment.utc(this.currentFormattedTime.iso)
+      const currentTime = moment.utc(this.kActivity.currentFormattedTime.iso)
       if (this.timeRange && currentTime.isBetween(...this.timeRange)) {
         this.config.options.annotation = {
           drawTime: 'afterDatasetsDraw',
@@ -258,9 +255,15 @@ export default {
       this.setupGraph()
     }
   },
-  async mounted () {
+  mounted () {
     this.width = 512
     this.height = 512
+    this.kActivity.$on('current-time-changed', this.setupGraph)
+    this.kActivity.$on('current-time-format-changed', this.setupGraph)
+  },
+  beforeDestroy () {
+    this.kActivity.$off('current-time-changed', this.setupGraph)
+    this.kActivity.$off('current-time-format-changed', this.setupGraph)
   }
 }
 </script>
