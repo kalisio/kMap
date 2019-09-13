@@ -1,17 +1,14 @@
 <template>
-  <div :style="timelineContainerStyle">
-    <k-time-controller
-      :key="timelineRefreshKey"
-      :min="timeline.start" 
-      :max="timeline.end"
-      :step="'h'"
-      :value="timeline.current"
-      :timeInterval="timelineInterval"
-      :timeFormatter="timelineFormatter"
-      @change="onTimelineUpdated"
-      style="width: 100%;"
-    />
-  </div>
+  <k-time-controller :style="timelineStyle"
+    :key="timelineRefreshKey"
+    :min="timeline.start" 
+    :max="timeline.end"
+    :step="'h'"
+    :value="timeline.current"
+    :timeInterval="timelineInterval"
+    :timeFormatter="timelineFormatter"
+    @change="onTimelineUpdated"
+  />
 </template>
 
 <script>
@@ -35,10 +32,10 @@ export default {
     }
   },
   computed: {
-    timelineContainerStyle () {
-      return {
-        width: 0.8 * this.kActivity.engineContainerWidth + 'px'
-      }
+    timelineStyle () {
+      if (this.$q.screen.lt.md) return 'width: 70vw'
+      return 'width: 80vw'
+      //return `width: ${0.8 * this.kActivity.engineContainerWidth} + 'px'`
     }
   },
   methods: {
