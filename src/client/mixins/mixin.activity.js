@@ -11,6 +11,7 @@ export default function (name) {
         forecastModelHandlers: {},
         layerCategories: [],
         variables: [],
+        probedLocation: null,
         engine: 'leaflet',
         engineReady: false,
         engineContainerWidth: null,
@@ -372,6 +373,15 @@ export default function (name) {
       },
       onLocationChanged (location) {
         if (location) this.center(location.longitude, location.latitude)
+      },
+      onProbeLocation () {
+        const probe = async (options, event) => {
+          this.unsetCursor('probe-cursor')
+          const { start, end } = this.getTimeRange()
+          await this.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
+        }
+        this.setCursor('probe-cursor')
+        this.$once('click', probe)
       },
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
