@@ -9,10 +9,11 @@
 </template>
 
 <script>
+import _ from 'lodash'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
-  name: 'k-location-info-box',
+  name: 'k-feature-info-box',
   mixins: [
     kCoreMixins.refsResolver(['view'])
   ],
