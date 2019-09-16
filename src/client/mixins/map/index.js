@@ -8,7 +8,6 @@ import style from './mixin.style'
 import tooltip from './mixin.tooltip'
 import popup from './mixin.popup'
 import activity from './mixin.map-activity'
-import actionButtons from './mixin.action-buttons'
 
 export default {
   baseMap,
@@ -20,6 +19,5 @@ export default {
   style,
   tooltip,
   popup,
-  activity,
-  actionButtons
+  activity
 }
