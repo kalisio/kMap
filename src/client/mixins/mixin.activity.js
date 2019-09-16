@@ -116,6 +116,10 @@ export default function (name) {
         }
         this.setNavigationBar(hasLocationTool, beforeActions, afterActions)
       },
+      // This method should be overriden in activities
+      getFeatureActions (feature, layer) {
+        return []
+      },
       async getCatalogLayers () {
         const catalogService = this.$api.getService('catalog')
         const response = await catalogService.find()

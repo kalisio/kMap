@@ -10,10 +10,14 @@
 
 <script>
 import _ from 'lodash'
+import { QScrollArea } from 'quasar'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-feature-info-box',
+  components: {
+    QScrollArea
+  },
   mixins: [
     kCoreMixins.refsResolver(['view'])
   ],

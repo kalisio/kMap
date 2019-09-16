@@ -1,6 +1,27 @@
+<template>
+  <k-radial-fab ref="radialFab" 
+      :style="radialFabStyle"
+      :start-angle="0"
+      :end-angle="-180"
+      :radius="80"
+      @close="unselectFeatureForAction">
+      <!--q-btn slot="closed-menu-container"
+        round color="secondary" icon="keyboard_arrow_up" /-->
+      <q-btn slot="open-menu-container"
+        round color="secondary" icon="close" />
+      <k-radial-fab-item
+        v-for="(action, index) in featureActions" 
+        :key="index">
+        <q-btn round color="secondary" :icon="action.icon" @click="onFeatureActionClicked(action)" />
+      </k-radial-fab-item>
+    </k-radial-fab>
+</template>
+
+<script>
 import _ from 'lodash'
 
 export default {
+  inject: ['kActivity'],
   data () {
     return {
       featureActions: [],
@@ -14,13 +35,6 @@ export default {
     }
   },
   methods: {
-    clearFeatureActions () {
-      this.featureActions = []
-    },
-    // This method should be overriden in activities
-    refreshFeatureActions (feature, layer) {
-      this.clearFeatureActions()
-    },
     getFeatureForAction () {
       return this.selectionForAction.feature
     },
@@ -41,7 +55,7 @@ export default {
       if (!leafletLayer) return
       const feature = _.get(leafletLayer, 'feature')
       if (!feature) return
-      this.refreshFeatureActions(feature, layer)
+      this.featureActions = this.kActivity.getFeatureActions(feature, layer)
       // Nothing allowed on this feature or close menu on the same one
       if ((this.getFeatureForAction() === feature) || (this.featureActions.length === 0)) {
         this.$refs.radialFab.close() // Closing should be bound to unselect
@@ -66,11 +80,12 @@ export default {
     this.selectionForAction = {}
   },
   mounted () {
-    this.$on('contextmenu', this.onFeatureActionButtons)
-    this.$on('move', this.updateRadialMenuPosition)
+    this.kActivity.$on('contextmenu', this.onFeatureActionButtons)
+    this.kActivity.$on('move', this.updateRadialMenuPosition)
   },
   beforeDestroy () {
-    this.$off('contextmenu', this.onFeatureActionButtons)
-    this.$off('move', this.updateRadialMenuPosition)
+    this.kActivity.$off('contextmenu', this.onFeatureActionButtons)
+    this.kActivity.$off('move', this.updateRadialMenuPosition)
   }
 }
+</script>
