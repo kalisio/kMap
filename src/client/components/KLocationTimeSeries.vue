@@ -357,13 +357,7 @@ export default {
     },
     async onProbeFeatureClicked (options, event) {
       let feature = _.get(event, 'target.feature')
-      const entity = event.target
-      if (!feature && !entity) return
-      // For Cesium we have a different setup
-      if (this.engine === 'cesium') {
-        if (!entity.properties) return
-        feature = { properties: entity.properties.getValue(0) }
-      }
+      if (!feature) return
       const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
       const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
       const isWeatherProbe = (_.has(feature, `properties.${windDirection}`) &&

@@ -38,16 +38,24 @@ export default {
     getFeatureForAction () {
       return this.selectionForAction.feature
     },
-    selectFeatureForAction (feature, layer, leafletLayer) {
-      this.selectionForAction = { feature, layer, leafletLayer }
+    selectFeatureForAction (layer, event) {
+      this.selectionForAction = {
+        layer,
+        target: _.get(event, 'target'),
+        feature: _.get(event, 'target.feature'),
+        latlng: _.get(event, 'latlng')
+      }
     },
     unselectFeatureForAction () {
       this.selectionForAction = {}
     },
-    updateRadialMenuPosition (layer, event) {
+    updateRadialMenuPosition (event) {
       if (event.containerPoint) this.radialFabPosition = event.containerPoint
-      else if (this.selectionForAction.leafletLayer) {
-        this.radialFabPosition = this.map.latLngToContainerPoint(this.selectionForAction.leafletLayer.getLatLng())
+      else if (this.selectionForAction.latlng) {
+        if (this.kActivity.engine === 'leaflet') {
+          this.radialFabPosition = this.kActivity.map.latLngToContainerPoint(this.selectionForAction.latlng)
+        }
+        // TODO GLOBE 
       }
     },
     async onFeatureActionButtons (layer, event) {
@@ -60,15 +68,15 @@ export default {
       if ((this.getFeatureForAction() === feature) || (this.featureActions.length === 0)) {
         this.$refs.radialFab.close() // Closing should be bound to unselect
       } else {
-        this.selectFeatureForAction(feature, layer, leafletLayer)
-        this.updateRadialMenuPosition(layer, event)
+        this.selectFeatureForAction(layer, event)
+        this.updateRadialMenuPosition(event)
         this.$refs.radialFab.open()
       }
     },
     onFeatureActionClicked (action) {
-      const { feature, layer, leafletLayer } = this.selectionForAction
+      const { feature, layer, target } = this.selectionForAction
       // If a handler is given call it
-      if (action.handler) action.handler.call(this, feature, layer, leafletLayer)
+      if (action.handler) action.handler.call(this, feature, layer, target)
       // If a route is given activate it
       else if (action.route) this.$router.push(action.route)
     }

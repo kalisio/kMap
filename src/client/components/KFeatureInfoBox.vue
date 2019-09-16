@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+  <q-card v-show="properties">
     <q-scroll-area style="height: 40vh">
       <div class="row items-center full-height">
         <k-view class="q-pa-xs" ref="view" :schema="schema" @view-ready="onViewReady" />
@@ -31,12 +31,7 @@ export default {
     async onFeatureClicked (options, event) {
       this.properties = null
       let feature = _.get(event, 'target.feature')
-      if (!feature) {
-        if(this.engine !== 'cesium') return
-        const entity = event.target
-        if (!entity || !entity.properties) return
-        feature = { properties: entity.properties.getValue(0) }
-      }
+      if (!feature) return
       this.properties = feature.properties
       const schemaId = _.get(options, 'schema._id')
       if (!schemaId) return
@@ -48,7 +43,6 @@ export default {
       this.schema = JSON.parse(atob(typeAndData[1]))
     },
     onViewReady () {
-      console.log('view ready')
       this.$refs.view.fill(this.properties)
     } 
   },
