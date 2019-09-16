@@ -1,5 +1,5 @@
 <template>
-  <div class="row items-center k-navigation-bar no-wrap">
+  <div class="row items-center k-navigation-bar no-wrap" :style="navBarStyle()">
     <!-- 
       Before section
     -->
@@ -44,6 +44,10 @@ export default {
     }
   },
   methods: {
+    navBarStyle() {
+      if (this.$q.screen.lt.md) return ''
+      else return 'width: 80vw'
+    },
     onLocationChanged (location) {
       if (location) this.$emit('location-changed', location)
     }

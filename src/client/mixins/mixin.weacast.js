@@ -61,10 +61,11 @@ export default {
       const response = await this.weacastApi.getService('forecasts').find()
       this.forecastModels = response.data
       // Select default if any or first one
-      this.forecastModel = this.forecastModels.find(forecast => forecast.isDefault)
-      if (!this.forecastModel) {
-        this.forecastModel = (this.forecastModels.length > 0 ? this.forecastModels[0] : null)
+      let forecastModel = this.forecastModels.find(forecast => forecast.isDefault)
+      if (!forecastModel) {
+        forecastModel = (this.forecastModels.length > 0 ? this.forecastModels[0] : null)
       }
+      this.setForecastModel(forecastModel)
     },
     setForecastModel (model) {
       this.forecastModel = model
@@ -232,7 +233,7 @@ export default {
       // Use wind barbs on probed features
       const icon = new L.WindBarb.Icon({
         deg: _.get(properties, windDirection),
-        speed: _.get(properties, windSpeed) / 0.514, // Expressed as knots
+        speed: _.get(properties, windSpeed), // Expressed as m/s
         pointRadius: 10,
         pointColor: '#2B85C7', // TODO: colorize according to temperature scale if
         pointStroke: '#111',

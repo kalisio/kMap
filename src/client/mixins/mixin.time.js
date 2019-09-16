@@ -46,16 +46,19 @@ export default {
     convertToMoment (datetime) {
       if (moment.isMoment(datetime)) {
         return datetime
-      } else { // Covert from Date, string or milliseconds (ie EPOCH)
+      } else { // Convert from Date, string or milliseconds (ie EPOCH)
         return moment.utc(datetime)
       }
     },
     setCurrentTime (datetime) {
-      this.currentTime = this.convertToMoment(datetime)
+      const now = this.convertToMoment(datetime)
+      if (this.currentTime.isSame(now)) return
+      this.currentTime = now
       this.$emit('current-time-changed', this.currentTime)
     },
     setTimeFormat (format) {
       this.currentTimeFormat = format
+      this.$emit('current-time-format-changed', this.currentTime)
     },
     formatTime (format, datetime) {
       let currentTime = (datetime ? this.convertToMoment(datetime) : this.currentTime)

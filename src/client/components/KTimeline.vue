@@ -1,7 +1,22 @@
-import _ from 'lodash'
+<template>
+  <k-time-controller :style="timelineStyle"
+    :key="timelineRefreshKey"
+    :min="timeline.start" 
+    :max="timeline.end"
+    :step="'h'"
+    :value="timeline.current"
+    :timeInterval="timelineInterval"
+    :timeFormatter="timelineFormatter"
+    @change="onTimelineUpdated"
+  />
+</template>
+
+<script>
 import moment from 'moment'
 
 export default {
+  name: 'k-timeline',
+  inject: ['kActivity'],
   data () {
     const now = moment.utc()
     return {
@@ -10,41 +25,24 @@ export default {
         end: now.clone().add({ days: 7 }).valueOf(),
         current: now.clone().valueOf()
       },
-      timelineInterval: null,
-      timelineFormatter: null,
+      timelineInterval: this.getTimelineInterval(),
+      timelineFormatter: this.getTimelineFormatter(),
       timelineRefreshKey: 0
     }
   },
   computed: {
-    timelineContainerStyle () {
-      return {
-        width: 0.8 * this.engineContainerWidth + 'px'
-      }
-    },
-    timelineEnabled () {
-      // For now only weather forecast requires timeline
-      return (_.values(this.layers).find(layer => layer.isVisible && layer.tags && layer.tags.includes('weather')) ||
-          this.isTimeseriesOpen())
+    timelineStyle () {
+      if (this.$q.screen.lt.md) return 'width: 70vw'
+      return 'width: 80vw'
+      //return `width: ${0.8 * this.kActivity.engineContainerWidth} + 'px'`
     }
   },
   methods: {
-    setupTimeline () {
-      const now = moment.utc()
-      // Start just before the first available data
-      let start = this.forecastModel ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
-      // Override by config ?
-      start = _.get(this, 'activityOptions.timeline.start', start)
-      // Start just after the last available data
-      let end = this.forecastModel ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
-      // Override by config ?
-      end = _.get(this, 'activityOptions.timeline.end', end)
-      this.timeline.start = now.clone().add({ seconds: start }).valueOf()
-      this.timeline.end = now.clone().add({ seconds: end }).valueOf()
+    updateTimeline (options) {
+      if (options.start) this.timeline.start = options.start
+      if (options.end) this.timeline.end = options.end
       // Clamp current time to range
-      this.timeline.current = Math.max(Math.min(this.timeline.current, this.timeline.end), this.timeline.start)
-      this.timelineInterval = this.getTimelineInterval()
-      this.timelineFormatter = this.getTimelineFormatter()
-      this.setCurrentTime(moment.utc(this.timeline.current))
+      this.timeline.current = Math.max(Math.min(options.current, this.timeline.end), this.timeline.start)
       //
       // Make the component aware that it needs to refresh.
       //
@@ -58,7 +56,15 @@ export default {
       // changing any/all of its props), forcing an update (using the ":key" technique) seem the simplest solution.
       //
       this.timelineRefreshKey = this.timelineRefreshKey + 1
-      this.$emit('timeline-changed', this.timeline)
+    },
+    setupTimeline () {
+      const { start, end } = this.kActivity.getTimeRange()
+      this.updateTimeline({
+        start: start.valueOf(),
+        end: end.valueOf(),
+        current: this.timeline.current
+      })
+      this.kActivity.setCurrentTime(moment.utc(this.timeline.current))
     },
     getTimelineInterval () {
       // interval length: length of 1 day in milliseconds
@@ -114,16 +120,16 @@ export default {
           switch (type) {
             case 'interval':
               if (displayOptions.width >= 110) {
-                label = this.formatTime('date.long', time)
+                label = this.kActivity.formatTime('date.long', time)
               } else {
-                label = this.formatTime('date.short', time)
+                label = this.kActivity.formatTime('date.short', time)
               }
               break
             case 'pointer':
-              label = `${this.formatTime('date.long', time)} - ${this.formatTime('time.short', time)}`
+              label = `${this.kActivity.formatTime('date.long', time)} - ${this.kActivity.formatTime('time.short', time)}`
               break
             case 'indicator':
-              label = this.formatTime('time.short', time)
+              label = this.kActivity.formatTime('time.short', time)
               break
           }
           return label
@@ -133,7 +139,7 @@ export default {
     onTimelineUpdated (event) {
       // Only when drag stops to avoid fetching data permanently
       if (event.final) {
-        this.setCurrentTime(moment.utc(event.value))
+        this.kActivity.setCurrentTime(moment.utc(event.value))
       }
     }
   },
@@ -142,9 +148,15 @@ export default {
     this.$options.components['k-time-controller'] = this.$load('time/KTimeController')
   },
   mounted () {
-    this.$on('forecast-model-changed', this.setupTimeline)
+    this.kActivity.$on('forecast-model-changed', this.setupTimeline)
+    // The event could have been raised before the component has been initialized, so initialize
+    this.setupTimeline()
   },
   beforeDestroy () {
-    this.$off('forecast-model-changed', this.setupTimeline)
+    this.kActivity.$off('forecast-model-changed', this.setupTimeline)
   }
 }
+</script>
+
+<style lang="stylus">
+</style>

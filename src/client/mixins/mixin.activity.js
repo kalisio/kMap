@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
 
@@ -10,6 +11,7 @@ export default function (name) {
         forecastModelHandlers: {},
         layerCategories: [],
         variables: [],
+        probedLocation: null,
         engine: 'leaflet',
         engineReady: false,
         engineContainerWidth: null,
@@ -28,6 +30,11 @@ export default function (name) {
       },
       currentVariables () {
         return this.hasForecastLevels ? this.variablesForCurrentLevel : this.variables
+      },
+      timelineEnabled () {
+        // For now only weather forecast requires timeline
+        return (_.values(this.layers).find(layer => layer.isVisible && layer.tags && layer.tags.includes('weather')) ||
+            ((typeof this.isTimeseriesOpen === 'function') && this.isTimeseriesOpen()))
       }
     },
     methods: {
@@ -367,6 +374,15 @@ export default function (name) {
       onLocationChanged (location) {
         if (location) this.center(location.longitude, location.latitude)
       },
+      onProbeLocation () {
+        const probe = async (options, event) => {
+          this.unsetCursor('probe-cursor')
+          const { start, end } = this.getTimeRange()
+          await this.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
+        }
+        this.setCursor('probe-cursor')
+        this.$once('click', probe)
+      },
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
       },
@@ -439,8 +455,23 @@ export default function (name) {
         } catch (error) {
           logger.error(error)
         }
-        // TimeLine
-        if (this.setupTimeline) this.setupTimeline()
+      },
+      getTimeRange () {
+        const now = moment.utc()
+        // Start just before the first available data
+        let start = this.forecastModel ?
+          this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
+        // Override by config ?
+        start = _.get(this, 'activityOptions.timeline.start', start)
+        // Start just after the last available data
+        let end = this.forecastModel ?
+          this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
+        // Override by config ?
+        end = _.get(this, 'activityOptions.timeline.end', end)
+        return {
+          start: now.clone().add({ seconds: start }),
+          end: now.clone().add({ seconds: end })
+        }
       }
     },
     beforeCreate () {
@@ -450,12 +481,6 @@ export default function (name) {
       this.activityOptions = Object.assign({
         catalog: this.$config(`${this.name}Catalog`)
       }, this.$config(`${this.name}Activity`))
-    },
-    created () {
-      // Load the required components
-      this.$options.components['k-location-bar'] = this.$load('KLocationBar')
-      this.$options.components['k-modal'] = this.$load('frame/KModal')
-      this.$options.components['k-form'] = this.$load('form/KForm')
     },
     mounted () {
       this.$on('map-ready', this.onMapReady)

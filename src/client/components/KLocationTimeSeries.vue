@@ -1,6 +1,13 @@
 <template>
-  <canvas ref="chart">
-  </canvas>
+  <div>
+    <q-resize-observer @resize="onTimeseriesWidgetResized" />
+    <k-widget ref="timeseriesWidget" :title="probedLocationName"
+      :style="timeseriesWidgetStyle()" @state-changed="onUpdateTimeseriesWidget">
+      <div slot="widget-content">
+        <canvas ref="chart"></canvas>
+      </div>
+    </k-widget>
+  </div>
 </template>
 
 <script>
@@ -11,27 +18,44 @@ import 'chartjs-plugin-annotation'
 import { QIcon, QTooltip } from 'quasar'
 import { getTimeInterval } from '../utils'
 
+// Makes no sense to display a graph under this threshold so we always at least ensure it
+const MIN_HEIGHT = 256
+
 export default {
   name: 'k-location-time-series',
+  inject: ['kActivity'],
   components: {
     QIcon,
     QTooltip
   },
   props: {
-    feature: { type: Object, default: () => null },
     variables: { type: Array, default: () => [] },
-    currentTimeFormat: { type: Object, default: () => {} },
-    currentFormattedTime: { type: Object, default: () => {} },
     decimationFactor: { type: Number, default: 1 }
   },
   watch: {
-    feature: function () { this.setupGraph() },
     variables: function () { this.setupGraph() },
-    currentTimeFormat: function () { this.setupGraph() },
-    currentFormattedTime: function () { this.setupGraph() },
     decimationFactor: function () { this.setupGraph() }
   },
+  computed: {
+    probedLocationName () {
+      if (!this.kActivity.probedLocation) return ''
+      let name = _.get(this.kActivity.probedLocation, 'properties.name') || _.get(this.kActivity.probedLocation, 'properties.NAME')
+      if (!name && _.has(this.kActivity.probedLocation, 'geometry.coordinates')) {
+        const longitude = _.get(this.kActivity.probedLocation, 'geometry.coordinates[0]')
+        const latitude = _.get(this.kActivity.probedLocation, 'geometry.coordinates[1]')
+        name = this.$t('mixins.timeseries.PROBE') + ` (${longitude.toFixed(2)}°, ${latitude.toFixed(2)}°)`
+      }
+      return name || ''
+    }
+  },
   methods: {
+    timeseriesWidgetStyle () {
+      if (this.$refs.timeseriesWidget &&
+          this.$refs.timeseriesWidget.isOpen() &&
+          !this.$refs.timeseriesWidget.isMinimized()) return 'width: 100vw;height: 100vh;'
+      else if (this.$q.screen.lt.md) return `width: 100vw;height: 40vh;min-height: ${MIN_HEIGHT}px;`
+      else return `width: 80vw;height: 40vh;min-height: ${MIN_HEIGHT}px;`
+    },
     filter (value, index) {
       // We filter one value out of N according to decimation factor
       return (index % this.decimationFactor) === 0
@@ -56,7 +80,7 @@ export default {
     },
     setupAvailableTimes () {
       this.times = []
-      const time = this.feature.time || this.feature.forecastTime
+      const time = this.kActivity.probedLocation.time || this.kActivity.probedLocation.forecastTime
 
       this.variables.forEach(variable => {
         if (time && time[variable.name]) this.times.push(time[variable.name])
@@ -79,8 +103,8 @@ export default {
     },
     setupAvailableDatasets () {
       this.datasets = []
-      const time = this.feature.time || this.feature.forecastTime
-      const properties = this.feature.properties
+      const time = this.kActivity.probedLocation.time || this.kActivity.probedLocation.forecastTime
+      const properties = this.kActivity.probedLocation.properties
 
       this.variables.forEach(variable => {
         const unit = variable.units[0]
@@ -97,7 +121,7 @@ export default {
     },
     setupAvailableYAxes () {
       this.yAxes = []
-      const properties = this.feature.properties
+      const properties = this.kActivity.probedLocation.properties
       let isLeft = true
 
       this.variables.forEach(variable => {
@@ -156,8 +180,11 @@ export default {
 
       this.chart.update(this.config)
     },
-    setupGraph () {
-      if (!this.feature) return
+    async setupGraph () {
+      if (!this.kActivity.probedLocation || !this.isTimeseriesOpen()) return
+      // We need to force a refresh so that the prop is correctly updated by Vuejs in child component
+      await this.$nextTick()        
+      
       // Destroy previous graph if any
       if (this.chart) {
         this.chart.destroy()
@@ -169,10 +196,10 @@ export default {
       this.setupAvailableDatasets()
       this.setupAvailableYAxes()
 
-      const date = _.get(this.currentFormattedTime, 'date.short')
-      const time = _.get(this.currentFormattedTime, 'time.short')
-      const dateFormat = _.get(this.currentTimeFormat, 'date.short')
-      const timeFormat = _.get(this.currentTimeFormat, 'time.short')
+      const date = _.get(this.kActivity.currentFormattedTime, 'date.short')
+      const time = _.get(this.kActivity.currentFormattedTime, 'time.short')
+      const dateFormat = _.get(this.kActivity.currentTimeFormat, 'date.short')
+      const timeFormat = _.get(this.kActivity.currentTimeFormat, 'time.short')
 
       this.config = {
         type: 'line',
@@ -220,7 +247,7 @@ export default {
         }
       }
       // Is current time visible in data time range ?
-      const currentTime = moment.utc(this.currentFormattedTime.iso)
+      const currentTime = moment.utc(this.kActivity.currentFormattedTime.iso)
       if (this.timeRange && currentTime.isBetween(...this.timeRange)) {
         this.config.options.annotation = {
           drawTime: 'afterDatasetsDraw',
@@ -256,11 +283,177 @@ export default {
       this.width = width
       this.height = height
       this.setupGraph()
+    },
+    async onTimeseriesWidgetResized () {
+      if (!this.$refs.timeseriesWidget) return
+      // It appears chartjs does not take time ticks into account in chart height
+      // We add a small margin of 20% to take this into account
+      this.resizeGraph(
+        Math.floor(this.$refs.timeseriesWidget.$el.getBoundingClientRect().width),
+        Math.max(Math.floor(this.$refs.timeseriesWidget.$el.getBoundingClientRect().height) * 0.8, MIN_HEIGHT * 0.8)
+      )
+    },
+    async onUpdateTimeseriesWidget (state) {
+      if (state === 'closed') {
+        this.closeTimeseries()
+        return
+      }
+    },
+    async createProbedLocationLayer () {
+      if (!this.kActivity.probedLocation) return
+      const name = this.$t('mixins.timeseries.PROBED_LOCATION')
+      // Get any previous layer or create it the first time
+      const layer = this.kActivity.getLayerByName(name)
+      if (!layer) {
+        await this.kActivity.addLayer({
+          name,
+          type: 'OverlayLayer',
+          icon: 'colorize',
+          isStorable: false,
+          isEditable: false,
+          leaflet: {
+            type: 'geoJson',
+            isVisible: true,
+            realtime: true,
+            popup: { pick: [] }
+          },
+          cesium: {
+            type: 'geoJson',
+            isVisible: true,
+            realtime: true,
+            popup: { pick: [] }
+          }
+        })
+      }
+      if (!this.kActivity.isLayerVisible(name)) await this.kActivity.showLayer(name)
+      // Update data
+      this.updateProbedLocationLayer()
+    },
+    updateProbedLocationLayer () {
+      if (!this.kActivity.probedLocation) return
+      const name = this.$t('mixins.timeseries.PROBED_LOCATION')
+      const windDirection = (this.kActivity.forecastLevel ? `windDirection-${this.kActivity.forecastLevel}` : 'windDirection')
+      const windSpeed = (this.kActivity.forecastLevel ? `windSpeed-${this.kActivity.forecastLevel}` : 'windSpeed')
+      // Use wind barbs on weather probed features
+      const isWeatherProbe = (_.has(this.kActivity.probedLocation, `properties.${windDirection}`) &&
+                              _.has(this.kActivity.probedLocation, `properties.${windSpeed}`))
+      this.kActivity.updateLayer(name, isWeatherProbe
+        ? this.kActivity.getProbedLocationForecastAtCurrentTime()
+        : this.kActivity.getProbedLocationMeasureAtCurrentTime())
+    },
+    async onShowProbedLocationLayer (layer) {
+      // Show timeseries on probed location
+      const name = this.$t('mixins.timeseries.PROBED_LOCATION')
+      if ((layer.name === name) && !this.isTimeseriesOpen()) {
+        this.openTimeseries()
+        this.kActivity.center(...this.kActivity.probedLocation.geometry.coordinates)
+      }
+    },
+    onHideProbedLocationLayer (layer) {
+      // Hide timeseries on probed location
+      if (layer.name === this.$t('mixins.timeseries.PROBED_LOCATION')) {
+        if (this.isTimeseriesOpen()) this.closeTimeseries()
+      }
+    },
+    async onProbeFeatureClicked (options, event) {
+      let feature = _.get(event, 'target.feature')
+      const entity = event.target
+      if (!feature && !entity) return
+      // For Cesium we have a different setup
+      if (this.engine === 'cesium') {
+        if (!entity.properties) return
+        feature = { properties: entity.properties.getValue(0) }
+      }
+      const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
+      const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
+      const isWeatherProbe = (_.has(feature, `properties.${windDirection}`) &&
+                              _.has(feature, `properties.${windSpeed}`) &&
+                              (options.name === this.$t('mixins.timeseries.PROBED_LOCATION')))
+      let hasTimeseries = true
+      // Update timeseries data if required
+      const { start, end } = this.kActivity.getTimeRange()
+      if (options.probe) { // Static weacast probe
+        const probe = await this.kActivity.getForecastProbe(options.probe)
+        if (probe) {
+          await this.kActivity.getForecastForFeature(_.get(feature, this.probe.featureId), start, end)
+        }
+      } else if (options.variables && options.service) { // Static measure probe
+        await this.kActivity.getMeasureForFeature(options, feature,
+          this.currentTime.clone().subtract({ seconds: options.history }), this.currentTime.clone())
+      } else if (isWeatherProbe) { // Dynamic weacast probe
+        this.kActivity.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
+      } else {
+        hasTimeseries = false
+      }
+      if (hasTimeseries) this.openTimeseries()
+    },
+    async updateProbedLocationForecast (model) {
+      // Update probed location if any
+      if (this.kActivity.probedLocation && this.isTimeseriesOpen()) {
+        const { start, end } = this.kActivity.getTimeRange()
+        // Feature mode
+        if (this.probe && this.kActivity.probedLocation.probeId) {
+          const probe = await this.kActivity.getForecastProbe(this.probe.name)
+          if (probe) {
+            await this.kActivity.getForecastForFeature(_.get(this.kActivity.probedLocation, this.probe.featureId), start, end)
+          }
+        } else { // Location mode
+          await this.kActivity.getForecastForLocation(this.kActivity.probedLocation.geometry.coordinates[0],
+                                            this.kActivity.probedLocation.geometry.coordinates[1], start, end)
+        }
+      }
+    },
+    isTimeseriesOpen () {
+      return (this.$refs.timeseriesWidget && this.$refs.timeseriesWidget.isOpen())
+    },
+    openTimeseries () {
+      this.kActivity.showLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
+      if (this.isTimeseriesOpen()) return
+      this.$refs.timeseriesWidget.open()
+    },
+    closeTimeseries () {
+      this.kActivity.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
+      if (!this.isTimeseriesOpen()) return
+      this.$refs.timeseriesWidget.close()
+    },
+    toggleTimeseries () {
+      this.$refs.timeseriesWidget.toggle()
+      if (this.kActivity.isLayerVisible(this.$t('mixins.timeseries.PROBED_LOCATION'))) {
+        this.kActivity.hideLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
+      } else {
+        this.kActivity.showLayer(this.$t('mixins.timeseries.PROBED_LOCATION'))
+      }
     }
   },
-  async mounted () {
+  created () {
+    // Load the required components
+    this.$options.components['k-widget'] = this.$load('frame/KWidget')
+  },
+  mounted () {
     this.width = 512
     this.height = 512
+    this.kActivity.$on('layer-shown', this.onShowProbedLocationLayer)
+    this.kActivity.$on('layer-hidden', this.onHideProbedLocationLayer)
+    this.kActivity.$on('probed-location-changed', this.setupGraph)
+    this.kActivity.$on('probed-location-changed', this.createProbedLocationLayer)
+    this.kActivity.$on('current-time-changed', this.updateProbedLocationLayer)
+    this.kActivity.$on('current-time-changed', this.setupGraph)
+    this.kActivity.$on('current-time-format-changed', this.setupGraph)
+    this.kActivity.$on('forecast-model-changed', this.updateProbedLocationForecast)
+    this.kActivity.$on('forecast-level-changed', this.updateProbedLocationForecast)
+    this.kActivity.$on('click', this.onProbeFeatureClicked)
+  },
+  beforeDestroy () {
+    this.kActivity.$off('layer-shown', this.onShowProbedLocationLayer)
+    this.kActivity.$off('layer-hidden', this.onHideProbedLocationLayer)
+    this.kActivity.$off('probed-location-changed', this.setupGraph)
+    this.kActivity.$off('probed-location-changed', this.createProbedLocationLayer)
+    this.kActivity.$off('current-time-changed', this.updateProbedLocationLayer)
+    this.kActivity.$off('current-time-changed', this.setupGraph)
+    this.kActivity.$off('current-time-format-changed', this.setupGraph)
+    this.kActivity.$off('forecast-model-changed', this.updateProbedLocationForecast)
+    this.kActivity.$off('forecast-level-changed', this.updateProbedLocationForecast)
+    this.kActivity.$off('click', this.onProbeFeatureClicked)
   }
 }
 </script>
