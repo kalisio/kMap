@@ -12,7 +12,7 @@
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
-  name: 'k-info-box',
+  name: 'k-location-info-box',
   mixins: [
     kCoreMixins.refsResolver(['view'])
   ],
