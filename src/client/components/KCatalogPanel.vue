@@ -31,7 +31,7 @@ export default {
       default: () => {}
     }
   },
-  async created () {
+  created () {
     this.$options.components['k-layers-panel'] = this.$load('KLayersPanel')
     this.$options.components['k-forecast-models-selector'] = this.$load('KForecastModelsSelector')
   }
