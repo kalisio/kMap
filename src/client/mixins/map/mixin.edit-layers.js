@@ -48,16 +48,6 @@ export default {
         this.editedLayerSchema = await this.loadLayerSchema(this.editedLayer)
       }
     },
-    async loadLayerSchema (layer) {
-      const schemaId = _.get(layer, 'schema._id')
-      if (!schemaId) return null
-      const data = await this.$api.getService('storage', this.contextId).get(schemaId)
-      if (!data.uri) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
-      const typeAndData = data.uri.split(',')
-      if (typeAndData.length <= 1) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
-      // We get data as a data URI
-      return atob(typeAndData[1])
-    },
     async updateFeatureProperties (feature, layer, leafletLayer) {
       // Avoid default popup
       const popup = leafletLayer.getPopup()

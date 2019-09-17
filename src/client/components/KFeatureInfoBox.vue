@@ -24,23 +24,19 @@ export default {
   inject: ['kActivity'],
   data () {
     return {
-      schema: null
+      schema: null,
+      properties: null
     }
   },
   methods: {
     async onFeatureClicked (options, event) {
       this.properties = null
+      this.schema = await this.kActivity.loadLayerSchema(options)
+      if (!options.schema) return
+      this.schema = JSON.parse(this.schema)
       let feature = _.get(event, 'target.feature')
-      if (!feature) return
+      if (!feature || _.isEmpty(feature.properties)) return
       this.properties = feature.properties
-      const schemaId = _.get(options, 'schema._id')
-      if (!schemaId) return
-      const data = await this.$api.getService('storage', this.kActivity.contextId).get(schemaId)
-      if (!data.uri) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
-      const typeAndData = data.uri.split(',')
-      if (typeAndData.length <= 1) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
-      // We get data as a data URL
-      this.schema = JSON.parse(atob(typeAndData[1]))
     },
     onViewReady () {
       this.$refs.view.fill(this.properties)

@@ -116,21 +116,32 @@ export default {
       if (!layerId) return
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
       features.forEach(feature => { feature.layer = layerId })
-      await this.$api.getService('features').create(features)
+      const createdFeatures = await this.$api.getService('features').create(features)
+      return (geoJson.type === 'FeatureCollection' ? Object.assign(geoJson, { features: createdFeatures }) : createdFeatures)
     },
     async editFeaturesGeometry (geoJson) {
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      let updatedFeatures = []
       for (let i = 0; i < features.length; i++) {
         const feature = features[i]
-        if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['geometry']))
+        if (feature._id) {
+          const updatedFeature = await this.$api.getService('features').patch(feature._id, _.pick(feature, ['geometry']))
+          updatedFeatures.push(updatedFeature)
+        }
       }
+      return (geoJson.type === 'FeatureCollection' ? Object.assign(geoJson, { features: updatedFeatures }) : updatedFeatures)
     },
     async editFeaturesProperties (geoJson) {
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+      let updatedFeatures = []
       for (let i = 0; i < features.length; i++) {
         const feature = features[i]
-        if (feature._id) await this.$api.getService('features').patch(feature._id, _.pick(feature, ['properties']))
+        if (feature._id) {
+          const updatedFeature = await this.$api.getService('features').patch(feature._id, _.pick(feature, ['properties']))
+          updatedFeatures.push(updatedFeature)
+        }
       }
+      return (geoJson.type === 'FeatureCollection' ? Object.assign(geoJson, { features: updatedFeatures }) : updatedFeatures)
     },
     async removeFeatures (geoJsonOrLayerId) {
       // Remove all features of a given layer

@@ -6,7 +6,7 @@
         :key="layer.name" 
         :active="layer.isVisible"
         active-class="selected"
-        class="cursor-pointer" 
+        class="cursor-pointer"
         dense>
         <q-item-section avatar @click="onLayerClicked(layer)">
           <q-icon v-if="!layer.iconUrl" :name="layerIcon(layer)" />
