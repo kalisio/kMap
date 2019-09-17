@@ -37,6 +37,7 @@
 <script>
 export default {
   name: 'k-navigation-bar',
+  inject: ['kActivity'],
   data () {
     return {
       navigationBar: this.$store.get('navigationBar'),
@@ -49,7 +50,7 @@ export default {
       else return 'width: 80vw'
     },
     onLocationChanged (location) {
-      if (location) this.$emit('location-changed', location)
+      if (location) this.kActivity.center(location.longitude, location.latitude)
     }
   },
   created () {
