@@ -1,6 +1,10 @@
 <template>
   <q-card v-show="properties">
     <q-scroll-area style="height: 40vh">
+      <q-btn class="float-right" flat round small color="primary" @click="onClose">
+        <q-icon name="close" />
+        <q-tooltip>{{$t('CLOSE')}}</q-tooltip>
+      </q-btn>
       <div class="row items-center full-height">
         <k-view class="q-pa-xs" ref="view" :schema="schema" @view-ready="onViewReady" />
       </div>
@@ -37,6 +41,10 @@ export default {
       let feature = _.get(event, 'target.feature')
       if (!feature || _.isEmpty(feature.properties)) return
       this.properties = feature.properties
+    },
+    onClose () {
+      this.properties = null
+      this.schema = null
     },
     onViewReady () {
       this.$refs.view.fill(this.properties)
