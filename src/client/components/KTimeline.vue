@@ -141,6 +141,9 @@ export default {
       if (event.final) {
         this.kActivity.setCurrentTime(moment.utc(event.value))
       }
+    },
+    onTimechanged (time) {
+      this.updateTimeline({ current: time.valueOf() })
     }
   },
   created () {
@@ -148,11 +151,13 @@ export default {
     this.$options.components['k-time-controller'] = this.$load('time/KTimeController')
   },
   mounted () {
+    this.kActivity.$on('current-time-changed', this.onTimechanged)
     this.kActivity.$on('forecast-model-changed', this.setupTimeline)
     // The event could have been raised before the component has been initialized, so initialize
     this.setupTimeline()
   },
   beforeDestroy () {
+    this.kActivity.$off('current-time-changed', this.onTimechanged)
     this.kActivity.$off('forecast-model-changed', this.setupTimeline)
   }
 }
