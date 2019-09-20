@@ -35,8 +35,8 @@ export default {
   methods: {
     async onFeatureClicked (options, event) {
       this.properties = null
-      this.schema = await this.kActivity.loadLayerSchema(options)
       if (!options.schema) return
+      this.schema = await this.kActivity.loadLayerSchema(options)
       this.schema = JSON.parse(this.schema)
       let feature = _.get(event, 'target.feature')
       if (!feature || _.isEmpty(feature.properties)) return
