@@ -116,7 +116,7 @@ export default {
       }
       this.$emit('input', this.location)
     },
-    onSearch (pattern, update, abort) {
+    async onSearch (pattern, update, abort) {
       if (pattern.length < 3) {
         abort()
         return
@@ -124,20 +124,18 @@ export default {
       // Build the list of responses
       const geocoderService = this.$api.getService('geocoder')
       if (!geocoderService) throw Error('Cannot find geocoder service')
-      geocoderService.create({ address: pattern })
-        .then(response => {
-          const places = []
-          response.forEach(element => {
-            const label = formatGeocodingResult(element)
-            const place = {
-              name: label,
-              latitude: element.latitude,
-              longitude: element.longitude
-            }
-            places.push(place)
-          })
-          update(() => { this.options = places })
-        })
+      const response = await geocoderService.create({ address: pattern })
+      const places = []
+      response.forEach(element => {
+        const label = formatGeocodingResult(element)
+        const place = {
+          name: label,
+          latitude: element.latitude,
+          longitude: element.longitude
+        }
+        places.push(place)
+      })
+      update(() => { this.options = places })
     },
     onUpdated (value) {
       this.$emit('input', this.location)
