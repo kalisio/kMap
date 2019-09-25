@@ -7,11 +7,11 @@ export default {
       // Ensure DOM ref is here as well
       await this.loadRefs()
       this.setupGlobe(this.$refs.globe, token)
-      this.viewer.clock.onTick.addEventListener(this.storeView)
+      this.viewer.camera.moveEnd.addEventListener(this.storeView)
       await this.initialize() // Generic activity initialization
     },
     finalizeGlobe () {
-      this.viewer.clock.onTick.removeEventListener(this.storeView)
+      this.viewer.camera.moveEnd.removeEventListener(this.storeView)
     },
     onGlobeResized (size) {
       // Avoid to refresh the layout when leaving the component
