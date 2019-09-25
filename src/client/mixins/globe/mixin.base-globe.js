@@ -19,6 +19,8 @@ export default {
     setupGlobe (domEl, token, options) {
       const viewerOptions = options || this.options.viewer
       if (token) Cesium.Ion.defaultAccessToken = token
+      // If we don't need ion
+      else Cesium.Ion.defaultAccessToken = ''        
       // Initialize the globe
       Object.assign(viewerOptions, {
         imageryProviderViewModels: [],
