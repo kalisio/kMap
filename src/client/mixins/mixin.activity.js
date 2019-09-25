@@ -384,6 +384,10 @@ export default function (name) {
         this.setCursor('probe-cursor')
         this.$once('click', probe)
       },
+      onToggleFullscreen () {
+        if (!this.$q.fullscreen.isActive) this.$q.fullscreen.request()
+        else this.$q.fullscreen.exit()
+      },
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
       },

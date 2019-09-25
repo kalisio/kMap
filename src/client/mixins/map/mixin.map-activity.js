@@ -20,9 +20,6 @@ export default {
           this.engineContainerHeight = this.$refs.map.getBoundingClientRect().height
         }
       }
-    },
-    onToggleFullscreen () {
-      this.map.toggleFullscreen()
     }
   },
   created () {

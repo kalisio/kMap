@@ -23,10 +23,6 @@ export default {
         }
       }
     },
-    onToggleFullscreen () {
-      if (Cesium.Fullscreen.fullscreen) Cesium.Fullscreen.exitFullscreen()
-      else Cesium.Fullscreen.requestFullscreen(document.body)
-    },
     onToggleVr () {
       // VR requires fullscreen mode
       if (this.viewer.scene.useWebVR) {
