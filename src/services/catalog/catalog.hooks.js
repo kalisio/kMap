@@ -19,14 +19,14 @@ module.exports = {
       }
     }],
     get: [],
-    create: [coreHooks.convertObjectIDs(['baseQuery.layer'])],
-    update: [coreHooks.convertObjectIDs(['baseQuery.layer'])],
-    patch: [coreHooks.convertObjectIDs(['baseQuery.layer'])],
+    create: [coreHooks.convertObjectIDs(['baseQuery.layer']), coreHooks.convertToString(['schema.content'])],
+    update: [coreHooks.convertObjectIDs(['baseQuery.layer']), coreHooks.convertToString(['schema.content'])],
+    patch: [coreHooks.convertObjectIDs(['baseQuery.layer']), coreHooks.convertToString(['schema.content'])],
     remove: []
   },
 
   after: {
-    all: [],
+    all: [coreHooks.convertToJson(['schema.content'])],
     find: [],
     get: [],
     create: [],
