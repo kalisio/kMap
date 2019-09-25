@@ -240,19 +240,6 @@ export default function (name) {
       onZoomToLayer (layer) {
         this.zoomToLayer(layer.name)
       },
-      async loadLayerSchema (layer) {
-        /* Schema was previously stored in S3, code kept in any case we switch back to this solution
-        const schemaId = _.get(layer, 'schema._id')
-        if (!schemaId) return null
-        const data = await this.$api.getService('storage', this.contextId).get(schemaId)
-        if (!data.uri) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
-        const typeAndData = data.uri.split(',')
-        if (typeAndData.length <= 1) throw Error(this.$t('errors.CANNOT_PROCESS_SCHEMA_DATA'))
-        // We get data as a data URI
-        return atob(typeAndData[1])
-        */
-        return (layer.schema ? layer.schema.content : null)
-      },
       async onSaveLayer (layer) {
         // Change data source from in-memory to features service
         _.merge(layer, {
