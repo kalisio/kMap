@@ -35,7 +35,7 @@ export default {
   methods: {
     async onFeatureClicked (options, event) {
       this.properties = null
-      if (!options.schema) return
+      if (!options || !options.schema) return
       this.schema = JSON.parse(options.schema.content)
       let feature = _.get(event, 'target.feature')
       if (!feature || _.isEmpty(feature.properties)) return
