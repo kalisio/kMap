@@ -45,5 +45,54 @@ module.exports = {
     accessKeyId: process.env.S3_ACCESS_KEY,
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
     bucket: process.env.S3_BUCKET
+  },
+  forecastPath: path.join(__dirname, '../forecast-data'),
+  forecasts: [
+    {
+      name: 'gfs-world',
+      label: 'GFS - 0.5°',
+      description: 'World-wide',
+      attribution: 'Forecast data from <a href="http://www.emc.ncep.noaa.gov/index.php?branch=GFS">NCEP</a>',
+      model: 'gfs',
+      baseUrl: 'http://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p50.pl',
+      bounds: [0, -90, 360, 90],
+      origin: [0, 90],
+      size: [720, 361],
+      resolution: [0.5, 0.5],
+      tileResolution: [20, 20],
+      runInterval: 6 * 3600,          // Produced every 6h
+      oldestRunInterval: 24 * 3600,   // Don't go back in time older than 1 day
+      interval: 3 * 3600,             // Steps of 3h
+      lowerLimit: 0,                  // From T0
+      upperLimit: 3 * 3600,           // Up to T0+3
+      updateInterval: -1,             // We will check for update manually for testing
+      keepPastForecasts: true,        // We will keep past forecast times so that the number of forecasts is predictable for tests
+      elements: [
+        {
+          name: 'u-wind',
+          variable: 'var_UGRD',
+          levels: ['lev_10_m_above_ground']
+        },
+        {
+          name: 'v-wind',
+          variable: 'var_VGRD',
+          levels: ['lev_10_m_above_ground']
+        }
+      ]
+    }
+  ],
+  distribution: {
+    app: {
+      // We only consume services we don't produce any
+      services: (service) => false,
+      // Consume only probing
+      remoteServices: (service) => service.path.endsWith('probes')
+    },
+    weacast: {
+      // Distribute only probing
+      services: (service) => service.path.endsWith('probes'),
+      // We only produce services we don't consume any
+      remoteServices: (service) => false
+    }
   }
 }

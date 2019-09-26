@@ -5,11 +5,15 @@ import _ from 'lodash'
 import moment from 'moment'
 import utility from 'util'
 import fs from 'fs-extra'
+import weacastCore, { weacast } from 'weacast-core'
+import weacastGfs from 'weacast-gfs'
+import weacastProbe from 'weacast-probe'
+import distribution from '@kalisio/feathers-distributed'
 import core, { kalisio, hooks } from '@kalisio/kdk-core'
 import map, { createFeaturesService, createGeoAlertsService } from '../src'
 
 describe('kMap:geoalerts', () => {
-  let app, server, port, alertService, vigicruesObsService,
+  let app, weacastApp, server, port, alertService, vigicruesObsService, uService, vService, probeService,
     alertObject, spyRegisterAlert, spyUnregisterAlert, spyCheckAlert
   let activeCount = 0
   let eventCount = 0
@@ -37,13 +41,32 @@ describe('kMap:geoalerts', () => {
     chai.use(spies)
 
     app = kalisio()
+    weacastApp = weacast()
+    // Distribute services
+    app.configure(distribution(app.get('distribution').app))
+    weacastApp.configure(distribution(app.get('distribution').weacast))
+    
     // Register log hook
     app.hooks({
       error: { all: hooks.log }
     })
     port = app.get('port')
-    return app.db.connect()
+    return Promise.all([app.db.connect(), weacastApp.db.connect()])
   })
+
+  it('registers the weacast services', () => {
+    weacastApp.configure(weacastCore)
+    weacastApp.configure(weacastGfs)
+    weacastApp.configure(weacastProbe)
+    uService = weacastApp.getService('gfs-world/u-wind')
+    expect(uService).toExist()
+    vService = weacastApp.getService('gfs-world/v-wind')
+    expect(vService).toExist()
+    probeService = weacastApp.getService('probes')
+    expect(probeService).toExist()
+  })
+  // Let enough time to process
+  .timeout(5000)
 
   it('registers the alert service', (done) => {
     app.configure(core)
@@ -62,6 +85,126 @@ describe('kMap:geoalerts', () => {
   })
   // Let enough time to process
     .timeout(5000)
+
+  it('performs weather element download process', async () => {
+    // download both elements in parallel
+    await Promise.all([
+      uService.updateForecastData(),
+      vService.updateForecastData()
+    ])
+  })
+  // Let enough time to download a couple of data
+  .timeout(60000)
+
+  it('creates weather active alert at specific location', async () => {
+    const now = moment.utc()
+    alertObject = await alertService.create({
+      cron: '*/5 * * * * *',
+      expireAt: now.clone().add({ days: 1 }),
+      period: {
+        start: { hours: -6 },
+        end: { hours: 6 }
+      },
+      forecast: 'gfs-world',
+      elements: [ 'u-wind', 'v-wind', 'windSpeed' ],
+      conditions: {
+        geometry: {
+          type: 'Point',
+          coordinates: [144.29091388888889, -5.823011111111111]
+        },
+        windSpeed: { $gte: 0 } // Set a large range so that we are sure it will trigger
+      }
+    })
+    expect(spyRegisterAlert).to.have.been.called.once
+    spyRegisterAlert.reset()
+    let results = await alertService.find({ paginate: false, query: {} })
+    expect(results.length).to.equal(1)
+    // Wait long enough to be sure the cron has been called twice
+    await utility.promisify(setTimeout)(10000)
+    expect(spyCheckAlert).to.have.been.called.twice
+    spyCheckAlert.reset()
+    expect(eventCount).to.equal(2)
+    expect(activeCount).to.equal(2)
+    results = await alertService.find({ paginate: false, query: {} })
+    expect(results.length).to.equal(1)
+    expect(results[0].status).toExist()
+    expect(results[0].status.active).beTrue()
+    expect(results[0].status.triggeredAt).toExist()
+    expect(results[0].status.checkedAt).toExist()
+    expect(results[0].status.triggeredAt.isAfter(now)).beTrue()
+    expect(results[0].status.checkedAt.isAfter(results[0].status.triggeredAt)).beTrue()
+  })
+  // Let enough time to process
+  .timeout(15000)
+
+  it('removes active weather alert at specific location', async () => {
+    await alertService.remove(alertObject._id.toString())
+    expect(spyUnregisterAlert).to.have.been.called.once
+    spyUnregisterAlert.reset()
+    resetAlertEvent()
+    const results = await alertService.find({ paginate: false, query: {} })
+    expect(results.length).to.equal(0)
+    // Wait long enough to be sure the cron has not been called again (alert unregistered)
+    await utility.promisify(setTimeout)(5000)
+    expect(spyCheckAlert).to.not.have.been.called()
+    spyCheckAlert.reset()
+  })
+  // Let enough time to process
+  .timeout(10000)
+
+  it('creates inactive weather alert at specific location', async () => {
+    const now = moment.utc()
+    alertObject = await alertService.create({
+      cron: '*/5 * * * * *',
+      expireAt: now.clone().add({ days: 1 }),
+      period: {
+        start: { hours: -6 },
+        end: { hours: 6 }
+      },
+      forecast: 'gfs-world',
+      elements: [ 'u-wind', 'v-wind', 'windSpeed' ],
+      conditions: {
+        geometry: {
+          type: 'Point',
+          coordinates: [144.29091388888889, -5.823011111111111]
+        },
+        windSpeed: { $lt: -10 } // Set an invalid range so that we are sure it will not trigger
+      }
+    })
+    expect(spyRegisterAlert).to.have.been.called.once
+    spyRegisterAlert.reset()
+    let results = await alertService.find({ paginate: false, query: {} })
+    expect(results.length).to.equal(1)
+    // Wait long enough to be sure the cron has been called twice
+    await utility.promisify(setTimeout)(10000)
+    expect(spyCheckAlert).to.have.been.called.twice
+    spyCheckAlert.reset()
+    expect(eventCount).to.equal(2)
+    expect(activeCount).to.equal(0)
+    results = await alertService.find({ paginate: false, query: {} })
+    expect(results.length).to.equal(1)
+    expect(results[0].status).toExist()
+    expect(results[0].status.active).beFalse()
+    expect(results[0].status.triggeredAt).beUndefined()
+    expect(results[0].status.checkedAt).toExist()
+  })
+  // Let enough time to process
+  .timeout(15000)
+
+  it('removes inactive weather alert at specific location', async () => {
+    await alertService.remove(alertObject._id.toString())
+    expect(spyUnregisterAlert).to.have.been.called.once
+    spyUnregisterAlert.reset()
+    resetAlertEvent()
+    const results = await alertService.find({ paginate: false, query: {} })
+    expect(results.length).to.equal(0)
+    // Wait long enough to be sure the cron has not been called again (alert unregistered)
+    await utility.promisify(setTimeout)(5000)
+    expect(spyCheckAlert).to.not.have.been.called()
+    spyCheckAlert.reset()
+  })
+  // Let enough time to process
+  .timeout(10000)
 
   it('create and feed the vigicrues observations service', async () => {
     const tomorrow = moment.utc().add(1, 'days')
@@ -186,6 +329,11 @@ describe('kMap:geoalerts', () => {
   // Cleanup
   after(async () => {
     if (server) await server.close()
+    weacastApp.getService('forecasts').Model.drop()
+    await probeService.Model.drop()
+    await uService.Model.drop()
+    await vService.Model.drop()
+    fs.removeSync(app.get('forecastPath'))
     await vigicruesObsService.Model.drop()
     alertService.removeAllListeners()
     await alertService.Model.drop()

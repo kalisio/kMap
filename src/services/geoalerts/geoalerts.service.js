@@ -52,9 +52,9 @@ export default {
       forecast: alert.forecast,
       elements: alert.elements
     }, { query })
+    
     // Let sift performs condition matching as in this case MongoDB cannot
-    let results = result.features.filter(sift(conditions))
-    return results
+    return result.features.filter(sift(conditions))
   },
 
   async checkMeasureAlert (alert) {
