@@ -8,7 +8,7 @@ import map, { permissions as mapPermissions, createFeaturesService, createCatalo
 describe('kMap', () => {
   let app, server, port, // baseUrl,
     userService, userObject, geocoderService, catalogService, layersArray,
-    vigicruesStationsService, vigicruesObsService, adsbObsService
+    vigicruesStationsService, vigicruesObsService, adsbObsService, position
 
   before(() => {
     chailint(chai, util)
@@ -212,8 +212,19 @@ describe('kMap', () => {
     const address = '80 chemin des tournesols, 11400 Castelnaudary'
     const response = await geocoderService.create({ address: address }, { user: userObject, checkAuthorisation: true })
     expect(response.length === 1).beTrue()
-    expect(response[0].latitude).toExist()
-    expect(response[0].longitude).toExist()
+    position = response[0]
+    expect(position.latitude).toExist()
+    expect(position.longitude).toExist()
+
+  })
+  // Let enough time to process
+    .timeout(5000)
+
+  it('reverse geocode a position', async () => {
+    const response = await geocoderService.create(position, { user: userObject, checkAuthorisation: true })
+    expect(response.length > 0).beTrue()
+    expect(response[0].country).toExist()
+    expect(response[0].streetName).toExist()
   })
   // Let enough time to process
     .timeout(5000)

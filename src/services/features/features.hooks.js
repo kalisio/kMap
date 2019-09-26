@@ -7,14 +7,14 @@ module.exports = {
     all: [coreHooks.marshallTimeQuery, coreHooks.convertObjectIDs(['layer'])],
     find: [coreHooks.marshallComparisonQuery, coreHooks.marshallSortQuery, marshallSpatialQuery, aggregateFeaturesQuery],
     get: [],
-    create: [coreHooks.processTime],
-    update: [coreHooks.processTime],
-    patch: [coreHooks.processTime],
+    create: [coreHooks.processTimes(['time'])],
+    update: [coreHooks.processTimes(['time'])],
+    patch: [coreHooks.processTimes(['time'])],
     remove: [coreHooks.marshallComparisonQuery, marshallSpatialQuery]
   },
 
   after: {
-    all: [coreHooks.unprocessTime],
+    all: [coreHooks.unprocessTimes(['time'])],
     find: [
       (hook) => {
         const result = hook.result
