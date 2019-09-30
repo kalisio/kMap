@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import moment from 'moment'
 import sift from 'sift'
+import request from 'superagent'
 import { CronJob } from 'cron'
 import makeDebug from 'debug'
 const debug = makeDebug('kalisio:kMap:geoalerts:service')
@@ -52,6 +53,7 @@ export default {
       forecast: alert.forecast,
       elements: alert.elements
     }, { query })
+    console.log(result.features)
     
     // Let sift performs condition matching as in this case MongoDB cannot
     return result.features.filter(sift(conditions))
@@ -77,7 +79,7 @@ export default {
 
   async checkAlert (alert) {
     const now = moment.utc()
-    debug('Checking alert at ' + now.format(), _.omit(alert, ['status']))
+    debug('Checking alert at ' + now.format(), _.omit(alert, ['status', 'webhook']))
     // First check if still valid
     if (now.isAfter(alert.expireAt)) {
       this.unregisterAlert(alert)
@@ -95,10 +97,10 @@ export default {
     // If not previously active and it is now add first time stamp
     if (!wasActive && isActive) {
       status.triggeredAt = now
-    } else if (wasActive) { // Else keep track of trigger time stamp
+    } else if (wasActive) { // Else keep track of previous trigger time stamp
       status.triggeredAt = _.get(alert, 'status.triggeredAt')
     }
-    debug('Alert ' + alert._id.toString() + ' status', status, results.length)
+    debug('Alert ' + alert._id.toString() + ' status', status, ' with ' + results.length + ' triggers')
     // Emit event
     let event = { alert }
     if (isActive) event.triggers = results
@@ -106,5 +108,12 @@ export default {
     // Keep track of changes in memory as well
     Object.assign(alert, result)
     this.emit('geoalert', event)
+    // If a webhook is configured call it
+    const webhook = alert.webhook
+    if (webhook) {
+      let body = Object.assign({ alert: _.omit(alert, ['webhook']) }, _.omit(webhook, ['url']))
+      if (isActive) body.triggers = results
+      return request.post(webhook.url, body)
+    }
   }
 }

@@ -5,24 +5,30 @@ import _ from 'lodash'
 import moment from 'moment'
 import utility from 'util'
 import fs from 'fs-extra'
+import express from 'express'
+import bodyParser from 'body-parser'
+import request from 'superagent'
 import weacastCore, { weacast } from 'weacast-core'
 import weacastGfs from 'weacast-gfs'
 import weacastProbe from 'weacast-probe'
 import distribution from '@kalisio/feathers-distributed'
 import core, { kalisio, hooks } from '@kalisio/kdk-core'
-import map, { createFeaturesService, createGeoAlertsService } from '../src'
+import map, { createFeaturesService } from '../src'
 
 describe('kMap:geoalerts', () => {
-  let app, weacastApp, server, port, alertService, vigicruesObsService, uService, vService, probeService,
+  let app, weacastApp, server, port, externalApp, externalServer, externalPort,
+    alertService, vigicruesObsService, uService, vService, probeService,
     alertObject, spyRegisterAlert, spyUnregisterAlert, spyCheckAlert
-  let activeCount = 0
+  let activeEventCount = 0
   let eventCount = 0
+  let activeWebhookCount = 0
+  let webhookCount = 0
 
   function checkAlertEvent (event) {
     const { alert, triggers } = event
     eventCount++
-    if (alert.status.active) {
-      activeCount++
+    if (_.get(alert, 'status.active')) {
+      activeEventCount++
       expect(triggers).toExist()
       expect(triggers.length > 0).beTrue()
       expect(triggers[0].geometry).toExist()
@@ -30,10 +36,28 @@ describe('kMap:geoalerts', () => {
       expect(triggers).beUndefined()
     }
   }
+  function checkAlertWebhook (req, res) {
+    const { type, alert, triggers } = req.body
+    webhookCount++
+    expect(type === 'event').beTrue()
+    if (_.get(alert, 'status.active')) {
+      activeWebhookCount++
+      expect(triggers).toExist()
+      expect(triggers.length > 0).beTrue()
+      expect(triggers[0].geometry).toExist()
+    } else {
+      expect(triggers).beUndefined()
+    }
+    res.sendStatus(200)
+  }
 
   function resetAlertEvent () {
-    activeCount = 0
+    activeEventCount = 0
     eventCount = 0
+  }
+  function resetAlertWebhook () {
+    activeWebhookCount = 0
+    webhookCount = 0
   }
 
   before(() => {
@@ -45,18 +69,38 @@ describe('kMap:geoalerts', () => {
     // Distribute services
     app.configure(distribution(app.get('distribution').app))
     weacastApp.configure(distribution(app.get('distribution').weacast))
-    
     // Register log hook
     app.hooks({
       error: { all: hooks.log }
     })
     port = app.get('port')
-    return Promise.all([app.db.connect(), weacastApp.db.connect()])
+    return Promise.all([
+      app.db.connect(), 
+      weacastApp.db.connect()
+    ])
   })
 
-  it('registers the weacast services', () => {
+  it('launch external webhook app', (done) => {
+    externalApp = express()
+    externalApp.use(bodyParser.json())
+    externalPort = port + 1
+    // Launch the external server
+    externalServer = externalApp.listen(externalPort)
+    externalServer.once('listening', _ => {
+      // Ensure webhook enpoint responds
+      externalApp.post('/webhook', checkAlertWebhook)
+      request.post('http://localhost:' + externalPort + '/webhook', { type: 'event' }, (error, res, body) =>{
+        resetAlertWebhook()
+        done(error)
+      })
+    })
+  })
+  // Let enough time to process
+  .timeout(5000)
+
+  it('registers the weacast services', async () => {
     weacastApp.configure(weacastCore)
-    weacastApp.configure(weacastGfs)
+    await weacastApp.configure(weacastGfs)
     weacastApp.configure(weacastProbe)
     uService = weacastApp.getService('gfs-world/u-wind')
     expect(uService).toExist()
@@ -71,8 +115,6 @@ describe('kMap:geoalerts', () => {
   it('registers the alert service', (done) => {
     app.configure(core)
     app.configure(map)
-    // Create a global alert service
-    createGeoAlertsService.call(app)
     alertService = app.getService('geoalerts')
     expect(alertService).toExist()
     alertService.on('geoalert', checkAlertEvent)
@@ -113,6 +155,10 @@ describe('kMap:geoalerts', () => {
           coordinates: [144.29091388888889, -5.823011111111111]
         },
         windSpeed: { $gte: 0 } // Set a large range so that we are sure it will trigger
+      },
+      webhook: {
+        url: 'http://localhost:' + externalPort + '/webhook',
+        type: 'event'
       }
     })
     expect(spyRegisterAlert).to.have.been.called.once
@@ -124,7 +170,9 @@ describe('kMap:geoalerts', () => {
     expect(spyCheckAlert).to.have.been.called.twice
     spyCheckAlert.reset()
     expect(eventCount).to.equal(2)
-    expect(activeCount).to.equal(2)
+    expect(activeEventCount).to.equal(2)
+    expect(webhookCount).to.equal(2)
+    expect(activeWebhookCount).to.equal(2)
     results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(1)
     expect(results[0].status).toExist()
@@ -142,6 +190,7 @@ describe('kMap:geoalerts', () => {
     expect(spyUnregisterAlert).to.have.been.called.once
     spyUnregisterAlert.reset()
     resetAlertEvent()
+    resetAlertWebhook()
     const results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(0)
     // Wait long enough to be sure the cron has not been called again (alert unregistered)
@@ -169,6 +218,10 @@ describe('kMap:geoalerts', () => {
           coordinates: [144.29091388888889, -5.823011111111111]
         },
         windSpeed: { $lt: -10 } // Set an invalid range so that we are sure it will not trigger
+      },
+      webhook: {
+        url: 'http://localhost:' + externalPort + '/webhook',
+        type: 'event'
       }
     })
     expect(spyRegisterAlert).to.have.been.called.once
@@ -180,7 +233,9 @@ describe('kMap:geoalerts', () => {
     expect(spyCheckAlert).to.have.been.called.twice
     spyCheckAlert.reset()
     expect(eventCount).to.equal(2)
-    expect(activeCount).to.equal(0)
+    expect(activeEventCount).to.equal(0)
+    expect(webhookCount).to.equal(2)
+    expect(activeWebhookCount).to.equal(0)
     results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(1)
     expect(results[0].status).toExist()
@@ -196,6 +251,7 @@ describe('kMap:geoalerts', () => {
     expect(spyUnregisterAlert).to.have.been.called.once
     spyUnregisterAlert.reset()
     resetAlertEvent()
+    resetAlertWebhook()
     const results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(0)
     // Wait long enough to be sure the cron has not been called again (alert unregistered)
@@ -237,6 +293,10 @@ describe('kMap:geoalerts', () => {
       feature: 'A282000101',
       conditions: {
         H: { $gte: 0.6 } // Set a large range so that we are sure it will trigger
+      },
+      webhook: {
+        url: 'http://localhost:' + externalPort + '/webhook',
+        type: 'event'
       }
     })
     expect(spyRegisterAlert).to.have.been.called.once
@@ -248,7 +308,9 @@ describe('kMap:geoalerts', () => {
     expect(spyCheckAlert).to.have.been.called.twice
     spyCheckAlert.reset()
     expect(eventCount).to.equal(2)
-    expect(activeCount).to.equal(2)
+    expect(activeEventCount).to.equal(2)
+    expect(webhookCount).to.equal(2)
+    expect(activeWebhookCount).to.equal(2)
     results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(1)
     expect(results[0].status).toExist()
@@ -266,6 +328,7 @@ describe('kMap:geoalerts', () => {
     expect(spyUnregisterAlert).to.have.been.called.once
     spyUnregisterAlert.reset()
     resetAlertEvent()
+    resetAlertWebhook()
     const results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(0)
     // Wait long enough to be sure the cron has not been called again (alert unregistered)
@@ -289,6 +352,10 @@ describe('kMap:geoalerts', () => {
       feature: 'A282000101',
       conditions: {
         H: { $lt: -10 } // Set an invalid range so that we are sure it will not trigger
+      },
+      webhook: {
+        url: 'http://localhost:' + externalPort + '/webhook',
+        type: 'event'
       }
     })
     expect(spyRegisterAlert).to.have.been.called.once
@@ -300,7 +367,9 @@ describe('kMap:geoalerts', () => {
     expect(spyCheckAlert).to.have.been.called.twice
     spyCheckAlert.reset()
     expect(eventCount).to.equal(2)
-    expect(activeCount).to.equal(0)
+    expect(activeEventCount).to.equal(0)
+    expect(webhookCount).to.equal(2)
+    expect(activeWebhookCount).to.equal(0)
     results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(1)
     expect(results[0].status).toExist()
@@ -316,6 +385,7 @@ describe('kMap:geoalerts', () => {
     expect(spyUnregisterAlert).to.have.been.called.once
     spyUnregisterAlert.reset()
     resetAlertEvent()
+    resetAlertWebhook()
     const results = await alertService.find({ paginate: false, query: {} })
     expect(results.length).to.equal(0)
     // Wait long enough to be sure the cron has not been called again (alert unregistered)
@@ -328,11 +398,13 @@ describe('kMap:geoalerts', () => {
 
   // Cleanup
   after(async () => {
+    if (externalServer) await externalServer.close()
     if (server) await server.close()
-    weacastApp.getService('forecasts').Model.drop()
+    await weacastApp.getService('forecasts').Model.drop()
     await probeService.Model.drop()
     await uService.Model.drop()
     await vService.Model.drop()
+    await weacastApp.db.disconnect()
     fs.removeSync(app.get('forecastPath'))
     await vigicruesObsService.Model.drop()
     alertService.removeAllListeners()

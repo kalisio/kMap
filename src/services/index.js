@@ -47,25 +47,18 @@ export function removeCatalogService (context) {
   // TODO
 }
 
-export function createGeoAlertsService (options) {
-  const app = this
-
-  debug('Creating geoalerts service with options', options)
-  return app.createService('geoalerts', Object.assign({
-    servicesPath,
-    modelsPath,
-    events: ['geoalert']
-  }, options))
-}
-
-export function removeGeoAlertsService (context) {
-  // TODO
-}
-
 export default async function () {
   const app = this
 
   debug('Initializing kalisio map')
 
   app.createService('geocoder', { servicesPath })
+  const alertService = app.createService('geoalerts', {
+    servicesPath,
+    modelsPath,
+    events: ['geoalert']
+  })
+  // On startup restore alerts CRON tasks
+  const alerts = await alertService.find({ paginate: false })
+  alerts.forEach(alert => alertService.registerAlert(alert))
 }
