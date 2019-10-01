@@ -32,7 +32,7 @@ module.exports = {
     create: [],
     update: [],
     patch: [],
-    remove: [coreHooks.removeAttachments('schema')]
+    remove: []
   },
 
   error: {

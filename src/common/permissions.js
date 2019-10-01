@@ -4,4 +4,6 @@ export function defineUserAbilities (subject, can, cannot) {
   can('create', 'geocoder')
   can('service', 'catalog')
   can('all', 'catalog')
+  can('service', 'geoalerts')
+  can('all', 'geoalerts')
 }

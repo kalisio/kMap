@@ -190,5 +190,13 @@
     "METEO_LAYERS": "Meteo forecasts",
     "BUSINESS_LAYERS": "Business layers",
     "FORECASTS_LABEL": "Forecast models"
+  },
+  "KGeoAlertForm": {
+    "TIME_PERIOD": "Analysis time period",
+    "TIME_PERIOD_RANGE": "before current time until",
+    "FREQUENCY": "checked every",
+    "CONDITIONS": "Trigger conditions",
+    "GREATER_THAN": "greater than",
+    "LOWER_THAN": "lower than"
   }
 }

@@ -190,5 +190,13 @@
     "METEO_LAYERS": "Prévisions météo",
     "BUSINESS_LAYERS": "Couches métier",
     "FORECASTS_LABEL": "Modèles de prévision"
+  },
+  "KGeoAlertForm": {
+    "TIME_PERIOD": "Période temporelle d'analyse",
+    "TIME_PERIOD_RANGE": "depuis temps courant à",
+    "FREQUENCY": "à vérifier toutes les",
+    "CONDITIONS": "Conditions de déclenchement",
+    "GREATER_THAN": "supérieur à",
+    "LOWER_THAN": "inférieur à"
   }
 }
