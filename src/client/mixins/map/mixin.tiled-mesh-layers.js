@@ -125,7 +125,9 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
 
         // TODO: create color map based on options
-        this.colorMap = chroma.scale(this.options.chromajs.scale).domain(this.meshSource.minMaxVal)
+        this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
+            this.options.chromajs.invertScale ?
+                this.meshSource.minMaxVal.reverse() : this.meshSource.minMaxVal)
         this.meshSource.setColorMap(this.colorMap)
 
         // clear tiles and request again
