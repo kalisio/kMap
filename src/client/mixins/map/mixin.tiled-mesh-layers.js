@@ -7,9 +7,8 @@ import 'leaflet-pixi-overlay'
 import { OPeNDAPMesh } from '../../leaflet/opendap-mesh'
 
 // TODO
-// build colormap based on options
 // figure out initialZoom stuff
-// use null instead of undefined when no result
+// check why when i store options it screw leaflet up
 
 const TiledMeshLayer = L.GridLayer.extend({
     initialize (options) {
@@ -51,7 +50,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         map.removeLayer(this.pixiLayer)
 
         L.GridLayer.prototype.onRemove.call(this, map)
-        this.map = undefined
+        this.map = null
     },
 
     createTile (coords, done) {
@@ -90,17 +89,17 @@ const TiledMeshLayer = L.GridLayer.extend({
     */
 
     onTileLoad (event) {
-        if (event.tile.mesh !== undefined) {
+        if (event.tile.mesh) {
             this.pixiRoot.addChild(event.tile.mesh)
             this.pixiLayer.redraw()
         }
     },
 
     onTileUnload (event) {
-        if (event.tile.mesh !== undefined) {
+        if (event.tile.mesh) {
             this.pixiRoot.removeChild(event.tile.mesh)
             this.pixiLayer.redraw()
-            event.tile.mesh = undefined
+            event.tile.mesh = null
         }
     },
 
@@ -135,7 +134,7 @@ const TiledMeshLayer = L.GridLayer.extend({
 
     renderPixiLayer (utils) {
         this.layerUniforms.uniforms.zoomLevel = this.pixiLayer._initialZoom
-        let renderer = utils.getRenderer()
+        const renderer = utils.getRenderer()
         renderer.render(this.pixiRoot)
     },
 })

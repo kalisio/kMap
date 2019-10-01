@@ -39,21 +39,21 @@ function variableIsArray(descriptor, variable) {
 
 function makeGridQuery(descriptor, variable, dimensionIndices) {
   const varDesc = descriptor[variable]
-  let query = ''
+  let query = []
   for (let i = 0; i < varDesc.array.dimensions.length; ++i) {
     const dimIndex = dimensionIndices[varDesc.array.dimensions[i]]
     if (dimIndex === undefined)
       return ''
-    // %5B = '[' %5D = ']'
-    // query won't work if characters are not encoded
-    query += `%5B${dimIndex}%5D`
+    query.push(dimIndex)
   }
 
   return query
 }
 
 function makeUrl(base, variable, indices) {
-  return base + '.dods?' + variable + indices
+  // %5B = '[' %5D = ']'
+  // query won't work if characters are not encoded
+  return base + '.dods?' + variable + '%5B' + indices.join('%5D%5B') + '%5D'
 }
 
 function getDimensionIndex(descriptor, variable, dimension) {
@@ -72,47 +72,89 @@ function getMinMaxArray(vec) {
   return bounds
 }
 
+function getGridValue(grid, dimension) {
+  return dimension > 1 ? getGridValue(grid[0], dimension-1) : grid[0]
+}
+
 /*
-function getMinMaxGrid(grid) {
-  const bounds = grid.reduce((accu, value) => {
-    if (value instanceof Array) {
-      const local = getMinMaxGrid(value)
-    } else {
-      accu[0] = Math.min(accu[0], value)
-      accu[1] = Math.max(accu[1], value)
-    }
-    return accu
-  }, [ vec[0], vec[0] ])
-  return bounds
+function* iterateGrid(grid, dimension) {
+  if (dimension > 1) {
+    for (const r of grid)
+      yield* iterateGrid(r, dimension-1)
+  } else {
+    for (const v of grid)
+      yield v
+  }
 }
 */
 
-function getMinMaxGrid(grid) {
-  const bounds = grid.reduce((accu, value) => {
-    const local = value.reduce((accu, value) => {
-      accu[0] = Math.min(accu[0], value)
-      accu[1] = Math.max(accu[1], value)
-      return accu
-    }, [ value[0], value[0] ])
-    return [ Math.min(accu[0], local[0]), Math.max(accu[1], local[1]) ]
-  }, [ grid[0][0], grid[0][0] ])
-  return bounds
+function getMinMaxGrid(grid, dimension) {
+  /* this implementation is 10x slower on chrome
+  let minVal = getGridValue(grid, dimension)
+  let maxVal = minVal
+  for (const v of iterateGrid(grid, dimension)) {
+    minVal = Math.min(minVal, v)
+    maxVal = Math.max(maxVal, v)
+  }
+  return [minVal, maxVal]
+  */
+
+  if (dimension > 1) {
+    const init = getGridValue(grid, dimension)
+    return grid.reduce((accu, value) => {
+      const local = getMinMaxGrid(value, dimension-1)
+      return [ Math.min(accu[0], local[0]), Math.max(accu[1], local[1]) ]
+    }, [init, init])
+  } else {
+    return getMinMaxArray(grid)
+  }
+}
+
+function gridValue(grid, indices, offset = 0) {
+  if (offset < indices.length - 1) {
+    return gridValue(grid[indices[offset]], indices, offset+1)
+  } else {
+    return grid[indices[offset]]
+  }
+}
+
+function getStep(vec) {
+  let step = 0
+  for (let i = 1; i < vec.length; ++i) {
+    step += vec[i] - vec[i-1]
+  }
+  step /= vec.length
+  let variance = 0
+  for (let i = 1; i < vec.length; ++i) {
+    const local = (vec[i] - vec[i-1]) - step
+    variance += local * local
+  }
+  variance /= vec.length
+  return Math.abs(step)
+
+  /*
+  return vec.reduce((accu, value) => {
+
+  }, 0)
+  */
 }
 
 // TODO
-// proper compute min/max grid
 // store min/max lat/lon/val somewhere
 // store lat/lon steps somewhere
+// compute or give actual lat/lon step
 // query assumes a regular grid to compute correct indices
 // check 'options' has everything we need
-// flatten grid and have it indexed by lat/lon only?
-// use null instead of undefined when no result
+// factorize opendap helpers
+// factorize triangle strip generation
+// assumes arrays are sorted from biggest to smallest lat ..
+// assumes arrays are sorted from smallest to biggest lon ..
 
 export class OPeNDAPMesh {
   constructor () {
-    this.colormap = undefined
-    this.program = undefined
-    this.onDataChanged = undefined
+    this.colormap = null
+    this.program = null
+    this.onDataChanged = null
   }
 
   initialize (options, onDataChanged) {
@@ -122,8 +164,6 @@ export class OPeNDAPMesh {
     // 'dimensions' values to prefill grid dimensions
     // 'latitude' variable to map to latitude
     // 'longitude' variable to map to longitude
-    // assumes arrays are sorted from biggest to smallest lat ..
-    // assumes arrays are sorted from smallest to biggest lon ..
 
     this.program = new PIXI.Program(vtxShaderSrc, frgShaderSrc, 'opendap-mesh-render')
     this.onDataChanged = onDataChanged
@@ -132,19 +172,17 @@ export class OPeNDAPMesh {
 
   reset (options) {
     this.usable = false
-    this.descriptor = undefined
-    this.indices = undefined
+    this.descriptor = null
+    this.indices = null
     this.latCount = 0
     this.latIndex = 0
     this.lonCount = 0
     this.lonIndex = 0
-    this.minMaxLat = undefined
-    this.minMaxLon = undefined
-    this.minMaxVal = undefined
-
-    // TODO: compute this
-    this.latStep = 0.1
-    this.lonStep = 0.1
+    this.minMaxLat = null
+    this.minMaxLon = null
+    this.minMaxVal = null
+    this.latStep = null
+    this.lonStep = null
 
     this.options = options.opendap
 
@@ -165,7 +203,6 @@ export class OPeNDAPMesh {
               // store index query
               self.indices = query
               // store handy dataset properties
-              self.gridDimension = descriptor[self.options.query].array.dimensions.length
               self.latCount = descriptor[self.options.latitude].shape[0]
               self.latIndex = getDimensionIndex(descriptor, self.options.query, self.options.latitude)
               self.lonCount = descriptor[self.options.longitude].shape[0]
@@ -178,12 +215,14 @@ export class OPeNDAPMesh {
                     .replace('$lat$', `0:${self.latCount-1}`)
               const onWholeVar = fetchData(wholeVariable)
               onWholeVar.then(data => {
-                const grid = data[0][0]
-                const latVec = data[0][self.latIndex+1]
-                const lonVec = data[0][self.lonIndex+1]
-                self.minMaxVal = getMinMaxGrid(grid[0]/*, self.gridDimension*/)
-                self.minMaxLat = getMinMaxArray(latVec)
-                self.minMaxLon = getMinMaxArray(lonVec)
+                const valData = data[0][0]
+                const latData = data[0][self.latIndex+1]
+                const lonData = data[0][self.lonIndex+1]
+                self.minMaxVal = getMinMaxGrid(valData, self.indices.length)
+                self.minMaxLat = getMinMaxArray(latData)
+                self.minMaxLon = getMinMaxArray(lonData)
+                self.latStep = getStep(latData)
+                self.lonStep = getStep(lonData)
                 // normalize bounds
                 if (self.minMaxLon[0] > 180.0) self.minMaxLon[0] -= 360.0
                 if (self.minMaxLon[1] > 180.0) self.minMaxLon[1] -= 360.0
@@ -219,11 +258,11 @@ export class OPeNDAPMesh {
           reqMinLat >= this.minMaxLat[1] ||
           reqMaxLon <= this.minMaxLon[0] ||
           reqMinLon >= this.minMaxLon[1]) {
-        resolve(undefined)
+        resolve(null)
       } else {
         const url = this.makeUrl(options)
         fetchData(url).then(data => {
-          const mesh = this.buildMesh(data, options, layerUniforms)
+          const mesh = this.buildMesh(data[0], options, layerUniforms)
           resolve(mesh)
         })
       }
@@ -256,8 +295,7 @@ export class OPeNDAPMesh {
       .replace('$lon$', `${iMinLon}:${iMaxLon}`)
   }
 
-  buildMesh (root, options, layerUniforms) {
-    const data = root[0]
+  buildMesh (data, options, layerUniforms) {
     const latData = data[this.latIndex+1]
     const lonData = data[this.lonIndex+1]
     // assume data[0] is values data[1] is time data[2] is lat data[3] is lon
@@ -311,8 +349,11 @@ export class OPeNDAPMesh {
   }
 
   buildSubMesh (data, iLat0, iLat1, iLon0, iLon1, layerUniforms) {
+    const valData = data[0]
     const latData = data[this.latIndex+1]
     const lonData = data[this.lonIndex+1]
+
+    const indices = [...this.indices]
 
     // compute grid size based on bounds
     const latCount = (iLat1 - iLat0) + 1
@@ -323,7 +364,6 @@ export class OPeNDAPMesh {
     const position = new Uint16Array(2 * latCount * lonCount)
     const color = new Uint8Array(4 * latCount * lonCount)
 
-    const grid = data[0][0]
     const minLat = Math.min(latData[iLat0], latData[iLat1])
     const maxLat = Math.max(latData[iLat0], latData[iLat1])
     const minLon = Math.min(lonData[iLon0], lonData[iLon1])
@@ -337,6 +377,8 @@ export class OPeNDAPMesh {
     let iidx = 0
     for (let ilon = 0; ilon < lonCount; ++ilon) {
       const lon = lonData[iLon0 + ilon]
+      indices[this.lonIndex] = iLon0 + ilon
+
       for (let ilat = 0; ilat < latCount; ++ilat) {
         const lat = latData[iLat0 + ilat]
         position[vidx * 2] = toHalf((lat - minLat) / deltaLat)
@@ -346,7 +388,8 @@ export class OPeNDAPMesh {
         position[vidx * 2 + 1] = lon
         */
 
-        const val = grid[iLat0 + ilat][iLon0 + ilon]
+        indices[this.latIndex] = iLat0 + ilat
+        const val = gridValue(valData, indices)
         const mapped = this.colorMap(val)
         const rgb = mapped.rgb()
         color[vidx * 4] = rgb[0]
