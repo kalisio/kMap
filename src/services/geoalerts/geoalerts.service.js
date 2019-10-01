@@ -53,7 +53,6 @@ export default {
       forecast: alert.forecast,
       elements: alert.elements
     }, { query })
-    console.log(result.features)
     
     // Let sift performs condition matching as in this case MongoDB cannot
     return result.features.filter(sift(conditions))
