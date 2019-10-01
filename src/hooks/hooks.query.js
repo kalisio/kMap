@@ -38,6 +38,33 @@ export function marshallSpatialQuery (hook) {
   }
 }
 
+export function asGeoJson (options = {}) {
+  return function (hook) {
+    const asGeoJson = (options.queryParameter ? _.get(hook, 'params.query.${options.queryParameter}') : true)
+    if (!asGeoJson) return
+    let results = hook.result
+    const pagination = _.pick(results, ['total', 'skip', 'limit'])
+    results = Array.isArray(results) ? results : results.data
+    // Item locations are not already in GeoJson feature format so we need to convert
+    if (options.longitudeProperty || options.latitudeProperty) {
+      results = results
+        .filter(item => _.has(item, options.longitudeProperty) && _.has(item, options.latitudeProperty))
+        .map(item => {
+          let coordinates = [_.get(item, options.longitudeProperty), _.get(item, options.latitudeProperty)]
+          if (options.altitudeProperty && _.has(item, options.altitudeProperty)) {
+            coordinates.push(_.get(item, options.altitudeProperty))
+          }
+          return Object.assign({ type: 'Feature', geometry: { coordinates } }, item)
+        })
+    }
+    // Copy pagination information so that client can use it anyway
+    hook.result = Object.assign({
+      type: 'FeatureCollection',
+      features: results
+    }, pagination)
+  }
+}
+
 export async function aggregateFeaturesQuery (hook) {
   const query = hook.params.query
   const service = hook.service
