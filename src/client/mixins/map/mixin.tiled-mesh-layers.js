@@ -1,21 +1,32 @@
+import _ from 'lodash'
 import L from 'leaflet'
+import chroma from 'chroma-js'
 import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
 
 import { OPeNDAPMesh } from '../../leaflet/opendap-mesh'
 
+// TODO
+// build colormap based on options
+// figure out initialZoom stuff
+// use null instead of undefined when no result
+
 const TiledMeshLayer = L.GridLayer.extend({
     initialize (options) {
+        // keep color scale options
+        this.options.chromajs = options.chromajs
+
+        // setup pixi objects
         const pixiLayerOptions = {
             destroyInteractionManager: true,
-            // clearBeforeRender: true,
             shouldRedrawOnMove: function() { return true }
         }
         this.pixiRoot = new PIXI.Container()
         this.pixiLayer = L.pixiOverlay(utils => this.renderPixiLayer(utils), this.pixiRoot, pixiLayerOptions)
-        this.layerUniforms = new PIXI.UniformGroup({ alpha: 1.0, zoomLevel: 1.0 })
+        this.layerUniforms = new PIXI.UniformGroup({ alpha: options.opacity, zoomLevel: 1.0 })
 
         const self = this
+
         // register event callbacks
         this.on('tileload', function (event) { self.onTileLoad(event) })
         this.on('tileunload', function (event) { self.onTileUnload(event) })
@@ -95,6 +106,10 @@ const TiledMeshLayer = L.GridLayer.extend({
 
     onZoomStart (event) {
         // hide meshes from current zoom level
+        // this prevents visual weirdness when zooming where
+        // zoom level 'n' tiles are still visible
+        // and zoom level 'n+1' are being loaded on top of them
+        // when alpha blending is used, this is annoying
         for (const mesh of this.pixiRoot.children) {
             mesh.visible = false
         }
@@ -109,11 +124,10 @@ const TiledMeshLayer = L.GridLayer.extend({
             const c2 = L.latLng(minMaxLat[1], minMaxLon[1])
             this.options.bounds = L.latLngBounds(c1, c2)
         }
-        /*
-        if (this.source.hasValueBounds()) {
 
-        }
-        */
+        // TODO: create color map based on options
+        this.colorMap = chroma.scale(this.options.chromajs.scale).domain(this.meshSource.minMaxVal)
+        this.meshSource.setColorMap(this.colorMap)
 
         // clear tiles and request again
         this.redraw()
@@ -132,19 +146,12 @@ export default {
           const leafletOptions = options.leaflet || options
 
           // Check for valid type
-          if (leafletOptions.type !== 'tiled-mesh') return
+          if (leafletOptions.type !== 'tiledMeshLayer') return
 
           // Copy options
-          /*
           const colorMap = _.get(options, 'variables[0].chromajs', null)
-          if (colorMap) Object.assign(leafletOptions, colorMap)
-          const band = _.get(options, 'variables[0].band', 0)
-          Object.assign(leafletOptions, { band })
-          const nodata = _.get(options, 'variables[0].nodata', null)
-          if (nodata) Object.assign(leafletOptions, { nodata })
-          Object.assign(leafletOptions)
-          */
-         
+          if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
+
           this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
           return this.tiledMeshLayer
     }

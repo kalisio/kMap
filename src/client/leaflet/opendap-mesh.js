@@ -1,5 +1,5 @@
+import _ from 'lodash'
 import * as PIXI from 'pixi.js'
-import chroma from 'chroma-js'
 import jsdap from 'jsdap'
 import { vtxShaderSrc, frgShaderSrc, toHalf } from './pixi-utils.js'
 
@@ -106,6 +106,7 @@ function getMinMaxGrid(grid) {
 // query assumes a regular grid to compute correct indices
 // check 'options' has everything we need
 // flatten grid and have it indexed by lat/lon only?
+// use null instead of undefined when no result
 
 export class OPeNDAPMesh {
   constructor () {
@@ -189,7 +190,6 @@ export class OPeNDAPMesh {
                 // flag source as usable
                 self.usable = true
 
-                self.colorMap = chroma.scale('YlOrRd').domain(this.minMaxVal)
                 // notify view
                 self.onDataChanged()
               })
@@ -202,6 +202,10 @@ export class OPeNDAPMesh {
 
   hasSpatialBounds () {
     return true
+  }
+
+  setColorMap (colorMap) {
+    this.colorMap = colorMap
   }
 
   async fetchMesh (options, layerUniforms) {
