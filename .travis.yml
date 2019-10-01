@@ -17,6 +17,7 @@ before_install:
 - npm install -g yarn
 before_script:
 - npm install -g codeclimate-test-reporter
+- yarn cache clean
 - git clone -b $TRAVIS_BRANCH https://github.com/kalisio/kCore.git && cd kCore && yarn install && yarn link && cd .. && yarn link @kalisio/kdk-core
 - git clone -b master https://github.com/weacast/weacast-core.git && cd weacast-core && yarn install && yarn link && cd .. && yarn link weacast-core
 - git clone -b master https://github.com/weacast/weacast-gfs.git && cd weacast-gfs && yarn install && yarn link && cd .. && yarn link weacast-gfs
