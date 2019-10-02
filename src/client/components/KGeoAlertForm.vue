@@ -49,8 +49,7 @@
 
 <script>
 import _ from 'lodash'
-import moment from 'moment'
-import { mixins as kCoreMixins, utils as kCoreUtils } from '@kalisio/kdk-core/client'
+import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 import { QSlider } from 'quasar'
 
 export default {
@@ -131,29 +130,14 @@ export default {
       })
     },
     async fill (object) {
-      period.start = _.get(object, 'period.start.hours')
-      period.end = _.get(object, 'period.end.hours')
+      this.period.start = _.get(object, 'period.start.hours')
+      this.period.end = _.get(object, 'period.end.hours')
     },
     values () {
       const values = {}
-      _.set(values, 'period.start.hours', period.start)
-      _.set(values, 'period.end.hours', period.end)
+      _.set(values, 'period.start.hours', this.period.start)
+      _.set(values, 'period.end.hours', this.period.end)
       return values
-    },
-    clear () {
-      period.start = 0
-      period.end = 24
-    },
-    validate () {
-      return {
-        isValid: true,
-        values: this.values()
-      }
-    },
-    async apply (object) {
-      Object.assign(object, this.values())
-    },
-    submitted (object) {
     }
   },
   async created () {
