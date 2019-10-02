@@ -1,11 +1,11 @@
 import { disallow } from 'feathers-hooks-common'
 import { hooks as coreHooks } from '@kalisio/kdk-core'
-import { asGeoJson } from '../../hooks'
+import { asGeoJson, marshallSpatialQuery } from '../../hooks'
 
 module.exports = {
   before: {
     all: [],
-    find: [],
+    find: [marshallSpatialQuery],
     get: [],
     create: [
       coreHooks.processTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt']),
@@ -14,32 +14,25 @@ module.exports = {
     update: disallow(),
     patch: [
       disallow('external'),
-      coreHooks.processTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt'])
+      coreHooks.processTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt']),
+      coreHooks.convertToString(['conditions'])
     ],
     remove: []
   },
 
   after: {
     all: [
-      coreHooks.unprocessTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt']),
-      coreHooks.convertToJson(['conditions'])
+      coreHooks.unprocessTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt'])
     ],
-    find: [asGeoJson({
-      queryParameter: 'geoJson',
+    find: [coreHooks.convertToJson(['conditions']), asGeoJson({
       longitudeProperty: 'conditions.geometry.coordinates[0]',
-      latitudeProperty: 'conditions.geometry.coordinates[0]'
+      latitudeProperty: 'conditions.geometry.coordinates[1]'
     })],
-    get: [],
-    create: [ hook => {
-      hook.service.registerAlert(hook.result)
-      return hook
-    } ],
+    get: [coreHooks.convertToJson(['conditions'])],
+    create: [coreHooks.convertToJson(['conditions']), hook => hook.service.registerAlert(hook.result)],
     update: [],
-    patch: [],
-    remove: [ hook => {
-      hook.service.unregisterAlert(hook.result)
-      return hook
-    } ]
+    patch: [coreHooks.convertToJson(['conditions'])],
+    remove: [coreHooks.convertToJson(['conditions']), hook => hook.service.unregisterAlert(hook.result)]
   },
 
   error: {

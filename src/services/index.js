@@ -10,12 +10,11 @@ export function createFeaturesService (options = {}) {
   const app = this
 
   debug('Creating features service with options', options)
-  const paginate = { default: 5000, max: 10000 }
   return app.createService(options.collection, Object.assign({
     fileName: 'features',
     servicesPath,
     modelsPath,
-    paginate,
+    paginate: { default: 5000, max: 10000 },
     // FIXME: no real-time events for now since we create big batches,
     // does not seem to be sufficient also require a hook (see https://github.com/feathersjs/feathers/issues/922)
     events: ['features']
@@ -30,11 +29,10 @@ export function createCatalogService (options = {}) {
   const app = this
 
   debug('Creating catalog service with options', options)
-  const paginate = { default: 100, max: 100 }
   return app.createService('catalog', Object.assign({
     servicesPath,
     modelsPath,
-    paginate
+    paginate: { default: 100, max: 100 }
   }, options))
 }
 

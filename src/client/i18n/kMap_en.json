@@ -193,10 +193,14 @@
   },
   "KGeoAlertForm": {
     "TIME_PERIOD": "Analysis time period",
-    "TIME_PERIOD_RANGE": "before current time until",
-    "FREQUENCY": "checked every",
+    "TIME_PERIOD_RANGE": "Current time",
+    "FREQUENCY": "Check every",
     "CONDITIONS": "Trigger conditions",
+    "CONDITIONS_REQUIRED": "At least one condition is required",
     "GREATER_THAN": "greater than",
-    "LOWER_THAN": "lower than"
+    "LOWER_THAN": "lower than",
+    "EVENT": "Event to be triggered",
+    "EVENT_TEMPLATE": "Select event template to be triggered",
+    "EVENT_TEMPLATE_REQUIRED": "Event template is required"
   }
 }

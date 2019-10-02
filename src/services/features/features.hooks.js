@@ -15,7 +15,7 @@ module.exports = {
 
   after: {
     all: [coreHooks.unprocessTimes(['time'])],
-    find: [asGeoJson()],
+    find: [asGeoJson({ force: true })],
     get: [],
     create: [coreHooks.skipEvents], // Avoid emitting events on feature edition
     update: [coreHooks.skipEvents],
