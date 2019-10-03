@@ -1,139 +1,7 @@
 import _ from 'lodash'
 import * as PIXI from 'pixi.js'
-import jsdap from 'jsdap'
+import * as dap from '../../common/opendap-utils.js'
 import { vtxShaderSrc, frgShaderSrc, toHalf } from './pixi-utils.js'
-
-const opendapTypes = new Set(['Float32', 'Float64'])
-
-async function fetchDescriptor(uri) {
-  return new Promise((resolve, reject) => {
-    jsdap.loadDataset(uri, descriptor => {
-      resolve(descriptor)
-    })
-  })
-}
-
-async function fetchData(uri) {
-  return new Promise((resolve, reject) => {
-    jsdap.loadData(uri, data => {
-      resolve(data)
-    })
-  })
-}
-
-function variableIsGrid(descriptor, variable) {
-  const varDesc = descriptor[variable]
-  if (varDesc === undefined)
-    return false;
-  return varDesc.type === 'Grid'
-}
-
-function variableIsArray(descriptor, variable) {
-  const varDesc = descriptor[variable]
-  if (varDesc === undefined)
-    return false;
-  if (varDesc.shape === undefined)
-    return false;
-  return varDesc.shape.length == 1 && opendapTypes.has(varDesc.type)
-}
-
-function makeGridQuery(descriptor, variable, dimensionIndices) {
-  const varDesc = descriptor[variable]
-  let query = []
-  for (let i = 0; i < varDesc.array.dimensions.length; ++i) {
-    const dimIndex = dimensionIndices[varDesc.array.dimensions[i]]
-    if (dimIndex === undefined)
-      return ''
-    query.push(dimIndex)
-  }
-
-  return query
-}
-
-function makeUrl(base, variable, indices) {
-  // %5B = '[' %5D = ']'
-  // query won't work if characters are not encoded
-  return base + '.dods?' + variable + '%5B' + indices.join('%5D%5B') + '%5D'
-}
-
-function getDimensionIndex(descriptor, variable, dimension) {
-  const varDesc = descriptor[variable]
-  if (varDesc === undefined)
-    return -1
-  return varDesc.array.dimensions.indexOf(dimension)
-}
-
-function getMinMaxArray(vec) {
-  const bounds = vec.reduce((accu, value) => {
-    accu[0] = Math.min(accu[0], value)
-    accu[1] = Math.max(accu[1], value)
-    return accu
-  }, [ vec[0], vec[0] ])
-  return bounds
-}
-
-function getGridValue(grid, dimension) {
-  return dimension > 1 ? getGridValue(grid[0], dimension-1) : grid[0]
-}
-
-/*
-function* iterateGrid(grid, dimension) {
-  if (dimension > 1) {
-    for (const r of grid)
-      yield* iterateGrid(r, dimension-1)
-  } else {
-    for (const v of grid)
-      yield v
-  }
-}
-*/
-
-function getMinMaxGrid(grid, dimension) {
-  /* this implementation is 10x slower on chrome
-  let minVal = getGridValue(grid, dimension)
-  let maxVal = minVal
-  for (const v of iterateGrid(grid, dimension)) {
-    minVal = Math.min(minVal, v)
-    maxVal = Math.max(maxVal, v)
-  }
-  return [minVal, maxVal]
-  */
-
-  if (dimension > 1) {
-    const init = getGridValue(grid, dimension)
-    return grid.reduce((accu, value) => {
-      const local = getMinMaxGrid(value, dimension-1)
-      return [ Math.min(accu[0], local[0]), Math.max(accu[1], local[1]) ]
-    }, [init, init])
-  } else {
-    return getMinMaxArray(grid)
-  }
-}
-
-function gridValue(grid, indices, offset = 0) {
-  if (offset < indices.length - 1) {
-    return gridValue(grid[indices[offset]], indices, offset+1)
-  } else {
-    return grid[indices[offset]]
-  }
-}
-
-function getStep(vec) {
-  let step = 0
-  for (let i = 1; i < vec.length; ++i) {
-    step += vec[i] - vec[i-1]
-  }
-  step /= vec.length
-  /*
-  let variance = 0
-  for (let i = 1; i < vec.length; ++i) {
-    const local = (vec[i] - vec[i-1]) - step
-    variance += local * local
-  }
-  variance /= vec.length
-  */
-  return Math.abs(step)
-}
 
 // TODO
 // store min/max lat/lon/val somewhere
@@ -183,42 +51,41 @@ export class OPeNDAPMesh {
     this.options = options.opendap
 
     const self = this
-    const onDescriptor = fetchDescriptor(this.options.url)
+    const onDescriptor = dap.fetchDescriptor(this.options.url)
     onDescriptor.then(descriptor => {
-      if (variableIsGrid(descriptor, self.options.query)) {
-        if (variableIsArray(descriptor, self.options.latitude)) {
-          if (variableIsArray(descriptor, self.options.longitude)) {
+      if (dap.variableIsGrid(descriptor, self.options.query)) {
+        if (dap.variableIsArray(descriptor, self.options.latitude)) {
+          if (dap.variableIsArray(descriptor, self.options.longitude)) {
+
+            self.latIndex = dap.getGridDimensionIndex(descriptor, self.options.query, self.options.latitude)
+            self.latCount = dap.getGridDimensionLength(descriptor, self.options.query, self.latIndex)
+            self.lonIndex = dap.getGridDimensionIndex(descriptor, self.options.query, self.options.longitude)
+            self.lonCount = dap.getGridDimensionLength(descriptor, self.options.query, self.lonIndex)
+
             // build grid indexing string
-            const dimensionIndices = self.options.dimensions
-            dimensionIndices[self.options.latitude] = '$lat$'
-            dimensionIndices[self.options.longitude] = '$lon$'
-            const query = makeGridQuery(descriptor, self.options.query, dimensionIndices)
-            if (query.length > 0) {
+            const dimensions = self.options.dimensions
+            dimensions[self.options.latitude] = `0:${self.latCount-1}`
+            dimensions[self.options.longitude] = `0:${self.lonCount-1}`
+            const indices = dap.makeGridIndices(descriptor, self.options.query, dimensions)
+            if (indices.length > 0) {
               // store dataset descriptor
               self.descriptor = descriptor
-              // store index query
-              self.indices = query
-              // store handy dataset properties
-              self.latCount = descriptor[self.options.latitude].shape[0]
-              self.latIndex = getDimensionIndex(descriptor, self.options.query, self.options.latitude)
-              self.lonCount = descriptor[self.options.longitude].shape[0]
-              self.lonIndex = getDimensionIndex(descriptor, self.options.query, self.options.longitude)
+              // store grid indices
+              self.indices = indices
 
               // fetch data to compute min/max values
               // TODO have this stored somewhere
-              const wholeVariable = makeUrl(self.options.url, self.options.query, query)
-                    .replace('$lon$', `0:${self.lonCount-1}`)
-                    .replace('$lat$', `0:${self.latCount-1}`)
-              const onWholeVar = fetchData(wholeVariable)
+              const wholeVariable = dap.makeGridQuery(self.options.url, self.options.query, indices)
+              const onWholeVar = dap.fetchData(wholeVariable)
               onWholeVar.then(data => {
                 const valData = data[0][0]
                 const latData = data[0][self.latIndex+1]
                 const lonData = data[0][self.lonIndex+1]
-                self.minMaxVal = getMinMaxGrid(valData, self.indices.length)
-                self.minMaxLat = getMinMaxArray(latData)
-                self.minMaxLon = getMinMaxArray(lonData)
-                self.latStep = getStep(latData)
-                self.lonStep = getStep(lonData)
+                self.minMaxVal = dap.getMinMaxGrid(valData, self.indices.length)
+                self.minMaxLat = dap.getMinMaxArray(latData)
+                self.minMaxLon = dap.getMinMaxArray(lonData)
+                self.latStep = dap.getStep(latData)
+                self.lonStep = dap.getStep(lonData)
                 // normalize bounds
                 if (self.minMaxLon[0] > 180.0) self.minMaxLon[0] -= 360.0
                 if (self.minMaxLon[1] > 180.0) self.minMaxLon[1] -= 360.0
@@ -257,7 +124,7 @@ export class OPeNDAPMesh {
         resolve(null)
       } else {
         const url = this.makeUrl(options)
-        fetchData(url).then(data => {
+        dap.fetchData(url).then(data => {
           const mesh = this.buildMesh(data[0], options, layerUniforms)
           resolve(mesh)
         })
@@ -286,9 +153,10 @@ export class OPeNDAPMesh {
     iMaxLat = Math.min(Math.max(iMaxLat, 0), this.latCount - 1)
     iMaxLon = Math.min(Math.max(iMaxLon, 0), this.lonCount - 1)
 
-    return makeUrl(this.options.url, this.options.query, this.indices)
-      .replace('$lat$', `${iMaxLat}:${iMinLat}`)
-      .replace('$lon$', `${iMinLon}:${iMaxLon}`)
+    const indices = [...this.indices]
+    indices[this.latIndex] = `${iMaxLat}:${iMinLat}`
+    indices[this.lonIndex] = `${iMinLon}:${iMaxLon}`
+    return dap.makeGridQuery(this.options.url, this.options.query, indices)
   }
 
   buildMesh (data, options, layerUniforms) {
@@ -384,7 +252,7 @@ export class OPeNDAPMesh {
         */
 
         indices[this.latIndex] = iLat0 + ilat
-        const val = gridValue(valData, indices)
+        const val = dap.gridValue(valData, indices)
         const mapped = this.colorMap(val)
         const rgb = mapped.rgb()
         color[vidx * 4] = rgb[0]
