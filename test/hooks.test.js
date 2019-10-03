@@ -39,12 +39,15 @@ describe('kMap:hooks', () => {
         location: { lat: 47, lon: -96 }
       }]
     }
+    hooks.marshallSpatialQuery(hook)
     hooks.asGeoJson({ longitudeProperty: 'location.lon', latitudeProperty: 'location.lat' })(hook)
     expect(hook.result.type).toExist()
     expect(hook.result.type).to.equal('FeatureCollection')
     expect(hook.result.features).toExist()
     expect(hook.result.features.length).to.equal(2)
+    expect(hook.result.features[0].type).to.equal('Feature')
     expect(hook.result.features[0].geometry).toExist()
+    expect(hook.result.features[0].geometry.type).to.equal('FeaturePoint')
     expect(hook.result.features[0].geometry.coordinates).toExist()
     expect(hook.result.features[0].geometry.coordinates).to.deep.equal([33, -4])
     expect(hook.result.features[1].geometry.coordinates).to.deep.equal([-96, 47])
