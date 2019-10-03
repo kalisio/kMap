@@ -124,19 +124,15 @@ function getStep(vec) {
     step += vec[i] - vec[i-1]
   }
   step /= vec.length
+  /*
   let variance = 0
   for (let i = 1; i < vec.length; ++i) {
     const local = (vec[i] - vec[i-1]) - step
     variance += local * local
   }
   variance /= vec.length
-  return Math.abs(step)
-
-  /*
-  return vec.reduce((accu, value) => {
-
-  }, 0)
   */
+  return Math.abs(step)
 }
 
 // TODO
@@ -298,7 +294,6 @@ export class OPeNDAPMesh {
   buildMesh (data, options, layerUniforms) {
     const latData = data[this.latIndex+1]
     const lonData = data[this.lonIndex+1]
-    // assume data[0] is values data[1] is time data[2] is lat data[3] is lon
 
     // compute index range for requested bounds
     const reqMinLat = options.bounds[0]
