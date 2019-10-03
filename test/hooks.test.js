@@ -47,13 +47,13 @@ describe('kMap:hooks', () => {
     expect(hook.result.features.length).to.equal(2)
     expect(hook.result.features[0].type).to.equal('Feature')
     expect(hook.result.features[0].geometry).toExist()
-    expect(hook.result.features[0].geometry.type).to.equal('FeaturePoint')
+    expect(hook.result.features[0].geometry.type).to.equal('Point')
     expect(hook.result.features[0].geometry.coordinates).toExist()
     expect(hook.result.features[0].geometry.coordinates).to.deep.equal([33, -4])
     expect(hook.result.features[1].geometry.coordinates).to.deep.equal([-96, 47])
   })
 
   // Cleanup
-  after(async () => {
+  after(() => {
   })
 })
