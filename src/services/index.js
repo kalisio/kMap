@@ -48,7 +48,7 @@ export function createGeoAlertsService (options = {}) {
   return app.createService('geoalerts', Object.assign({
     servicesPath,
     modelsPath,
-    events: ['geoalert'],
+    events: ['created', 'removed', 'patched', 'geoalert'],
     paginate
   }, options))
 }

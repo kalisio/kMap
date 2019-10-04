@@ -11,12 +11,13 @@ let alerts = {}
 
 export default {
 
-  registerAlert (alert) {
+  async registerAlert (alert) {
     if (alerts[alert._id.toString()]) return
     debug('Registering new alert ', alert)
     let cronJob = new CronJob(alert.cron, () => this.checkAlert(alert))
     cronJob.start()
     alerts[alert._id.toString()] = cronJob
+    await this.checkAlert(alert)
   },
 
   unregisterAlert (alert) {

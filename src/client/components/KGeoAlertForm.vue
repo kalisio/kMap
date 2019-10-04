@@ -87,7 +87,8 @@ export default {
   ],
   props: {
     layer: { type: Object, default: () => null },
-    feature: { type: Object, default: () => null }
+    feature: { type: Object, default: () => null },
+    forecastModel: { type: Object, default: () => null }
   },
   computed: {
     isWeather () {
@@ -139,7 +140,7 @@ export default {
       return {
         isActive: false,
         operator: '$gte', threshold: (max-min) * 0.5, // Mean value
-        min, max, step: Math.floor((max-min) * 0.05) // 5%
+        min, max, step: ((max-min) * 0.05).toFixed(1) // 5%
       }
     },
     frequencyToCron (frequency) {
@@ -206,6 +207,10 @@ export default {
       _.set(values, 'period.start.hours', this.period.start)
       _.set(values, 'period.end.hours', this.period.end)
       _.set(values, 'cron', this.frequencyToCron(this.frequency))
+      if (this.isWeather) {
+        values.forecast = this.forecastModel.name
+        values.elements = _.get(this.layer, 'leaflet.elements')
+      }
       this.variables.forEach((variable, index) => {
         const conditions = this.conditions[index]
         // Check if there is an active condition on this variable
@@ -222,6 +227,10 @@ export default {
       if (this.layer.service) {
         _.set(values, 'service', this.layer.service)
         _.set(values, 'feature', this.feature._id)
+      }
+      // Setup style if any provided
+      if (_.has(this.layer, 'leaflet.icon-classes')) {
+        _.set(values, 'style.icon-classes', _.get(this.layer, 'leaflet.icon-classes'))
       }
       return values
     },

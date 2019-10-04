@@ -4,7 +4,7 @@ import { asGeoJson, marshallSpatialQuery } from '../../hooks'
 
 module.exports = {
   before: {
-    all: [],
+    all: [coreHooks.convertObjectIDs(['feature'])],
     find: [marshallSpatialQuery],
     get: [],
     create: [
@@ -26,7 +26,9 @@ module.exports = {
     ],
     find: [coreHooks.convertToJson(['conditions']), asGeoJson({
       longitudeProperty: 'conditions.geometry.coordinates[0]',
-      latitudeProperty: 'conditions.geometry.coordinates[1]'
+      latitudeProperty: 'conditions.geometry.coordinates[1]',
+      pick: ['status.active', 'style', '_id'],
+      properties: [{ from: 'status.active', to: 'active' }]
     })],
     get: [coreHooks.convertToJson(['conditions'])],
     create: [coreHooks.convertToJson(['conditions']), hook => hook.service.registerAlert(hook.result)],

@@ -7,7 +7,8 @@
     "GEOLOCATION_PERMISSION_DENIED": "$t(errors.GEOLOCATION_ERROR)</br>It seems you did not give permission to locate you.",
     "GEOLOCATION_POSITION_UNAVAILABLE": "$t(errors.GEOLOCATION_ERROR)</br>It seems the internal source of position returned an internal error.",
     "GEOLOCATION_POSITION_TIMEOUT": "$t(errors.GEOLOCATION_ERROR)</br>It seems the time allowed to acquire it was reached before the information was obtained.",
-    "CANNOT_PROCESS_SCHEMA_DATA": "Invalid or incomplete data scheme"
+    "CANNOT_PROCESS_SCHEMA_DATA": "Invalid or incomplete data scheme",
+    "GEOALERTS_LIMIT": "Too much alerts to display all of them"
   },
   "mixins": {
     "geolocation": {
