@@ -61,4 +61,6 @@ export default async function () {
   // On startup restore alerts CRON tasks
   const alerts = await alertService.find({ paginate: false })
   alerts.forEach(alert => alertService.registerAlert(alert))
+
+  app.createService('daptiles', { servicesPath })
 }
