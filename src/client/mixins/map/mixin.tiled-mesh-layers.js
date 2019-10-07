@@ -143,7 +143,7 @@ const TiledMeshLayer = L.GridLayer.extend({
 
 export default {
   methods: {
-      async createLeafletTiledMeshLayer (options) {
+      createLeafletTiledMeshLayer (options) {
           const leafletOptions = options.leaflet || options
 
           // Check for valid type
