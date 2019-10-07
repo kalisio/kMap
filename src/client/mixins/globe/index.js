@@ -5,6 +5,7 @@ import style from './mixin.style'
 import tooltip from './mixin.tooltip'
 import popup from './mixin.popup'
 import activity from './mixin.globe-activity'
+import opendapLayers from './mixin.opendap-layers'
 
 export default {
   baseGlobe,
@@ -13,5 +14,6 @@ export default {
   style,
   tooltip,
   popup,
-  activity
+  activity,
+  opendapLayers
 }

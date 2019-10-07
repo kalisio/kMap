@@ -106,6 +106,8 @@ export default {
         return this.viewer.terrainProvider === cesiumLayer
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
         return this.viewer.scene.imageryLayers.contains(cesiumLayer)
+      } else if (cesiumLayer instanceof Cesium.Cesium3DTileset) {
+        return this.viewer.scene.primitives.contains(cesiumLayer) && cesiumLayer.show
       } else {
         return this.viewer.dataSources.contains(cesiumLayer)
       }
@@ -132,6 +134,10 @@ export default {
         this.viewer.terrainProvider = cesiumLayer
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
         this.viewer.scene.imageryLayers.add(cesiumLayer)
+      } else if (cesiumLayer instanceof Cesium.Cesium3DTileset) {
+        cesiumLayer.show = true
+        if (!this.viewer.scene.primitives.contains(cesiumLayer))
+          this.viewer.scene.primitives.add(cesiumLayer);
       } else {
         this.viewer.dataSources.add(cesiumLayer)
       }
@@ -150,6 +156,8 @@ export default {
         this.viewer.terrainProvider = null
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
         this.viewer.scene.imageryLayers.remove(cesiumLayer, false)
+      } else if (cesiumLayer instanceof Cesium.Cesium3DTileset) {
+        cesiumLayer.show = false;
       } else {
         this.viewer.dataSources.remove(cesiumLayer, false)
       }
@@ -184,6 +192,10 @@ export default {
       if (!layer) return
       // If it was visible remove it from map
       if (layer.isVisible) this.hideLayer(name)
+      const cesiumLayer = this.cesiumLayers[name]
+      if (cesiumLayers instanceof Cesium.Cesium3DTileset) {
+        this.viewer.scene.primitives.remove(cesiumLayer)
+      }
       // Delete the layer and make it reactive
       this.$delete(this.layers, layer.name)
       delete this.cesiumLayers[name]
