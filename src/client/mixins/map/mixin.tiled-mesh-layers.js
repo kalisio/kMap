@@ -42,6 +42,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         // be notified when zoom starts
         const self = this
         map.on('zoomstart', function (event) { self.onZoomStart(event) })
+        map.on('zoomend', function (event) { self.onZoomEnd(event) })
 
         L.GridLayer.prototype.onAdd.call(this, map)
     },
@@ -75,6 +76,8 @@ const TiledMeshLayer = L.GridLayer.extend({
             bounds: [minLat, minLon, maxLat, maxLon]
         }
         this.meshSource.fetchMesh(options, this.layerUniforms).then(function (mesh) {
+            if (mesh)
+                mesh.zoomLevel = coords.z
             tile.mesh = mesh
             done(null, tile)
         })
@@ -109,8 +112,23 @@ const TiledMeshLayer = L.GridLayer.extend({
         // zoom level 'n' tiles are still visible
         // and zoom level 'n+1' are being loaded on top of them
         // when alpha blending is used, this is annoying
+        const zoomLevel = this.map.getZoom()
         for (const mesh of this.pixiRoot.children) {
-            mesh.visible = false
+            if (mesh.zoomLevel == zoomLevel)
+                mesh.visible = false
+        }
+    },
+
+    onZoomEnd (event) {
+        // show meshes at current zoom level
+        // this restores visibility for meshes that may have been hidden
+        // on zoomstart event
+        // this is important when quickly zoomin in and out
+        // because some meshes may not have been evicted yet
+        const zoomLevel = this.map.getZoom()
+        for (const mesh of this.pixiRoot.children) {
+            if (mesh.zoomLevel == zoomLevel)
+                mesh.visible = true
         }
     },
 
