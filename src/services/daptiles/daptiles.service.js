@@ -1,4 +1,5 @@
 // import * as dap from '../../common/opendap-utils.js'
+import jsdap from 'jsdap'
 import makeDebug from 'debug'
 
 const debug = makeDebug('kalisio:kMap:daptiles:service')
