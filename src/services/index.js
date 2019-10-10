@@ -73,8 +73,10 @@ export default async function () {
   const alertsOptions = app.getServiceOptions('geoalerts')
   if (!_.get(alertsOptions.disabled)) {
     const alertsService = createGeoAlertsService.call(app, alertsOptions)
-    // On startup restore alerts CRON tasks
-    const alerts = await alertsService.find({ paginate: false })
-    alerts.forEach(alert => alertsService.registerAlert(alert))
+    // On startup restore alerts CRON tasks if service not disabled
+    if (alertsService) {
+      const alerts = await alertsService.find({ paginate: false })
+      alerts.forEach(alert => alertsService.registerAlert(alert))
+    }
   }
 }
