@@ -1,6 +1,6 @@
 import _ from 'lodash'
 // import logger from 'loglevel'
-import Cesium from 'cesium/Source/Cesium.js'
+import cesium from 'cesium/source/cesium.js'
 
 export default {
   methods: {
@@ -18,9 +18,9 @@ export default {
               'Authorization': `Bearer ${accessToken}`
             },
             queryParameters: {
-              '.filter()e': 'mf-arpege-01/2019/06/15/11360000000.20190615180000.grib',
+              'file': 'mf-arpege-01/2019/06/15/11360000000.20190615180000.grib',
               'query': 'Temperature_height_above_ground',
-              'dimensions': { time2: 0, height_above_ground: 0 },
+              'dimensions': JSON.stringify({ time2: 0, height_above_ground1: 0 }),
               'latitude': 'lat',
               'longitude': 'lon'
             }

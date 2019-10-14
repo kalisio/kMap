@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import path from 'path'
 import makeDebug from 'debug'
 const modelsPath = path.join(__dirname, '..', 'models')
@@ -62,5 +63,29 @@ export default async function () {
   const alerts = await alertService.find({ paginate: false })
   alerts.forEach(alert => alertService.registerAlert(alert))
 
-  app.createService('daptiles', { servicesPath })
+  app.createService('daptiles', Object.assign({
+    servicesPath,
+    middlewares: {
+      after: [
+        (req, res, next) => {
+          const buffers = _.get(res.data, 'buffers')
+          if (buffers) {
+            const binary = Buffer.concat(buffers)
+            res.set({
+              'Content-Type': 'application/octet-stream'
+            }).status(200)
+            /*
+            for (const buf of buffers) {
+              // res.send(buf)
+              res.write(buf)
+            }
+            res.end()
+            */
+            res.end(binary)
+          }
+          next()
+        }
+      ]
+    }
+  }))
 }

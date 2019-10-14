@@ -1406,6 +1406,13 @@ center-align@^0.1.1:
     align-text "^0.1.3"
     lazy-cache "^1.0.3"
 
+cesium@^1.46.1:
+  version "1.62.0"
+  resolved "https://registry.yarnpkg.com/cesium/-/cesium-1.62.0.tgz#167950d481004464f0c8ea32bafa237cd53b183a"
+  integrity sha512-KG58NG31Lp48yE66sn+hXEL9DwDVOtpxo0nF0lvd6ajHUW90yvF3Jb5m4xnYRBtYGsCxsqRNyfUE3gNkB65JKg==
+  dependencies:
+    requirejs "^2.3.2"
+
 chai-lint@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/chai-lint/-/chai-lint-0.1.1.tgz#e9ccfd57d223de4f9b14a76cc962113743b680a8"
@@ -1485,6 +1492,11 @@ chokidar@^1.6.0, chokidar@^1.6.1:
     readdirp "^2.0.0"
   optionalDependencies:
     fsevents "^1.0.0"
+
+chroma-js@^1.3.4:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/chroma-js/-/chroma-js-1.4.1.tgz#eb2d9c4d1ff24616be84b35119f4d26f8205f134"
+  integrity sha512-jTwQiT859RTFN/vIf7s+Vl/Z2LcMrvMv3WUFmd/4u76AdlFC0NTNgqEEFPcRiHmAswPsMiQEDZLM8vX8qXpZNQ==
 
 ci-info@^2.0.0:
   version "2.0.0"
@@ -3725,6 +3737,13 @@ jsbn@~0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz#a5e654c2e5a2deb5f201d96cefbca80c0ef2f513"
 
+jsdap@^8.1.0:
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/jsdap/-/jsdap-8.1.0.tgz#dd21803a1d23ca7d7b0902a89a45078c43721836"
+  integrity sha1-3SGAOh0jyn17CQKomkUHjENyGDY=
+  dependencies:
+    xhr2 "^0.1.3"
+
 jsesc@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/jsesc/-/jsesc-1.3.0.tgz#46c3fec8c1892b12b0833db9bc7622176dbab34b"
@@ -5319,6 +5338,11 @@ require_optional@~1.0.0:
     resolve-from "^2.0.0"
     semver "^5.1.0"
 
+requirejs@^2.3.2:
+  version "2.3.6"
+  resolved "https://registry.yarnpkg.com/requirejs/-/requirejs-2.3.6.tgz#e5093d9601c2829251258c0b9445d4d19fa9e7c9"
+  integrity sha512-ipEzlWQe6RK3jkzikgCupiTbTvm4S0/CAU5GlgptkN5SO6F3u0UD0K18wy6ErDqiCyP4J4YYe1HuAShvsxePLg==
+
 resolve-from@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/resolve-from/-/resolve-from-2.0.0.tgz#9480ab20e94ffa1d9e80a804c7ea147611966b57"
@@ -6449,6 +6473,11 @@ x-xss-protection@1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/x-xss-protection/-/x-xss-protection-1.3.0.tgz#3e3a8dd638da80421b0e9fff11a2dbe168f6d52c"
   integrity sha512-kpyBI9TlVipZO4diReZMAHWtS0MMa/7Kgx8hwG/EuZLiA6sg4Ah/4TRdASHhRRN3boobzcYgFRUFSgHRge6Qhg==
+
+xhr2@^0.1.3:
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/xhr2/-/xhr2-0.1.4.tgz#7f87658847716db5026323812f818cadab387a5f"
+  integrity sha1-f4dliEdxbbUCYyOBL4GMras4el8=
 
 xml2js@0.1.x:
   version "0.1.14"
