@@ -16,6 +16,10 @@ export class BaseGrid {
         return this.dimensions
     }
 
+    getResolution () {
+        return this.resolution
+    }
+
     getBBox () {
         return this.bbox
     }

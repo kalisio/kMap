@@ -72,7 +72,8 @@ const TiledMeshLayer = L.GridLayer.extend({
             Math.min(latLonCoords0.lat, latLonCoords1.lat), Math.min(latLonCoords0.lng, latLonCoords1.lng),
             Math.max(latLonCoords0.lat, latLonCoords1.lat), Math.max(latLonCoords0.lng, latLonCoords1.lng)
         ]
-        this.gridSource.fetch(reqBBox, 0).then(grid => {
+        const resolution = [(reqBBox[2] - reqBBox[0]) / (tileSize.y - 1), (reqBBox[3] - reqBBox[1]) / (tileSize.x - 1)]
+        this.gridSource.fetch(reqBBox, resolution).then(grid => {
             if (grid) {
                 const colormapper = new ColorMapHook(this.colorMap, 'color')
                 const geometry = buildPixiMeshFromGrid(grid, [ colormapper ])
@@ -92,7 +93,11 @@ const TiledMeshLayer = L.GridLayer.extend({
 
                 /*
                 const dims = grid.getDimensions()
-                tile.innerHTML = `${dims[0]} x ${dims[1]}`
+                const res  = grid.getResolution()
+                tile.innerHTML = `
+req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
+got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
+${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
                 tile.style.outline = '1px solid red';
                 */
             }

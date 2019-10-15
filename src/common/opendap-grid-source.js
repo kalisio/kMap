@@ -81,7 +81,7 @@ export class OpenDAPGridSource extends GridSource {
     if (!this.usable)
       return null
 
-    const query = this.makeQuery(bbox)
+    const query = this.makeQuery(bbox, resolution)
     if (!query)
       return null
 
@@ -114,7 +114,7 @@ export class OpenDAPGridSource extends GridSource {
       this.latSortOrder, this.lonSortOrder)
   }
 
-  makeQuery (bbox) {
+  makeQuery (bbox, resolution) {
     const reqMinLat = bbox[0]
     const reqMinLon = bbox[1]
     const reqMaxLat = bbox[2]
@@ -143,9 +143,13 @@ export class OpenDAPGridSource extends GridSource {
     iMaxLat = Math.min(Math.max(iMaxLat, 0), this.latCount - 1)
     iMaxLon = Math.min(Math.max(iMaxLon, 0), this.lonCount - 1)
 
+    // compute ideal stride according to requested resolution
+    const resLat = Math.max(1, Math.floor(resolution[0] / this.latStep))
+    const resLon = Math.max(1, Math.floor(resolution[1] / this.lonStep))
+
     const indices = [...this.indices]
-    indices[this.latIndex] = `${iMinLat}:${iMaxLat}`
-    indices[this.lonIndex] = `${iMinLon}:${iMaxLon}`
+    indices[this.latIndex] = `${iMinLat}:${resLat}:${iMaxLat}`
+    indices[this.lonIndex] = `${iMinLon}:${resLon}:${iMaxLon}`
     return dap.makeGridQuery(this.options.url, this.options.query, indices)
   }
 
