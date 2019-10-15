@@ -121,10 +121,16 @@ export class OpenDAPGridSource extends GridSource {
     const reqMaxLon = bbox[3]
 
     // compute coordinates indices (assume lat/lon both ascending)
-    let iMinLat = Math.floor(((reqMinLat - this.minMaxLat[0]) / this.latStep) - 1.0)
-    let iMinLon = Math.floor(((reqMinLon - this.minMaxLon[0]) / this.lonStep) - 1.0)
-    let iMaxLat = Math.ceil(((reqMaxLat - this.minMaxLat[0]) / this.latStep) + 1.0)
-    let iMaxLon = Math.ceil(((reqMaxLon - this.minMaxLon[0]) / this.lonStep) + 1.0)
+    let iMinLat = Math.floor((reqMinLat - this.minMaxLat[0]) / this.latStep)
+    let iMinLon = Math.floor((reqMinLon - this.minMaxLon[0]) / this.lonStep)
+    let iMaxLat = Math.ceil((reqMaxLat - this.minMaxLat[0]) / this.latStep)
+    let iMaxLon = Math.ceil((reqMaxLon - this.minMaxLon[0]) / this.lonStep)
+
+    // clamp indices
+    iMinLat = Math.min(Math.max(iMinLat, 0), this.latCount - 1)
+    iMinLon = Math.min(Math.max(iMinLon, 0), this.lonCount - 1)
+    iMaxLat = Math.min(Math.max(iMaxLat, 0), this.latCount - 1)
+    iMaxLon = Math.min(Math.max(iMaxLon, 0), this.lonCount - 1)
 
     if (this.latSortOrder == SortOrder.DESCENDING) {
       const tmp = iMinLat
@@ -136,12 +142,6 @@ export class OpenDAPGridSource extends GridSource {
       iMinLon = this.lonCount - 1 - iMaxLon
       iMaxLon = this.lonCount - 1 - tmp
     }
-
-    // clamp indices
-    iMinLat = Math.min(Math.max(iMinLat, 0), this.latCount - 1)
-    iMinLon = Math.min(Math.max(iMinLon, 0), this.lonCount - 1)
-    iMaxLat = Math.min(Math.max(iMaxLat, 0), this.latCount - 1)
-    iMaxLon = Math.min(Math.max(iMaxLon, 0), this.lonCount - 1)
 
     // compute ideal stride according to requested resolution
     const resLat = Math.max(1, Math.floor(resolution[0] / this.latStep))
