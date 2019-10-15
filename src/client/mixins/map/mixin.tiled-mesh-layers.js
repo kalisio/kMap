@@ -4,7 +4,8 @@ import chroma from 'chroma-js'
 import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
 
-import { OPeNDAPMesh } from '../../leaflet/opendap-mesh'
+import { OpenDAPGridSource } from '../../../common/opendap-grid-source.js'
+import { vtxShaderSrc, frgShaderSrc, ColorMapHook, buildPixiMeshFromGrid } from '../../leaflet/pixi-utils.js'
 
 // TODO
 // figure out initialZoom stuff
@@ -22,7 +23,11 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
         this.pixiRoot = new PIXI.Container()
         this.pixiLayer = L.pixiOverlay(utils => this.renderPixiLayer(utils), this.pixiRoot, pixiLayerOptions)
-        this.layerUniforms = new PIXI.UniformGroup({ alpha: options.opacity, zoomLevel: 1.0 })
+        this.layerUniforms = new PIXI.UniformGroup({ alpha: options.opacity, zoomLevel: 1.0 /*, cutValue: 295.0*/ })
+        this.pixiState = new PIXI.State()
+        this.pixiState.culling = true
+        this.pixiState.blendMode = PIXI.BLEND_MODES.SCREEN
+        this.program = new PIXI.Program(vtxShaderSrc, frgShaderSrc, 'opendap-mesh-render')
 
         const self = this
 
@@ -31,8 +36,8 @@ const TiledMeshLayer = L.GridLayer.extend({
         this.on('tileunload', function (event) { self.onTileUnload(event) })
 
         // instanciate mesh source
-        this.meshSource = new OPeNDAPMesh()
-        this.meshSource.initialize(options, function() { self.onDataChanged() })
+        this.gridSource = new OpenDAPGridSource()
+        this.gridSource.setup(options.opendap).then(() => { self.onDataChanged() })
     },
 
     onAdd (map) {
@@ -61,24 +66,37 @@ const TiledMeshLayer = L.GridLayer.extend({
         const latLonCoords0 = this.map.wrapLatLng(this.map.unproject(pixelCoords0, coords.z))
         const latLonCoords1 = this.map.wrapLatLng(this.map.unproject(pixelCoords1, coords.z))
 
-        var tile = document.createElement('div');
-        /*
-          tile.innerHTML = [latLonCoords0.lat, latLonCoords0.lng].join(', ');
-          tile.style.outline = '1px solid red';
-        */
+        const tile = document.createElement('div');
 
-        const minLat = Math.min(latLonCoords0.lat, latLonCoords1.lat)
-        const maxLat = Math.max(latLonCoords0.lat, latLonCoords1.lat)
-        const minLon = Math.min(latLonCoords0.lng, latLonCoords1.lng)
-        const maxLon = Math.max(latLonCoords0.lng, latLonCoords1.lng)
+        const reqBBox = [
+            Math.min(latLonCoords0.lat, latLonCoords1.lat), Math.min(latLonCoords0.lng, latLonCoords1.lng),
+            Math.max(latLonCoords0.lat, latLonCoords1.lat), Math.max(latLonCoords0.lng, latLonCoords1.lng)
+        ]
+        this.gridSource.fetch(reqBBox, 0).then(grid => {
+            if (grid) {
+                const colormapper = new ColorMapHook(this.colorMap, 'color')
+                const geometry = buildPixiMeshFromGrid(grid, [ colormapper ])
 
-        const options = {
-            bounds: [minLat, minLon, maxLat, maxLon]
-        }
-        this.meshSource.fetchMesh(options, this.layerUniforms).then(function (mesh) {
-            if (mesh)
-                mesh.zoomLevel = coords.z
-            tile.mesh = mesh
+                const dataBBox = grid.getBBox()
+                const offsetScale = [ dataBBox[0], dataBBox[1], dataBBox[2] - dataBBox[0], dataBBox[3] - dataBBox[1] ]
+                const uniforms = {
+                    latLonBounds: Float32Array.from(reqBBox),
+                    offsetScale: Float32Array.from(offsetScale),
+                    layerUniforms: this.layerUniforms
+                }
+                const shader = new PIXI.Shader(this.program, uniforms)
+                const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.TRIANGLE_STRIP)
+                if (mesh)
+                    mesh.zoomLevel = coords.z
+                tile.mesh = mesh
+
+                /*
+                const dims = grid.getDimensions()
+                tile.innerHTML = `${dims[0]} x ${dims[1]}`
+                tile.style.outline = '1px solid red';
+                */
+            }
+
             done(null, tile)
         })
 
@@ -86,9 +104,9 @@ const TiledMeshLayer = L.GridLayer.extend({
     },
 
     /*
-    async setCurrentTime (datetime) {
-       
-    },
+      async setCurrentTime (datetime) {
+
+      },
     */
 
     onTileLoad (event) {
@@ -133,20 +151,17 @@ const TiledMeshLayer = L.GridLayer.extend({
     },
 
     onDataChanged () {
-        if (this.meshSource.hasSpatialBounds()) {
+        const bbox = this.gridSource.getBBox()
+        if (bbox) {
             // allow grid layer to only request tiles located in those bounds
-            const minMaxLat = this.meshSource.minMaxLat
-            const minMaxLon = this.meshSource.minMaxLon
-            const c1 = L.latLng(minMaxLat[0], minMaxLon[0])
-            const c2 = L.latLng(minMaxLat[1], minMaxLon[1])
+            const c1 = L.latLng(bbox[0], bbox[1])
+            const c2 = L.latLng(bbox[2], bbox[3])
             this.options.bounds = L.latLngBounds(c1, c2)
         }
 
-        // TODO: create color map based on options
+        const bounds = this.gridSource.getDataBounds()
         this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
-            this.options.chromajs.invertScale ?
-                this.meshSource.minMaxVal.reverse() : this.meshSource.minMaxVal)
-        this.meshSource.setColorMap(this.colorMap)
+            this.options.chromajs.invertScale ? bounds.reverse() : bounds)
 
         // clear tiles and request again
         this.redraw()
@@ -160,22 +175,22 @@ const TiledMeshLayer = L.GridLayer.extend({
 })
 
 export default {
-  methods: {
-      createLeafletTiledMeshLayer (options) {
-          const leafletOptions = options.leaflet || options
+    methods: {
+        createLeafletTiledMeshLayer (options) {
+            const leafletOptions = options.leaflet || options
 
-          // Check for valid type
-          if (leafletOptions.type !== 'tiledMeshLayer') return
+            // Check for valid type
+            if (leafletOptions.type !== 'tiledMeshLayer') return
 
-          // Copy options
-          const colorMap = _.get(options, 'variables[0].chromajs', null)
-          if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
+            // Copy options
+            const colorMap = _.get(options, 'variables[0].chromajs', null)
+            if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
 
-          this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
-          return this.tiledMeshLayer
+            this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
+            return this.tiledMeshLayer
+        }
+    },
+    created () {
+        this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
     }
-  },
-  created () {
-    this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
-  }
 }

@@ -1,4 +1,5 @@
 import jsdap from 'jsdap'
+import { BaseGrid } from './grid.js'
 
 export const opendapTypes = new Set(['Float32', 'Float64'])
 
@@ -35,13 +36,13 @@ export function variableIsArray(descriptor, variable) {
 }
 
 export function getArrayVariableLength(descriptor, variable) {
-    const varDesc = descriptor[variable]
-    return varDesc.shape[0]
+  const varDesc = descriptor[variable]
+  return varDesc.shape[0]
 }
 
 export function getGridDimensionLength(descriptor, variable, dimension) {
-    const varDesc = descriptor[variable]
-    return varDesc.array.shape[dimension]
+  const varDesc = descriptor[variable]
+  return varDesc.array.shape[dimension]
 }
 
 export function makeGridIndices(descriptor, variable, dimensions) {
@@ -84,26 +85,26 @@ function getFirstGridValue(grid, dimension) {
 }
 
 /*
-function* iterateGrid(grid, dimension) {
+  function* iterateGrid(grid, dimension) {
   if (dimension > 1) {
-    for (const r of grid)
-      yield* iterateGrid(r, dimension-1)
+  for (const r of grid)
+  yield* iterateGrid(r, dimension-1)
   } else {
-    for (const v of grid)
-      yield v
+  for (const v of grid)
+  yield v
   }
-}
+  }
 */
 
 export function getMinMaxGrid(grid, dimension) {
   /* this implementation is 10x slower on chrome
-  let minVal = getGridValue(grid, dimension)
-  let maxVal = minVal
-  for (const v of iterateGrid(grid, dimension)) {
-    minVal = Math.min(minVal, v)
-    maxVal = Math.max(maxVal, v)
-  }
-  return [minVal, maxVal]
+     let minVal = getGridValue(grid, dimension)
+     let maxVal = minVal
+     for (const v of iterateGrid(grid, dimension)) {
+     minVal = Math.min(minVal, v)
+     maxVal = Math.max(maxVal, v)
+     }
+     return [minVal, maxVal]
   */
 
   if (dimension > 1) {
@@ -125,19 +126,52 @@ export function gridValue(grid, indices, offset = 0) {
   }
 }
 
-export function getStep(vec) {
-  let step = 0
-  for (let i = 1; i < vec.length; ++i) {
-    step += vec[i] - vec[i-1]
+const makeIndicesFunctions = [
+  // latSortOrder = SortOrder.ASCENDING, lonSortOrder = SortOrder.ASCENDING
+  function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
+    const local = [...indices]
+    local[latIndex] = ilat
+    local[lonIndex] = ilon
+    return local
+  },
+  // latSortOrder = SortOrder.ASCENDING, lonSortOrder = SortOrder.DESCENDING
+  function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
+    const local = [...indices]
+    local[latIndex] = ilat
+    local[lonIndex] = lonCount - (ilon+1)
+    return local
+  },
+  // latSortOrder = SortOrder.DESCENDING, lonSortOrder = SortOrder.ASCENDING
+  function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
+    const local = [...indices]
+    local[latIndex] = latCount - (ilat+1)
+    local[lonIndex] = ilon
+    return local
+  },
+  // latSortOrder = SortOrder.DESCENDING, lonSortOrder = SortOrder.DESCENDING
+  function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
+    const local = [...indices]
+    local[latIndex] = latCount - (ilat+1)
+    local[lonIndex] = lonCount - (ilon+1)
+    return local
+  },
+]
+
+export class OpenDAPGrid extends BaseGrid {
+  constructor (bbox, dimensions, data, indices, latIndex, lonIndex, latSortOrder, lonSortOrder) {
+    super(bbox, dimensions)
+
+    this.data = data
+    this.indices = indices
+    this.latIndex = latIndex
+    this.lonIndex = lonIndex
+
+    const index = lonSortOrder + (latSortOrder * 2)
+    this.makeIndices = makeIndicesFunctions[index]
   }
-  step /= vec.length
-  /*
-  let variance = 0
-  for (let i = 1; i < vec.length; ++i) {
-    const local = (vec[i] - vec[i-1]) - step
-    variance += local * local
+
+  getValue (ilat, ilon) {
+    const indices = this.makeIndices(this.indices, this.latIndex, this.lonIndex, ilat, ilon, this.dimensions[0], this.dimensions[1])
+    return gridValue(this.data, indices)
   }
-  variance /= vec.length
-  */
-  return Math.abs(step)
 }
