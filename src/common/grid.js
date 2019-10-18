@@ -3,8 +3,10 @@ export const SortOrder = {
     DESCENDING : 1
 }
 
+export const gridSourceFactories = {  }
+
 // Base 2d grid class
-//
+// TODO: add interpolate/bilinearInterpolate and other missing stuff from weacast grid
 export class BaseGrid {
     constructor (bbox, dimensions) {
         this.bbox = bbox
@@ -69,20 +71,53 @@ export class GridSource {
     }
 }
 
-/*
+export function makeGridSource (options) {
+    for (const key of Object.keys(options)) {
+        const factory = _.get(gridSourceFactories, key, null)
+        if (factory)
+            return [factory(), options[key]]
+    }
+    return null
+}
+
+// these allow to query grid with ascending lat/lon
+const grid1DAccessFunctions = [
+    // lonFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.ASCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[ilon*latCount+ilat] },
+    // lonFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.DESCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[(lonCount-(ilon+1))*latCount+ilat] },
+    // lonFirst, latOrder=SortOrder.DESCENDING, lonOrder=SortOrder.ASCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[ilon*latCount+(latCount-(ilat+1))] },
+    // lonFirst, latOrder=SortOrder.DESCENDING, lonOrder=SortOrder.DESCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[(lonCount-(ilon+1))*latCount+(latCount-(ilat+1))] },
+
+    // latFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.ASCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[ilat*lonCount+ilon] },
+    // latFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.DESCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[ilat*lonCount+(lonCount-(ilon+1))] },
+    // latFirst, latOrder=SortOrder.DESCENDING, lonOrder=SortOrder.ASCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[(latCount-(ilat+1))*lonCount+ilon] },
+    // latFirst, latOrder=SortOrder.DESCENDING, lonOrder=SortOrder.DESCENDING
+    function (data, ilat, ilon, latCount, lonCount) { return data[(latCount-(ilat+1))*lonCount+(lonCount-(ilon+1))] },
+]
+
 export class Grid1D extends BaseGrid {
-    constructor (bbox, dimensions) {
+    constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder) {
         super(bbox, dimensions)
+
+        this.data = data
+
+        const index = lonSortOrder + (latSortOrder * 2) + ((latFirst ? 1 : 0) * 4)
+        this.getByIndex = grid1DAccessFunctions[index]
     }
 
     getValue (ilat, ilon) {
-
+        return this.getByIndex(this.data, ilat, ilon, this.dimensions[0], this.dimensions[1])
     }
 }
-*/
 
 // these allow to query grid with ascending lat/lon
-const gridAccessFunctions = [
+const grid2DAccessFunctions = [
     // lonFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.ASCENDING
     function (data, ilat, ilon, latCount, lonCount) { return data[ilon][ilat] },
     // lonFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.DESCENDING
@@ -108,7 +143,7 @@ export class Grid2D extends BaseGrid {
         this.data = data
 
         const index = lonSortOrder + (latSortOrder * 2) + ((latFirst ? 1 : 0) * 4)
-        this.getByIndex = gridAccessFunctions[index]
+        this.getByIndex = grid2DAccessFunctions[index]
     }
 
     getValue (ilat, ilon) {
