@@ -4,7 +4,7 @@ import chroma from 'chroma-js'
 import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
 
-import { OpenDAPGridSource } from '../../../common/opendap-grid-source.js'
+import { makeGridSource } from '../../../common/grid.js'
 import { vtxShaderSrc, frgShaderSrc, ColorMapHook, buildPixiMeshFromGrid } from '../../leaflet/pixi-utils.js'
 
 // TODO
@@ -35,9 +35,10 @@ const TiledMeshLayer = L.GridLayer.extend({
         this.on('tileload', function (event) { self.onTileLoad(event) })
         this.on('tileunload', function (event) { self.onTileUnload(event) })
 
-        // instanciate mesh source
-        this.gridSource = new OpenDAPGridSource()
-        this.gridSource.setup(options.opendap).then(() => { self.onDataChanged() })
+        // instanciate grid source
+        const [gridSource, gridOptions] = makeGridSource(options)
+        this.gridSource = gridSource
+        this.gridSource.setup(gridOptions).then(() => { self.onDataChanged() })
     },
 
     onAdd (map) {
@@ -46,6 +47,7 @@ const TiledMeshLayer = L.GridLayer.extend({
 
         // be notified when zoom starts
         const self = this
+        // TODO: remove listeners in onRemove
         map.on('zoomstart', function (event) { self.onZoomStart(event) })
         map.on('zoomend', function (event) { self.onZoomEnd(event) })
 
@@ -124,7 +126,7 @@ ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
     onTileUnload (event) {
         if (event.tile.mesh) {
             this.pixiRoot.removeChild(event.tile.mesh)
-            this.pixiLayer.redraw()
+            // this.pixiLayer.redraw()
             event.tile.mesh = null
         }
     },
@@ -190,11 +192,17 @@ export default {
             // Copy options
             const colorMap = _.get(options, 'variables[0].chromajs', null)
             if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
+            // TODO: do not copy option and let factory find what's there
+            const opendap = _.get(options, 'opendap', null)
+            if (opendap) Object.assign(leafletOptions, { opendap: opendap })
+            const wcs = _.get(options, 'wcs', null)
+            if (wcs) Object.assign(leafletOptions, { wcs: wcs })
 
             this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
             return this.tiledMeshLayer
         }
     },
+
     created () {
         this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
     }
