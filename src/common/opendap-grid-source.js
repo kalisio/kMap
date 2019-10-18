@@ -1,8 +1,14 @@
-import { SortOrder, GridSource, Grid2D } from './grid.js'
-import * as dap from './opendap-utils.js'
+import { SortOrder, GridSource, Grid2D } from './grid'
+import * as dap from './opendap-utils'
+
+// https://opendap.github.io/documentation/UserGuideComprehensive.html#Constraint_Expressions
 
 // only assumes grid variable is a regular grid w.r.t lat/lon
-export class OpenDAPGridSource extends GridSource {
+export class OpenDapGridSource extends GridSource {
+  static getKey () {
+    return 'opendap'
+  }
+
   constructor () {
     super()
 

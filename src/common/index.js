@@ -3,6 +3,13 @@
 // We tested the workaround given here https://github.com/babel/babel/issues/2877#issuecomment-270700000 with success so far
 import * as errors from './errors'
 import * as permissions from './permissions'
+import { gridSourceFactories } from './grid'
+import { OpenDapGridSource } from './opendap-grid-source'
+import { WcsGridSource } from './wcs-grid-source'
 
 export { errors }
 export { permissions }
+
+// register factories for known grid sources
+gridSourceFactories[OpenDapGridSource.getKey()] = function() { return new OpenDapGridSource() }
+gridSourceFactories[WcsGridSource.getKey()] = function() { return new WcsGridSource() }
