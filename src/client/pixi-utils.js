@@ -1,73 +1,5 @@
 import * as PIXI from 'pixi.js'
 
-export const vtxShaderSrc = `
-  precision mediump float;
-
-  attribute vec2 position;
-  attribute vec4 color;
-  // attribute float value;
-  uniform mat3 translationMatrix;
-  uniform mat3 projectionMatrix;
-  uniform float zoomLevel;
-  uniform vec4 offsetScale;
-  varying vec4 vColor;
-  // varying float vValue;
-  varying vec2 vLatLon;
-
-  vec2 ConvertCoordinates(vec3 latLonZoom) {
-    const float d = 3.14159265359 / 180.0;
-    const float maxLat = 85.0511287798;     // max lat using Web Mercator, used by EPSG:3857 CRS
-    const float R = 6378137.0;              // earth radius
-
-    // project
-    // float lat = max(min(maxLat, latLonZoom[0]), -maxLat);
-    float lat = clamp(latLonZoom[0], -maxLat, maxLat);
-    float sla = sin(lat * d);
-    vec2 point = vec2(R * latLonZoom[1] * d, R * log((1.0 + sla) / (1.0 - sla)) / 2.0);
-
-    // scale
-    float scale = 256.0 * pow(2.0, latLonZoom[2]);
-
-    // transform
-    const float s = 0.5 / (3.14159265359 * R);
-    const vec4 abcd = vec4(s, 0.5, -s, 0.5);
-
-    return scale * ((point * abcd.xz) + abcd.yw);
-  }
-
-  void main() {
-    vColor = color;
-    // vValue = value;
-    vLatLon = offsetScale.xy + position.xy * offsetScale.zw;
-    // vLatLon = position.xy;
-    vec2 projected = ConvertCoordinates(vec3(vLatLon, zoomLevel));
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(projected, 1.0)).xy, 0.0, 1.0);
-  }`
-
-export const frgShaderSrc = `
-  precision mediump float;
-
-  varying vec4 vColor;
-  // varying float vValue;
-  varying vec2 vLatLon;
-  uniform float alpha;
-  // uniform float cutValue;
-  uniform vec4 latLonBounds;
-
-  void main() {
-    bvec4 outside = bvec4(lessThan(vLatLon, latLonBounds.xy), greaterThan(vLatLon, latLonBounds.zw));
-    if (any(outside) || vColor.a != 1.0)
-      discard;
-
-    /*
-    if (vValue < cutValue)
-      discard;
-    */
-
-    gl_FragColor.rgb = vec3(vColor[0]*alpha, vColor[1]*alpha, vColor[2]*alpha);
-    gl_FragColor.a = alpha;
-  }`
-
 export const toHalf = (function() {
    var floatView = new Float32Array(1);
    var int32View = new Int32Array(floatView.buffer);
@@ -143,6 +75,29 @@ export class ColorMapHook {
 
     finalize (geometry) {
         geometry.addAttribute(this.attribute, this.color, 4, true, PIXI.TYPES.UNSIGNED_BYTE)
+    }
+}
+
+export class RawValueHook {
+    constructor (attribute) {
+        this.attribute = attribute
+    }
+
+    initialize (grid) {
+        this.grid = grid
+        const dims = grid.getDimensions()
+        const latCount = dims[0]
+        const lonCount = dims[1]
+        this.value = new Float32Array(latCount * lonCount)
+    }
+
+    iterate (vidx, ilat, ilon) {
+        const val = this.grid.getValue(ilat, ilon)
+        this.value[vidx] = val
+    }
+
+    finalize (geometry) {
+        geometry.addAttribute(this.attribute, this.value, 1, false, PIXI.TYPES.FLOAT)
     }
 }
 

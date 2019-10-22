@@ -9,14 +9,7 @@ export default {
   data () {
     return {
       forecastModel: null,
-      forecastModels: [],
-      forecastLevel: 0,
-      forecastLevels: {}
-    }
-  },
-  computed: {
-    hasForecastLevels () {
-      return _.get(this.forecastLevels, 'values', []).length > 0
+      forecastModels: []
     }
   },
   methods: {
@@ -74,10 +67,6 @@ export default {
     setForecastLevel (level) {
       this.forecastLevel = level
       this.$emit('forecast-level-changed', this.forecastLevel)
-    },
-    getFormatedForecastLevel (level) {
-      const unit = _.get(this.forecastLevels, 'units[0]')
-      return `${level || this.forecastLevel} ${unit}`
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
@@ -257,24 +246,21 @@ export default {
           this.setForecastLevel(0)
           return
         }
-        this.forecastLevels = levels
-        this.forecastLevelsLayer = layer
+        this.setSelectableLevels(layer, levels)
         // Select first available level by default
-        this.setForecastLevel(levels.values[0])
+        this.setSelectableLevel(levels.values[0])
       }
     },
     onWeacastHideLayer (layer) {
-      if (this.forecastLevelsLayer && (this.forecastLevelsLayer._id === layer._id)) {
-        this.forecastLevels = []
-        this.forecastLevelsLayer = null
-        this.forecastLevel = 0
-      }
+      this.clearSelectableLevels (layer)
+      this.forecastLevel = 0
     }
   },
   created () {
     this.$on('current-time-changed', this.onCurrentForecastTimeChanged)
     this.$on('layer-shown', this.onWeacastShowLayer)
     this.$on('layer-hidden', this.onWeacastHideLayer)
+    this.$on('selectable-level-changed', this.setForecastLevel)
   },
   mounted () {
   },
@@ -282,5 +268,6 @@ export default {
     this.$off('current-time-changed', this.onCurrentForecastTimeChanged)
     this.$off('layer-shown', this.onWeacastShowLayer)
     this.$off('layer-hidden', this.onWeacastHideLayer)
+    this.$off('selectable-level-changed', this.setForecastLevel)
   }
 }

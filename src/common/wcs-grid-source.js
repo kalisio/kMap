@@ -47,8 +47,6 @@ export class WcsGridSource extends GridSource {
         this.minMaxLat = [ bounds[0], bounds[2] ]
         this.minMaxLon = [ bounds[1], bounds[3] ]
 
-        this.minMaxVal = [ 0, 500 ]
-
         this.usable = true
     }
 
