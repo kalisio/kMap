@@ -31,9 +31,9 @@ export async function DescribeCoverage (url, coverage) {
         .then(txt => xml2js.parseStringPromise(txt))
 }
 
-export async function GetCoverage (url, coverage, format, bbox, width, height) {
+export async function GetCoverage (abort, url, coverage, format, bbox, width, height) {
     const query = makeGetCoverageQuery(url, coverage, format, bbox, width, height)
-    return window.fetch(query)
+    return window.fetch(query, { method: 'get', signal: abort })
         .then(response => response.blob())
 }
 

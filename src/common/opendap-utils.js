@@ -11,12 +11,44 @@ export async function fetchDescriptor(url) {
   })
 }
 
-export async function fetchData(query) {
+export async function fetchData(abort, query) {
+  /*
   return new Promise((resolve, reject) => {
     jsdap.loadData(query, data => {
       resolve(data)
     })
   })
+  */
+
+  const data = await window.fetch(query, { method: 'get', signal: abort })
+        .then(response => response.arrayBuffer())
+  const view = new DataView(data)
+
+  // accumulate string till '\nData:\n' marker
+  let dds = ''
+  let byteIndex = 0
+  while (byteIndex < view.byteLength) {
+    const u8 = view.getUint8(byteIndex)
+    if (u8 == '\n') {
+      const str = String.fromCodePoint(
+        view.getUint8(byteIndex+1),
+        view.getUint8(byteIndex+2),
+        view.getUint8(byteIndex+3),
+        view.getUint8(byteIndex+4),
+        view.getUint8(byteIndex+5),
+        view.getUint8(byteIndex+6))
+      if (str === 'Data:\n')
+        break
+    }
+
+    dds += String.fromCodePoint(u8)
+    ++byteIndex
+  }
+
+  const parser = new parser.ddsParser(dds)
+  const dapvar = parser.parse()
+  const unpacker = new xdr.dapUnpacker(data.slice(byteIndex+7), dapvar)
+  return unpacker.getValue()
 }
 
 export function variableIsGrid(descriptor, variable) {

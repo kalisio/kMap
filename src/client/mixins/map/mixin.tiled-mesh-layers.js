@@ -3,6 +3,7 @@ import L from 'leaflet'
 import chroma from 'chroma-js'
 import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
+import AbortController from 'abort-controller'
 
 import { makeGridSource } from '../../../common/grid'
 import { ColorMapHook, RawValueHook, buildPixiMeshFromGrid } from '../../pixi-utils'
@@ -107,6 +108,8 @@ const TiledMeshLayer = L.GridLayer.extend({
         // keep color scale options
         this.options.chromajs = options.chromajs
 
+        this.resolutionScale = _.get(options, 'resolutionScale', [1.0, 1.0])
+
         // setup pixi objects
         this.pixiRoot = new PIXI.Container()
         this.pixiLayer = L.pixiOverlay(
@@ -210,42 +213,49 @@ const TiledMeshLayer = L.GridLayer.extend({
             Math.min(latLonCoords0.lat, latLonCoords1.lat), Math.min(latLonCoords0.lng, latLonCoords1.lng),
             Math.max(latLonCoords0.lat, latLonCoords1.lat), Math.max(latLonCoords0.lng, latLonCoords1.lng)
         ]
-        const resolution = [(reqBBox[2] - reqBBox[0]) / (tileSize.y - 1), (reqBBox[3] - reqBBox[1]) / (tileSize.x - 1)]
-        this.gridSource.fetch(reqBBox, resolution).then(grid => {
-            if (grid) {
-                // TODO: not necessary to have both color and value
-                // depends on what options were selected for the shader ..
-                // upload everything for now
-                const colormapper = new ColorMapHook(this.colorMap, 'color')
-                const raw = new RawValueHook('value')
-                const geometry = buildPixiMeshFromGrid(grid, [ colormapper, raw ])
+        const resolution = [
+            this.resolutionScale[0] * ((reqBBox[2] - reqBBox[0]) / (tileSize.y - 1)),
+            this.resolutionScale[1] * ((reqBBox[3] - reqBBox[1]) / (tileSize.x - 1))]
+        tile.fetchController = new AbortController()
+        this.gridSource.fetch(tile.fetchController.signal, reqBBox, resolution)
+            .then(grid => {
+                // fetch ended, can't abort anymore
+                tile.fetchController = null
+                if (grid) {
+                    // TODO: not necessary to have both color and value
+                    // depends on what options were selected for the shader ..
+                    // upload everything for now
+                    const colormapper = new ColorMapHook(this.colorMap, 'color')
+                    const raw = new RawValueHook('value')
+                    const geometry = buildPixiMeshFromGrid(grid, [ colormapper, raw ])
 
-                const dataBBox = grid.getBBox()
-                const offsetScale = [ dataBBox[0], dataBBox[1], dataBBox[2] - dataBBox[0], dataBBox[3] - dataBBox[1] ]
-                const uniforms = {
-                    latLonBounds: Float32Array.from(reqBBox),
-                    offsetScale: Float32Array.from(offsetScale),
-                    layerUniforms: this.layerUniforms
+                    const dataBBox = grid.getBBox()
+                    const offsetScale = [ dataBBox[0], dataBBox[1], dataBBox[2] - dataBBox[0], dataBBox[3] - dataBBox[1] ]
+                    const uniforms = {
+                        latLonBounds: Float32Array.from(reqBBox),
+                        offsetScale: Float32Array.from(offsetScale),
+                        layerUniforms: this.layerUniforms
+                    }
+                    const shader = new PIXI.Shader(this.program, uniforms)
+                    const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.TRIANGLE_STRIP)
+                    tile.mesh = mesh
+
+                    /*
+                      const dims = grid.getDimensions()
+                      const res  = grid.getResolution()
+                      tile.innerHTML = `
+                      req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
+                      got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
+                      ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
+                      tile.style.outline = '1px solid red';
+                    */
                 }
-                const shader = new PIXI.Shader(this.program, uniforms)
-                const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.TRIANGLE_STRIP)
-                if (mesh)
-                    mesh.zoomLevel = coords.z
-                tile.mesh = mesh
 
-                /*
-                const dims = grid.getDimensions()
-                const res  = grid.getResolution()
-                tile.innerHTML = `
-req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
-got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
-${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
-                tile.style.outline = '1px solid red';
-                */
-            }
-
-            done(null, tile)
-        })
+                done(null, tile)
+            })
+            .catch(err => {
+                done(err, tile)
+            })
 
         return tile
     },
@@ -257,14 +267,28 @@ ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
     */
 
     onTileLoad (event) {
-        if (event.tile.mesh) {
-            this.pixiRoot.addChild(event.tile.mesh)
+        // tile loaded
+        const mesh = event.tile.mesh
+        if (!mesh)
+            return
+
+        mesh.zoomLevel = event.coords.z
+        mesh.visible = (mesh.zoomLevel === this.map.getZoom())
+        this.pixiRoot.addChild(mesh)
+        if (mesh.visible) {
             this.pixiLayer.redraw()
         }
     },
 
     onTileUnload (event) {
+        // tile unloaded
+        if (event.tile.fetchController) {
+            // fetch controller still present, abort fetching underlying data
+            event.tile.fetchController.abort()
+            event.tile.fetchController = null
+        }
         if (event.tile.mesh) {
+            // remove and destroy tile mesh
             this.pixiRoot.removeChild(event.tile.mesh)
             // this.pixiLayer.redraw()
             event.tile.mesh = null

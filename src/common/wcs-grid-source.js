@@ -50,7 +50,7 @@ export class WcsGridSource extends GridSource {
         this.usable = true
     }
 
-    async fetch (bbox, resolution) {
+    async fetch (abort, bbox, resolution) {
         if (!this.usable)
             return null
 
@@ -63,7 +63,7 @@ export class WcsGridSource extends GridSource {
 
         const wcsbbox = [reqMinLon, reqMinLat, reqMaxLon, reqMaxLat]
 
-        const image = await wcs.GetCoverage(this.options.url, this.options.coverage, this.queryFormat, wcsbbox, width, height)
+        const image = await wcs.GetCoverage(abort, this.options.url, this.options.coverage, this.queryFormat, wcsbbox, width, height)
               .then(blob => GeoTIFF.fromBlob(blob))
               .then(tiff => tiff.getImage())
         const data = image.readRasters()

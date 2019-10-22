@@ -66,7 +66,7 @@ export class GridSource {
         throw ''
     }
 
-    async fetch (bbox, resolution) {
+    async fetch (abort, bbox, resolution) {
         throw ''
     }
 }
