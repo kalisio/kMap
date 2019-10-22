@@ -1,3 +1,4 @@
+/*
 import chai, { util, expect } from 'chai'
 import chailint from 'chai-lint'
 import core, { kalisio, hooks } from '@kalisio/kdk-core'
@@ -37,3 +38,4 @@ describe('kMap:daptiles', () => {
         // await daptileService.Model.drop()
   })
 })
+*/
