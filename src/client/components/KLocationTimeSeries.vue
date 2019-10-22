@@ -373,7 +373,7 @@ export default {
         }
       } else if (options.variables && options.service) { // Static measure probe
         await this.kActivity.getMeasureForFeature(options, feature,
-          this.currentTime.clone().subtract({ seconds: options.history }), this.currentTime.clone())
+          this.kActivity.currentTime.clone().subtract({ seconds: options.history }), this.kActivity.currentTime.clone())
       } else if (isWeatherProbe) { // Dynamic weacast probe
         this.kActivity.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
       } else {

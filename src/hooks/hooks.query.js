@@ -35,6 +35,65 @@ export function marshallSpatialQuery (hook) {
         }
       }
     }
+    if (query.geoJson) {
+      delete query.geoJson
+      hook.params.asGeoJson = true
+    }
+  }
+}
+
+export function asGeoJson (options = {}) {
+  return function (hook) {  
+    if (!options.force && !hook.params.asGeoJson) return
+    let results = hook.result
+    const pagination = _.pick(results, ['total', 'skip', 'limit'])
+    results = Array.isArray(results) ? results : results.data
+    results = results
+      .filter(item => {
+        // Item locations are not already in GeoJson feature format so we need to convert if we can
+        if (options.longitudeProperty && options.latitudeProperty) {
+          return _.has(item, options.longitudeProperty) && _.has(item, options.latitudeProperty)
+        } else {
+          return true
+        }
+      })
+      .map(item => {
+        let coordinates
+        // Item locations are not already in GeoJson feature format so we need to convert
+        // Keep track of coordinates before picking properties
+        if (options.longitudeProperty && options.latitudeProperty) {
+          coordinates = [_.get(item, options.longitudeProperty), _.get(item, options.latitudeProperty)]
+          if (options.altitudeProperty && _.has(item, options.altitudeProperty)) {
+            coordinates.push(_.get(item, options.altitudeProperty))
+          }
+        }
+        if (options.pick) {
+          item = _.pick(item, options.pick)
+        }
+        if (options.omit) {
+          item = _.omit(item, options.omit)
+        }
+        // Item locations are not already in GeoJson feature format so we need to convert
+        if (options.longitudeProperty && options.latitudeProperty) {
+          return Object.assign({ type: 'Feature', geometry: { type: 'Point', coordinates }, properties: {} }, item)
+        } else {
+          return item
+        }
+      })
+    // Move some data to properties ?
+    if (options.properties) {
+      results.forEach(item => {
+        options.properties.forEach(mapping => {
+          if (mapping.from) _.set(item, `properties.${mapping.to || mapping.from}`, _.get(item, `${mapping.from}`))
+          if (mapping.delete) _.unset(item, `${mapping.from}`)
+        })
+      })
+    }
+    // Copy pagination information so that client can use it anyway
+    hook.result = Object.assign({
+      type: 'FeatureCollection',
+      features: results
+    }, pagination)
   }
 }
 

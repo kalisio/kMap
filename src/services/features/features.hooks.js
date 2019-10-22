@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import { hooks as coreHooks } from '@kalisio/kdk-core'
-import { marshallSpatialQuery, aggregateFeaturesQuery } from '../../hooks'
+import { marshallSpatialQuery, aggregateFeaturesQuery, asGeoJson } from '../../hooks'
 
 module.exports = {
   before: {
@@ -15,18 +15,7 @@ module.exports = {
 
   after: {
     all: [coreHooks.unprocessTimes(['time'])],
-    find: [
-      (hook) => {
-        const result = hook.result
-        // Features are returned as a standard GeoJson collection
-        hook.result = {
-          type: 'FeatureCollection',
-          features: Array.isArray(result) ? result : result.data
-        }
-        // Copy pagination information so that client can use it anyway
-        Object.assign(hook.result, _.pick(result, ['total', 'skip', 'limit']))
-      }
-    ],
+    find: [asGeoJson({ force: true })],
     get: [],
     create: [coreHooks.skipEvents], // Avoid emitting events on feature edition
     update: [coreHooks.skipEvents],

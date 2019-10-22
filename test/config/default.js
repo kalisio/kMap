@@ -86,13 +86,25 @@ module.exports = {
       // We only consume services we don't produce any
       services: (service) => false,
       // Consume only probing
-      remoteServices: (service) => service.path.endsWith('probes')
+      remoteServices: (service) => service.path.endsWith('probes'),
+      cote: { // Use cote defaults
+        helloInterval: 2000,
+        checkInterval: 4000,
+        nodeTimeout: 5000,
+        masterTimeout: 6000
+      }
     },
     weacast: {
       // Distribute only probing
       services: (service) => service.path.endsWith('probes'),
       // We only produce services we don't consume any
-      remoteServices: (service) => false
+      remoteServices: (service) => false,
+      cote: { // Use cote defaults
+        helloInterval: 2000,
+        checkInterval: 4000,
+        nodeTimeout: 5000,
+        masterTimeout: 6000
+      }
     }
   }
 }
