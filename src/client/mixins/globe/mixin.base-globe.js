@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import logger from 'loglevel'
 import Cesium from 'cesium/Source/Cesium.js'
 import 'cesium/Source/Widgets/widgets.css'
 import BuildModuleUrl from 'cesium/Source/Core/buildModuleUrl'
@@ -122,10 +123,17 @@ export default {
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
-      layer.isVisible = true
+      
       // Create the Cesium layer on first show
       let cesiumLayer = this.getCesiumLayerByName(name)
-      if (!cesiumLayer) cesiumLayer = await this.createLayer(layer)
+      if (!cesiumLayer) {
+        try {
+          cesiumLayer = await this.createLayer(layer)
+        } catch (error) {
+          logger.error(error)
+          return
+        }
+      }
       // Add the cesium layer to the globe
       this.cesiumLayers[name] = cesiumLayer
       if (this.isTerrainLayer(layer.cesium)) {
@@ -135,6 +143,7 @@ export default {
       } else {
         this.viewer.dataSources.add(cesiumLayer)
       }
+      layer.isVisible = true
       this.$emit('layer-shown', layer, cesiumLayer)
     },
     hideLayer (name) {

@@ -1,5 +1,4 @@
 import Cesium from 'cesium/Source/Cesium.js'
-import logger from 'loglevel'
 import _ from 'lodash'
 import { fetchGeoJson } from '../../utils'
 
@@ -207,57 +206,52 @@ export default {
       if (cesiumOptions.tooltip) cesiumOptions.tooltip = this.convertToCesiumObjects(cesiumOptions.tooltip)
       if (cesiumOptions.popup) cesiumOptions.popup = this.convertToCesiumObjects(cesiumOptions.popup)
 
-      try {
-        const source = _.get(cesiumOptions, 'source')
-        let dataSource = source
-        if (dataSource) {
-          // Check if data source already added to the scene and we only want to
-          // create a layer on top of it or if we have to load it
-          // Indeed loading a file by drop makes Cesium load it under the hood
-          for (let i = 0; i < this.viewer.dataSources.length; i++) {
-            const currentSource = this.viewer.dataSources.get(i)
-            if (currentSource.name === dataSource) {
-              dataSource = currentSource
-              this.viewer.dataSources.remove(currentSource, false)
-              break
-            }
+      const source = _.get(cesiumOptions, 'source')
+      let dataSource = source
+      if (dataSource) {
+        // Check if data source already added to the scene and we only want to
+        // create a layer on top of it or if we have to load it
+        // Indeed loading a file by drop makes Cesium load it under the hood
+        for (let i = 0; i < this.viewer.dataSources.length; i++) {
+          const currentSource = this.viewer.dataSources.get(i)
+          if (currentSource.name === dataSource) {
+            dataSource = currentSource
+            this.viewer.dataSources.remove(currentSource, false)
+            break
           }
         }
-        // If we already have a source we simply use it otherwise we create/load it
-        if (!dataSource || !dataSource.name) {
-          dataSource = new Cesium.GeoJsonDataSource()
-          dataSource.notFromDrop = true
-          // Check for feature service layers
-          if (cesiumOptions.realtime) {
-            await this.createCesiumRealtimeGeoJsonLayer(dataSource, options)
-          } else {
-            // Check for feature service layers
-            if (options.service) await this.loadGeoJson(dataSource, this.getFeatures(options), cesiumOptions)
-            // Assume source is an URL returning GeoJson
-            else await this.loadGeoJson(dataSource, fetchGeoJson(source), cesiumOptions)
-          }
-        }
-        this.applyStyle(dataSource.entities, options)
-        if (cesiumOptions.cluster) {
-          // Set default cluster options
-          _.assign(dataSource.clustering, {
-            enabled: true,
-            pixelRange: 100,
-            minimumClusterSize: 3,
-            clusterBillboards: true,
-            clusterLabels: true,
-            clusterPoints: true
-          }, cesiumOptions.cluster)
-          dataSource.clustering.clusterEvent.addEventListener(
-            (entities, cluster) => this.applyClusterStyle(entities, cluster, options)
-          )
-        }
-        if (typeof this.applyTooltips === 'function') this.applyTooltips(dataSource.entities, options)
-        return dataSource
-      } catch (error) {
-        logger.error(error)
-        return null
       }
+      // If we already have a source we simply use it otherwise we create/load it
+      if (!dataSource || !dataSource.name) {
+        dataSource = new Cesium.GeoJsonDataSource()
+        dataSource.notFromDrop = true
+        // Check for feature service layers
+        if (cesiumOptions.realtime) {
+          await this.createCesiumRealtimeGeoJsonLayer(dataSource, options)
+        } else {
+          // Check for feature service layers
+          if (options.service) await this.loadGeoJson(dataSource, this.getFeatures(options), cesiumOptions)
+          // Assume source is an URL returning GeoJson
+          else await this.loadGeoJson(dataSource, fetchGeoJson(source), cesiumOptions)
+        }
+      }
+      this.applyStyle(dataSource.entities, options)
+      if (cesiumOptions.cluster) {
+        // Set default cluster options
+        _.assign(dataSource.clustering, {
+          enabled: true,
+          pixelRange: 100,
+          minimumClusterSize: 3,
+          clusterBillboards: true,
+          clusterLabels: true,
+          clusterPoints: true
+        }, cesiumOptions.cluster)
+        dataSource.clustering.clusterEvent.addEventListener(
+          (entities, cluster) => this.applyClusterStyle(entities, cluster, options)
+        )
+      }
+      if (typeof this.applyTooltips === 'function') this.applyTooltips(dataSource.entities, options)
+      return dataSource
     },
     getGeoJsonOptions (options) {
       return this.options.featureStyle || {}

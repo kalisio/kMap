@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import logger from 'loglevel'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 // This ensure we have all required plugins
@@ -184,16 +185,21 @@ export default {
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
-      layer.isVisible = true
-
+      
       // Create the leaflet layer on first show
       let leafletLayer = this.getLeafletLayerByName(name)
       if (!leafletLayer) {
-        leafletLayer = await this.createLayer(layer)
+        try {
+          leafletLayer = await this.createLayer(layer)
+        } catch (error) {
+          logger.error(error)
+          return
+        }
       }
       // Add the leaflet layer to the map
       this.leafletLayers[name] = leafletLayer
       this.map.addLayer(leafletLayer)
+      layer.isVisible = true
 
       // Ensure base layer will not pop on top of others
       if (layer.type === 'BaseLayer') leafletLayer.bringToBack()
