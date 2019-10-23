@@ -282,7 +282,7 @@ export default {
       if (pickedObject) {
         emittedEvent.target = pickedObject.id || pickedObject.primitive.id
         if (emittedEvent.target instanceof Cesium.Entity) {
-          if (entity.properties) emittedEvent.target.feature = { properties: entity.properties.getValue(0) }
+          if (emittedEvent.target.properties) emittedEvent.target.feature = { properties: emittedEvent.target.properties.getValue(0) }
           let layer = this.getLayerNameForEntity(emittedEvent.target)
           if (layer) layer = this.getCesiumLayerByName(layer)
           if (layer) options = layer.processedOptions
