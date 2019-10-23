@@ -186,7 +186,7 @@ export default {
       // Check the visibility state
       if (this.isLayerVisible(name)) return
       
-      // Create the leaflet layer on first show
+      // Create the leaflet layer on show
       let leafletLayer = this.getLeafletLayerByName(name)
       if (!leafletLayer) {
         try {

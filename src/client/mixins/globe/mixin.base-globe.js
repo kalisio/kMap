@@ -124,7 +124,7 @@ export default {
       // Check the visibility state
       if (this.isLayerVisible(name)) return
       
-      // Create the Cesium layer on first show
+      // Create the Cesium layer on show
       let cesiumLayer = this.getCesiumLayerByName(name)
       if (!cesiumLayer) {
         try {

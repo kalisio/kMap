@@ -130,7 +130,10 @@ export default function (name) {
         this.layerCategories = _.get(this, 'activityOptions.catalog.categories', [])
         this.variables = []
         const catalogLayers = await this.getCatalogLayers()
-        _.forEach(catalogLayers, (layer) => {
+        // Iterate and await layers as creation is async and we need to have all layers ready
+        // before checking if there is some background layer
+        for (let i = 0; i < catalogLayers.length; i++) {
+          let layer = catalogLayers[i]
           if (layer[this.engine]) {
             // Process i18n
             if (this.$t(layer.name)) layer.name = this.$t(layer.name)
@@ -138,12 +141,12 @@ export default function (name) {
             // Check for Weacast API availability
             const isWeacastLayer = _.get(layer, `${this.engine}.type`, '').startsWith('weacast.')
             if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
-            this.addLayer(layer)
+            await this.addLayer(layer)
           }
           // Filter layers with variables, not just visible ones because we might want to
           // probe weather even if there is no visual representation (e.g. in globe)
           if (layer.variables) this.variables = _.uniqBy(this.variables.concat(layer.variables), (variable) => variable.name)
-        })
+        }
         // We need at least an active background
         const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
         if (!hasVisibleBaseLayer) {
