@@ -1,3 +1,4 @@
+import fetch from 'node-fetch'
 import jsdap from 'jsdap'
 import { BaseGrid } from './grid.js'
 
@@ -19,8 +20,7 @@ export async function fetchData(abort, query) {
     })
   })
   */
-
-  const data = await window.fetch(query, { method: 'get', signal: abort })
+  const data = await fetch(query, { method: 'get', signal: abort })
         .then(response => response.arrayBuffer())
   const view = new DataView(data)
 

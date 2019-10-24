@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import fetch from 'node-fetch'
 import xml2js from 'xml2js'
 
 // https://www.opengeospatial.org/standards/wcs
@@ -19,21 +20,21 @@ CRS=EPSG:4326&BBOX=${bbox.join(',')}&WIDTH=${width}&HEIGHT=${height}&FORMAT=${fo
 
 export async function GetCapabilities (url) {
     const query = makeGetCapabilitiesQuery(url)
-    return window.fetch(query)
+    return fetch(query)
         .then(response => response.text())
         .then(txt => xml2js.parseStringPromise(txt))
 }
 
 export async function DescribeCoverage (url, coverage) {
     const query = makeDescribeCoverageQuery(url, coverage)
-    return window.fetch(query)
+    return fetch(query)
         .then(response => response.text())
         .then(txt => xml2js.parseStringPromise(txt))
 }
 
 export async function GetCoverage (abort, url, coverage, format, bbox, width, height) {
     const query = makeGetCoverageQuery(url, coverage, format, bbox, width, height)
-    return window.fetch(query, { method: 'get', signal: abort })
+    return fetch(query, { method: 'get', signal: abort })
         .then(response => response.blob())
 }
 
@@ -99,14 +100,14 @@ REQUEST=GetCoverage&COVERAGEID=${coverage}&FORMAT=${format}`
 
 export async function GetCapabilities (url) {
     const query = makeGetCapabilitiesQuery(url)
-    return window.fetch(query)
+    return fetch(query)
         .then(response => response.text())
         .then(txt => xml2js.parseStringPromise(txt))
 }
 
 export async function DescribeCoverage (url, coverage) {
     const query = makeDescribeCoverageQuery(url, coverage)
-    return window.fetch(query)
+    return fetch(query)
         .then(response => response.text())
         .then(txt => xml2js.parseStringPromise(txt))
 }
@@ -119,7 +120,7 @@ export async function GetCoverage (url, coverage, format, bbox, width, height, a
         { axis: axisNames[0], size: height }
         , { axis: axisNames[1], size: width }]
     const query = makeGetCoverageQuery(url, coverage, format, subsets, scaleSizes)
-    return window.fetch(query)
+    return fetch(query)
         .then(response => response.blob())
 }
 
