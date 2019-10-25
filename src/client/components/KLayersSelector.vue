@@ -1,9 +1,9 @@
 <template>
   <q-list dense>
     <template v-for="layer in layers">
-      <q-item 
-        :id="layer.name" 
-        :key="layer.name" 
+      <q-item
+        :id="layer.name"
+        :key="layer.name"
         :active="layer.isVisible"
         active-class="selected"
         class="cursor-pointer"
@@ -53,7 +53,7 @@ export default {
     },
     layerActions (layer) {
       // Built-in toggle handler is used to select layer
-      return _.filter(layer.actions, action => action.name !== 'toggle' )
+      return _.filter(layer.actions, action => action.name !== 'toggle')
     },
     toggleLayer (layer) {
       const toggleAction = _.find(layer.actions, { name: 'toggle' })

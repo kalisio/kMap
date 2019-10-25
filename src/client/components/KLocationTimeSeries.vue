@@ -183,8 +183,8 @@ export default {
     async setupGraph () {
       if (!this.kActivity.probedLocation || !this.isTimeseriesOpen()) return
       // We need to force a refresh so that the prop is correctly updated by Vuejs in child component
-      await this.$nextTick()        
-      
+      await this.$nextTick()
+
       // Destroy previous graph if any
       if (this.chart) {
         this.chart.destroy()
@@ -296,7 +296,6 @@ export default {
     async onUpdateTimeseriesWidget (state) {
       if (state === 'closed') {
         this.closeTimeseries()
-        return
       }
     },
     async createProbedLocationLayer () {
@@ -356,7 +355,7 @@ export default {
       }
     },
     async onProbeFeatureClicked (options, event) {
-      let feature = _.get(event, 'target.feature')
+      const feature = _.get(event, 'target.feature')
       if (!feature) return
       const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
       const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
@@ -393,7 +392,7 @@ export default {
           }
         } else { // Location mode
           await this.kActivity.getForecastForLocation(this.kActivity.probedLocation.geometry.coordinates[0],
-                                            this.kActivity.probedLocation.geometry.coordinates[1], start, end)
+            this.kActivity.probedLocation.geometry.coordinates[1], start, end)
         }
       }
     },

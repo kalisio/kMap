@@ -21,7 +21,7 @@ export default {
       const viewerOptions = options || this.options.viewer
       if (token) Cesium.Ion.defaultAccessToken = token
       // If we don't need ion
-      else Cesium.Ion.defaultAccessToken = ''        
+      else Cesium.Ion.defaultAccessToken = ''
       // Initialize the globe
       Object.assign(viewerOptions, {
         imageryProviderViewModels: [],
@@ -123,7 +123,7 @@ export default {
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
-      
+
       // Create the Cesium layer on show
       let cesiumLayer = this.getCesiumLayerByName(name)
       if (!cesiumLayer) {

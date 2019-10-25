@@ -12,7 +12,7 @@ export default function init () {
 
   // Initialize the nabigation bar
   const navigationBar = { locationInput: false, actions: { before: [], after: [] } }
-  Store.set('navigationBar', navigationBar)  
+  Store.set('navigationBar', navigationBar)
 
   // Default time formatting settings
   Store.set('timeFormat', {

@@ -75,7 +75,7 @@ describe('kMap:geoalerts', () => {
     })
     port = app.get('port')
     return Promise.all([
-      app.db.connect(), 
+      app.db.connect(),
       weacastApp.db.connect()
     ])
   })
@@ -89,14 +89,14 @@ describe('kMap:geoalerts', () => {
     externalServer.once('listening', _ => {
       // Ensure webhook enpoint responds
       externalApp.post('/webhook', checkAlertWebhook)
-      request.post('http://localhost:' + externalPort + '/webhook', { type: 'event' }, (error, res, body) =>{
+      request.post('http://localhost:' + externalPort + '/webhook', { type: 'event' }, (error, res, body) => {
         resetAlertWebhook()
         done(error)
       })
     })
   })
   // Let enough time to process
-  .timeout(5000)
+    .timeout(5000)
 
   it('registers the weacast services', async () => {
     weacastApp.configure(weacastCore)
@@ -110,7 +110,7 @@ describe('kMap:geoalerts', () => {
     expect(probeService).toExist()
   })
   // Let enough time to process
-  .timeout(5000)
+    .timeout(5000)
 
   it('registers the alert service', (done) => {
     app.configure(core)
@@ -136,7 +136,7 @@ describe('kMap:geoalerts', () => {
     ])
   })
   // Let enough time to download a couple of data
-  .timeout(60000)
+    .timeout(60000)
 
   it('creates weather active alert at specific location', async () => {
     const now = moment.utc()
@@ -148,7 +148,7 @@ describe('kMap:geoalerts', () => {
         end: { hours: 6 }
       },
       forecast: 'gfs-world',
-      elements: [ 'u-wind', 'v-wind', 'windSpeed' ],
+      elements: ['u-wind', 'v-wind', 'windSpeed'],
       conditions: {
         geometry: {
           type: 'Point',
@@ -183,7 +183,7 @@ describe('kMap:geoalerts', () => {
     expect(results[0].status.checkedAt.isAfter(results[0].status.triggeredAt)).beTrue()
   })
   // Let enough time to process
-  .timeout(15000)
+    .timeout(15000)
 
   it('removes active weather alert at specific location', async () => {
     await alertService.remove(alertObject._id.toString())
@@ -199,7 +199,7 @@ describe('kMap:geoalerts', () => {
     spyCheckAlert.reset()
   })
   // Let enough time to process
-  .timeout(10000)
+    .timeout(10000)
 
   it('creates inactive weather alert at specific location', async () => {
     const now = moment.utc()
@@ -211,7 +211,7 @@ describe('kMap:geoalerts', () => {
         end: { hours: 6 }
       },
       forecast: 'gfs-world',
-      elements: [ 'u-wind', 'v-wind', 'windSpeed' ],
+      elements: ['u-wind', 'v-wind', 'windSpeed'],
       conditions: {
         geometry: {
           type: 'Point',
@@ -244,7 +244,7 @@ describe('kMap:geoalerts', () => {
     expect(results[0].status.checkedAt).toExist()
   })
   // Let enough time to process
-  .timeout(15000)
+    .timeout(15000)
 
   it('removes inactive weather alert at specific location', async () => {
     await alertService.remove(alertObject._id.toString())
@@ -260,7 +260,7 @@ describe('kMap:geoalerts', () => {
     spyCheckAlert.reset()
   })
   // Let enough time to process
-  .timeout(10000)
+    .timeout(10000)
 
   it('create and feed the vigicrues observations service', async () => {
     const tomorrow = moment.utc().add(1, 'days')
@@ -321,7 +321,7 @@ describe('kMap:geoalerts', () => {
     expect(results[0].status.checkedAt.isAfter(results[0].status.triggeredAt)).beTrue()
   })
   // Let enough time to process
-  .timeout(15000)
+    .timeout(15000)
 
   it('removes active alert at specific station', async () => {
     await alertService.remove(alertObject._id.toString())
@@ -337,7 +337,7 @@ describe('kMap:geoalerts', () => {
     spyCheckAlert.reset()
   })
   // Let enough time to process
-  .timeout(10000)
+    .timeout(10000)
 
   it('creates inactive alert at specific station', async () => {
     const now = moment.utc()
@@ -378,7 +378,7 @@ describe('kMap:geoalerts', () => {
     expect(results[0].status.checkedAt).toExist()
   })
   // Let enough time to process
-  .timeout(15000)
+    .timeout(15000)
 
   it('removes inactive alert at specific station', async () => {
     await alertService.remove(alertObject._id.toString())
@@ -394,7 +394,7 @@ describe('kMap:geoalerts', () => {
     spyCheckAlert.reset()
   })
   // Let enough time to process
-  .timeout(10000)
+    .timeout(10000)
 
   // Cleanup
   after(async () => {

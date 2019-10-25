@@ -1,5 +1,5 @@
 <template>
-  <k-radial-fab ref="radialFab" 
+  <k-radial-fab ref="radialFab"
       :style="radialFabStyle"
       :start-angle="0"
       :end-angle="-180"
@@ -10,7 +10,7 @@
       <q-btn slot="open-menu-container"
         round color="secondary" icon="close" />
       <k-radial-fab-item
-        v-for="(action, index) in featureActions" 
+        v-for="(action, index) in featureActions"
         :key="index">
         <q-btn round color="secondary" :icon="action.icon" @click="onFeatureActionClicked(action)" />
       </k-radial-fab-item>
@@ -55,7 +55,7 @@ export default {
         if (this.kActivity.engine === 'leaflet') {
           this.radialFabPosition = this.kActivity.map.latLngToContainerPoint(this.selectionForAction.latlng)
         }
-        // TODO GLOBE 
+        // TODO GLOBE
       }
     },
     async onFeatureActionButtons (layer, event) {

@@ -1,6 +1,6 @@
 <template>
   <div v-if="isVisible" class="row items-center k-navigation-bar no-wrap" :style="navBarStyle()">
-    <!-- 
+    <!--
       Before section
     -->
     <template v-if="(mode ==='toolbar') && hasBeforeActions">
@@ -16,9 +16,9 @@
       <k-location-input
         :class="(mode === 'searchbar' || !$q.screen.lt.md) ? 'full-width q-pr-sm' : ''"
         :user="mode === 'toolbar'"
-        :map="null" 
+        :map="null"
         :search="(mode === 'searchbar') || (mode === 'toolbar' && !$q.screen.lt.md)"
-        :dense="true" 
+        :dense="true"
         :style=""
         @input="onLocationChanged" />
       <q-btn v-if="(mode === 'toolbar') && $q.screen.lt.md" icon="search" color="primary" round flat @click="mode='searchbar'" >
@@ -53,7 +53,7 @@ export default {
     isVisible () { return this.hasBeforeActions || this.hasAfterActions || this.hasLocationInput }
   },
   methods: {
-    navBarStyle() {
+    navBarStyle () {
       if (this.$q.screen.lt.md) return ''
       else return 'width: 80vw'
     },

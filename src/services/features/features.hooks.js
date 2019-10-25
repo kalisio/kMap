@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { hooks as coreHooks } from '@kalisio/kdk-core'
 import { marshallSpatialQuery, aggregateFeaturesQuery, asGeoJson } from '../../hooks'
 

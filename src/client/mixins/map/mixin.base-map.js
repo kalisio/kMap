@@ -52,11 +52,11 @@ export default {
           enableHighAccuracy: true
         },
         strings: {
-          title: this.$t("mixins.geolocation.TITLE"),
-          metersUnit: this.$t("mixins.geolocation.METERS"),
-          feetUnit: this.$t("mixins.geolocation.FEET"),
-          popup: this.$t("mixins.geolocation.POPUP"),
-          outsideMapBoundsMsg: this.$t("mixins.geolocation.OUTSIDE_MAP_BOUNDS"),
+          title: this.$t('mixins.geolocation.TITLE'),
+          metersUnit: this.$t('mixins.geolocation.METERS'),
+          feetUnit: this.$t('mixins.geolocation.FEET'),
+          popup: this.$t('mixins.geolocation.POPUP'),
+          outsideMapBoundsMsg: this.$t('mixins.geolocation.OUTSIDE_MAP_BOUNDS')
         }
       })
       this.locateControl.addTo(this.map)
@@ -185,7 +185,7 @@ export default {
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
-      
+
       // Create the leaflet layer on show
       let leafletLayer = this.getLeafletLayerByName(name)
       if (!leafletLayer) {
