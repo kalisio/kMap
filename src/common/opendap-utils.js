@@ -12,7 +12,7 @@ export async function fetchDescriptor(url) {
   })
 }
 
-export async function fetchData(abort, query) {
+export async function fetchData(query, abort = null) {
   /*
   return new Promise((resolve, reject) => {
     jsdap.loadData(query, data => {
@@ -20,7 +20,10 @@ export async function fetchData(abort, query) {
     })
   })
   */
-  const data = await fetch(query, { method: 'get', signal: abort })
+
+  // rewritten to use fetch and support aborting request
+  const init = abort ? { signal: abort } : { }
+  const data = await fetch(query, init)
         .then(response => response.arrayBuffer())
   const view = new DataView(data)
 
@@ -29,7 +32,7 @@ export async function fetchData(abort, query) {
   let byteIndex = 0
   while (byteIndex < view.byteLength) {
     const u8 = view.getUint8(byteIndex)
-    if (u8 == '\n') {
+    if (u8 == '\n' || u8 == 10) {
       const str = String.fromCodePoint(
         view.getUint8(byteIndex+1),
         view.getUint8(byteIndex+2),
@@ -45,10 +48,8 @@ export async function fetchData(abort, query) {
     ++byteIndex
   }
 
-  const parser = new parser.ddsParser(dds)
-  const dapvar = parser.parse()
-  const unpacker = new xdr.dapUnpacker(data.slice(byteIndex+7), dapvar)
-  return unpacker.getValue()
+  const dapvar = new parser.ddsParser(dds).parse()
+  return new xdr.dapUnpacker(data.slice(byteIndex+7), dapvar).getValue()
 }
 
 export function variableIsGrid(descriptor, variable) {

@@ -91,7 +91,7 @@ export class OpenDapGridSource extends GridSource {
     if (!query)
       return null
 
-    const data = await dap.fetchData(abort, query)
+    const data = await dap.fetchData(query, abort)
     const valData = data[0][0]
     const latData = data[0][this.latIndex+1]
     const lonData = data[0][this.lonIndex+1]
