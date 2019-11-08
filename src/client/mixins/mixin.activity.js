@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
@@ -133,7 +134,9 @@ export default function (name) {
         this.layers = {}
         this.layerCategories = _.get(this, 'activityOptions.catalog.categories', [])
         this.variables = []
-        const catalogLayers = await this.getCatalogLayers()
+        let catalogLayers = await this.getCatalogLayers()
+        // Apply global layer filter
+        catalogLayers = sift(_.get(this, 'activityOptions.catalog.filter', {}), catalogLayers)
         // Iterate and await layers as creation is async and we need to have all layers ready
         // before checking if there is some background layer
         for (let i = 0; i < catalogLayers.length; i++) {
