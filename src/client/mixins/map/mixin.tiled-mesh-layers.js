@@ -238,6 +238,7 @@ const TiledMeshLayer = L.GridLayer.extend({
                     }
                     const shader = new PIXI.Shader(this.program, uniforms)
                     const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.TRIANGLE_STRIP)
+                    // const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.POINTS)
                     tile.mesh = mesh
 
                     /*
@@ -376,6 +377,8 @@ export default {
             if (opendap) Object.assign(leafletOptions, { opendap: opendap })
             const wcs = _.get(options, 'wcs', null)
             if (wcs) Object.assign(leafletOptions, { wcs: wcs })
+            const geotiff = _.get(options, 'geotiff', null)
+            if (geotiff) Object.assign(leafletOptions, { geotiff: geotiff })
 
             this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
             return this.tiledMeshLayer

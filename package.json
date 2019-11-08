@@ -71,6 +71,7 @@
   },
   "dependencies": {
     "abort-controller": "^3.0.0",
+    "aws4": "^1.8.0",
     "cron": "^1.4.1",
     "debug": "^4.1.0",
     "feathers-hooks-common": "^3.0.0",
