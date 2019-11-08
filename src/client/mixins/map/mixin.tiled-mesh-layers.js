@@ -162,9 +162,15 @@ const TiledMeshLayer = L.GridLayer.extend({
 
         // if a domain is given for the scale, build it now
         const domain = _.get(this.options.chromajs, 'domain')
-        if (domain) {
-            this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
-                this.options.chromajs.invertScale ? domain.reverse() : domain)
+        const classes = _.get(this.options.chromajs, 'classes')
+        if (domain || classes) {
+            if (domain) {
+                this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
+                  this.options.chromajs.invertScale ? domain.reverse() : domain)
+            } else {
+                this.colorMap = chroma.scale(this.options.chromajs.scale).classes(
+                  this.options.chromajs.invertScale ? classes.reverse() : classes)
+            }
         }
 
         // instanciate grid source
@@ -333,7 +339,8 @@ const TiledMeshLayer = L.GridLayer.extend({
 
         // if a domain was defined in the options, don't bother
         const domain = _.get(this.options, 'chromajs.domain', null)
-        if (!domain) {
+        const classes = _.get(this.options, 'chromajs.classes', null)
+        if (!domain && !classes) {
             const bounds = this.gridSource.getDataBounds()
             if (bounds) {
                 this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
