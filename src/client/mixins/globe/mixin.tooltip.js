@@ -29,7 +29,8 @@ export default {
             text = _.get(properties, tooltipStyle.property)
           } else if (tooltipStyle.template) {
             const compiler = tooltipStyle.compiler
-            text = compiler({ properties })
+            // FIXME: the whole feature is lost by Cesium so that top-level properties have disappeared
+            text = compiler({ feature: { properties }, properties })
           }
         }
         if (text) {

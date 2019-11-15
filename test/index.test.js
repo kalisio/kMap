@@ -215,7 +215,6 @@ describe('kMap', () => {
     position = response[0]
     expect(position.latitude).toExist()
     expect(position.longitude).toExist()
-
   })
   // Let enough time to process
     .timeout(5000)

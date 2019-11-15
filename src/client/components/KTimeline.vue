@@ -1,7 +1,7 @@
 <template>
   <k-time-controller :style="timelineStyle"
     :key="timelineRefreshKey"
-    :min="timeline.start" 
+    :min="timeline.start"
     :max="timeline.end"
     :step="'h'"
     :value="timeline.current"
@@ -34,7 +34,7 @@ export default {
     timelineStyle () {
       if (this.$q.screen.lt.md) return 'width: 70vw'
       return 'width: 80vw'
-      //return `width: ${0.8 * this.kActivity.engineContainerWidth} + 'px'`
+      // return `width: ${0.8 * this.kActivity.engineContainerWidth} + 'px'`
     }
   },
   methods: {

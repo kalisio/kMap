@@ -7,21 +7,21 @@ import makeDebug from 'debug'
 const debug = makeDebug('kalisio:kMap:geoalerts:service')
 
 // Alert map
-let alerts = {}
+const alerts = {}
 
 export default {
 
   async registerAlert (alert) {
     if (alerts[alert._id.toString()]) return
     debug('Registering new alert ', alert)
-    let cronJob = new CronJob(alert.cron, () => this.checkAlert(alert))
+    const cronJob = new CronJob(alert.cron, () => this.checkAlert(alert))
     cronJob.start()
     alerts[alert._id.toString()] = cronJob
     await this.checkAlert(alert)
   },
 
   unregisterAlert (alert) {
-    let cronJob = alerts[alert._id.toString()]
+    const cronJob = alerts[alert._id.toString()]
     if (!cronJob) return
     debug('Unregistering new alert ', alert)
     cronJob.stop()
@@ -38,7 +38,7 @@ export default {
     })
     const probesService = this.app.getService('probes')
     // Perform aggregation over time range
-    let query = Object.assign({
+    const query = Object.assign({
       forecastTime: {
         $gte: now.clone().add(_.get(alert, 'period.start', { seconds: 0 })).toDate(),
         $lte: now.clone().add(_.get(alert, 'period.end', { seconds: 24 * 3600 })).toDate()
@@ -50,11 +50,11 @@ export default {
       },
       aggregate: false
     })
-    let result = await probesService.create({
+    const result = await probesService.create({
       forecast: alert.forecast,
       elements: alert.elements
     }, { query })
-    
+
     // Let sift performs condition matching as in this case MongoDB cannot
     return result.features.filter(sift(conditions))
   },
@@ -65,15 +65,15 @@ export default {
     const conditions = _.mapKeys(alert.conditions, (value, key) => 'properties.' + key)
     const featureService = this.app.getService(alert.service)
     // Perform aggregation over time range
-    let query = Object.assign({
+    const query = Object.assign({
       time: {
         $gte: now.clone().add(_.get(alert, 'period.start', { seconds: 0 })).toDate(),
         $lte: now.clone().add(_.get(alert, 'period.end', { seconds: 24 * 3600 })).toDate()
       },
-      ['properties.' + featureService.options.featureId]: alert.feature,
+      ['properties.' + featureService.options.featureId]: alert.feature
     }, conditions)
 
-    let result = await featureService.find({ query })
+    const result = await featureService.find({ query })
     return result.features
   },
 
@@ -90,7 +90,7 @@ export default {
     const isActive = (results.length > 0)
     const wasActive = _.get(alert, 'status.active')
     // Then update alert status
-    let status = {
+    const status = {
       active: isActive,
       checkedAt: now
     }
@@ -102,7 +102,7 @@ export default {
     }
     debug('Alert ' + alert._id.toString() + ' status', status, ' with ' + results.length + ' triggers')
     // Emit event
-    let event = { alert }
+    const event = { alert }
     if (isActive) event.triggers = results
     const result = await this.patch(alert._id.toString(), { status })
     // Keep track of changes in memory as well
@@ -111,7 +111,7 @@ export default {
     // If a webhook is configured call it
     const webhook = alert.webhook
     if (webhook) {
-      let body = Object.assign({ alert: _.omit(alert, ['webhook']) }, _.omit(webhook, ['url']))
+      const body = Object.assign({ alert: _.omit(alert, ['webhook']) }, _.omit(webhook, ['url']))
       if (isActive) body.triggers = results
       return request.post(webhook.url, body)
     }

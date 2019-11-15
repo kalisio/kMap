@@ -1,13 +1,13 @@
 <template>
   <div class="row items-center no-wrap">
-    <!-- 
-      User location 
+    <!--
+      User location
     -->
     <q-btn v-if="user" icon="my_location" color="primary" flat dense round @click="geolocate()">
       <q-tooltip>{{ $t('KLocationInput.GEOLOCATE') }}</q-tooltip>
     </q-btn>
-    <!-- 
-      Location map 
+    <!--
+      Location map
     -->
     <q-btn v-if="map" icon="place" color="primary" flat dense round>
       <q-tooltip>{{ $t('KLocationInput.LOCATION_MAP') }}</q-tooltip>
@@ -15,7 +15,7 @@
         <k-location-map v-model="location" :editable="map.editable" @input="onUpdated" />
       </q-popup-proxy>
     </q-btn>
-    <!-- 
+    <!--
       Search location
     -->
     <q-select
@@ -82,7 +82,7 @@ export default {
     dense: {
       type: Boolean,
       default: false
-    },
+    }
   },
   computed: {
     locationName () {

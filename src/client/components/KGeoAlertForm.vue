@@ -139,8 +139,11 @@ export default {
       const max = _.get(variable, 'range[1]', 100)
       return {
         isActive: false,
-        operator: '$gte', threshold: (max-min) * 0.5, // Mean value
-        min, max, step: ((max-min) * 0.05).toFixed(1) // 5%
+        operator: '$gte',
+        threshold: (max - min) * 0.5, // Mean value
+        min,
+        max,
+        step: ((max - min) * 0.05).toFixed(1) // 5%
       }
     },
     frequencyToCron (frequency) {
@@ -173,13 +176,13 @@ export default {
       this.conditions = new Array(this.variables.length)
       const variablesWithConditions = _.keys(values.conditions)
       this.variables.forEach((variable, index) => {
-        let conditions = this.generateDefaultConditions(variable)
+        const conditions = this.generateDefaultConditions(variable)
         // Check if there is an active condition on this variable
         if (variablesWithConditions.includes(variable.name)) {
           Object.assign(conditions, {
             isActive: true,
             operator: _.keys(values.conditions[variable.name])[0],
-            threshold: _.values(values.conditions[variable.name])[0],
+            threshold: _.values(values.conditions[variable.name])[0]
           })
         }
         this.conditions[index] = conditions
@@ -241,7 +244,7 @@ export default {
   async created () {
     // Load the required components
     this.$options.components['k-item-chooser'] = this.$load('input/KItemChooser')
-    
+
     await this.build()
     this.$emit('form-ready', this)
   }

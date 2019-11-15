@@ -37,7 +37,7 @@ export default {
       this.properties = null
       if (!options || !options.schema) return
       this.schema = options.schema.content
-      let feature = _.get(event, 'target.feature')
+      const feature = _.get(event, 'target.feature')
       if (!feature || _.isEmpty(feature.properties)) return
       this.properties = feature.properties
     },
@@ -47,7 +47,7 @@ export default {
     },
     onViewReady () {
       this.$refs.view.fill(this.properties)
-    } 
+    }
   },
   created () {
     // laod the required components
@@ -55,9 +55,8 @@ export default {
     // Listen to the click feature event
     this.kActivity.$on('click', this.onFeatureClicked)
   },
-  beforeDestroy() {
-     this.kActivity.$on('click', this.onFeatureClicked)
+  beforeDestroy () {
+    this.kActivity.$on('click', this.onFeatureClicked)
   }
 }
 </script>
-

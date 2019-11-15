@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import logger from 'loglevel'
 import Cesium from 'cesium/Source/Cesium.js'
 import 'cesium/Source/Widgets/widgets.css'
 import BuildModuleUrl from 'cesium/Source/Core/buildModuleUrl'
@@ -20,7 +21,7 @@ export default {
       const viewerOptions = options || this.options.viewer
       if (token) Cesium.Ion.defaultAccessToken = token
       // If we don't need ion
-      else Cesium.Ion.defaultAccessToken = ''        
+      else Cesium.Ion.defaultAccessToken = ''
       // Initialize the globe
       Object.assign(viewerOptions, {
         imageryProviderViewModels: [],
@@ -124,10 +125,17 @@ export default {
       if (!layer) return
       // Check the visibility state
       if (this.isLayerVisible(name)) return
-      layer.isVisible = true
-      // Create the Cesium layer on first show
+
+      // Create the Cesium layer on show
       let cesiumLayer = this.getCesiumLayerByName(name)
-      if (!cesiumLayer) cesiumLayer = await this.createLayer(layer)
+      if (!cesiumLayer) {
+        try {
+          cesiumLayer = await this.createLayer(layer)
+        } catch (error) {
+          logger.error(error)
+          return
+        }
+      }
       // Add the cesium layer to the globe
       this.cesiumLayers[name] = cesiumLayer
       if (this.isTerrainLayer(layer.cesium)) {
@@ -141,6 +149,7 @@ export default {
       } else {
         this.viewer.dataSources.add(cesiumLayer)
       }
+      layer.isVisible = true
       this.$emit('layer-shown', layer, cesiumLayer)
     },
     hideLayer (name) {
@@ -294,7 +303,7 @@ export default {
       if (pickedObject) {
         emittedEvent.target = pickedObject.id || pickedObject.primitive.id
         if (emittedEvent.target instanceof Cesium.Entity) {
-          if (entity.properties) emittedEvent.target.feature = { properties: entity.properties.getValue(0) }
+          if (emittedEvent.target.properties) emittedEvent.target.feature = { properties: emittedEvent.target.properties.getValue(0) }
           let layer = this.getLayerNameForEntity(emittedEvent.target)
           if (layer) layer = this.getCesiumLayerByName(layer)
           if (layer) options = layer.processedOptions

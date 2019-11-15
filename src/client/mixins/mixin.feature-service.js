@@ -121,7 +121,7 @@ export default {
     },
     async editFeaturesGeometry (geoJson) {
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
-      let updatedFeatures = []
+      const updatedFeatures = []
       for (let i = 0; i < features.length; i++) {
         const feature = features[i]
         if (feature._id) {
@@ -133,7 +133,7 @@ export default {
     },
     async editFeaturesProperties (geoJson) {
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
-      let updatedFeatures = []
+      const updatedFeatures = []
       for (let i = 0; i < features.length; i++) {
         const feature = features[i]
         if (feature._id) {

@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
@@ -74,10 +75,12 @@ export default function (name) {
         const hasTrackLocationTool = (typeof this.createLocationIndicator === 'function') && tools.includes('track-location')
         const hasLocationTool = tools.includes('location-bar')
         const hasCatalogTool = tools.includes('catalog')
-        let beforeActions = []
+        const beforeActions = []
         if (hasSideNavTool) {
           beforeActions.push({
-            name: 'sidenav-toggle', label: this.$t('mixins.activity.TOGGLE_SIDENAV'), icon: 'menu',
+            name: 'sidenav-toggle',
+            label: this.$t('mixins.activity.TOGGLE_SIDENAV'),
+            icon: 'menu',
             handler: () => { this.klayout.toggleLeftDrawer() }
           })
           beforeActions.push({ name: 'separator' })
@@ -96,7 +99,7 @@ export default function (name) {
             name: 'track-location', label: this.$t('mixins.activity.TRACK_LOCATION'), icon: 'track_changes', handler: this.onTrackLocation
           })
         }
-        let afterActions = []
+        const afterActions = []
         if (hasVrTool) {
           afterActions.push({
             name: 'vr-toggle', label: this.$t('mixins.activity.TOGGLE_VR'), icon: 'terrain', handler: this.onToggleVr
@@ -110,7 +113,9 @@ export default function (name) {
         if (hasCatalogTool) {
           afterActions.push({ name: 'separator' })
           afterActions.push({
-            name: 'catalog-toggle', label: this.$t('mixins.activity.TOGGLE_CATALOG'), icon: 'layers',
+            name: 'catalog-toggle',
+            label: this.$t('mixins.activity.TOGGLE_CATALOG'),
+            icon: 'layers',
             handler: () => { this.klayout.toggleRightDrawer() }
           })
         }
@@ -129,8 +134,13 @@ export default function (name) {
         this.layers = {}
         this.layerCategories = _.get(this, 'activityOptions.catalog.categories', [])
         this.variables = []
-        const catalogLayers = await this.getCatalogLayers()
-        _.forEach(catalogLayers, (layer) => {
+        let catalogLayers = await this.getCatalogLayers()
+        // Apply global layer filter
+        catalogLayers = sift(_.get(this, 'activityOptions.catalog.filter', {}), catalogLayers)
+        // Iterate and await layers as creation is async and we need to have all layers ready
+        // before checking if there is some background layer
+        for (let i = 0; i < catalogLayers.length; i++) {
+          const layer = catalogLayers[i]
           if (layer[this.engine]) {
             // Process i18n
             if (this.$t(layer.name)) layer.name = this.$t(layer.name)
@@ -138,12 +148,12 @@ export default function (name) {
             // Check for Weacast API availability
             const isWeacastLayer = _.get(layer, `${this.engine}.type`, '').startsWith('weacast.')
             if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
-            this.addLayer(layer)
+            await this.addLayer(layer)
           }
           // Filter layers with variables, not just visible ones because we might want to
           // probe weather even if there is no visual representation (e.g. in globe)
           if (layer.variables) this.variables = _.uniqBy(this.variables.concat(layer.variables), (variable) => variable.name)
-        })
+        }
         // We need at least an active background
         const hasVisibleBaseLayer = catalogLayers.find((layer) => (layer.type === 'BaseLayer') && layer.isVisible)
         if (!hasVisibleBaseLayer) {
@@ -440,7 +450,7 @@ export default function (name) {
         // Geolocate by default if view has not been restored
         if (!this.restoreView()) {
           if (this.$store.get('user.position')) this.geolocate()
-            // Provided by geolocation mixin if available
+          // Provided by geolocation mixin if available
           else if (this.updatePosition) await this.updatePosition()
         }
         // Retrieve the forecast models
@@ -464,13 +474,13 @@ export default function (name) {
       getTimeRange () {
         const now = moment.utc()
         // Start just before the first available data
-        let start = this.forecastModel ?
-          this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
+        let start = this.forecastModel
+          ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
         // Override by config ?
         start = _.get(this, 'activityOptions.timeline.start', start)
         // Start just after the last available data
-        let end = this.forecastModel ?
-          this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
+        let end = this.forecastModel
+          ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
         // Override by config ?
         end = _.get(this, 'activityOptions.timeline.end', end)
         return {
