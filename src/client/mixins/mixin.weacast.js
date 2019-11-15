@@ -9,16 +9,19 @@ export default {
   data () {
     return {
       forecastModel: null,
-      forecastModels: [],
+      forecastModels: [] /*,
       forecastLevel: 0,
       forecastLevels: {}
+      */
     }
   },
+  /*
   computed: {
     hasForecastLevels () {
       return _.get(this.forecastLevels, 'values', []).length > 0
     }
   },
+  */
   methods: {
     async setupWeacast (config) {
       // If no client config given we assume to proxy the Weacast API internally
@@ -71,6 +74,7 @@ export default {
       this.forecastModel = model
       this.$emit('forecast-model-changed', this.forecastModel)
     },
+    /*
     setForecastLevel (level) {
       this.forecastLevel = level
       this.$emit('forecast-level-changed', this.forecastLevel)
@@ -79,6 +83,7 @@ export default {
       const unit = _.get(this.forecastLevels, 'units[0]')
       return `${level || this.forecastLevel} ${unit}`
     },
+    */
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
       if (!this.forecastModel) return
@@ -248,7 +253,7 @@ export default {
     },
     onCurrentForecastTimeChanged (time) {
       this.weacastApi.setForecastTime(time)
-    },
+    } /*,
     onWeacastShowLayer (layer, engineLayer) {
       // Check for valid types
       if (engineLayer instanceof L.weacast.ForecastLayer) {
@@ -270,18 +275,19 @@ export default {
         this.forecastLevel = 0
       }
     }
+    */
   },
   created () {
     this.$on('current-time-changed', this.onCurrentForecastTimeChanged)
-    this.$on('layer-shown', this.onWeacastShowLayer)
-    this.$on('layer-hidden', this.onWeacastHideLayer)
+    // this.$on('layer-shown', this.onWeacastShowLayer)
+    // this.$on('layer-hidden', this.onWeacastHideLayer)
   },
   mounted () {
   },
   beforeDestroy () {
     this.$off('current-time-changed', this.onCurrentForecastTimeChanged)
-    this.$off('layer-shown', this.onWeacastShowLayer)
-    this.$off('layer-hidden', this.onWeacastHideLayer)
+    // this.$off('layer-shown', this.onWeacastShowLayer)
+    // this.$off('layer-hidden', this.onWeacastHideLayer)
   }
 }
 
