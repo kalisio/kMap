@@ -5,10 +5,13 @@
       :direction="'btt'"
       :height="150"
       :width="4"
-      :lazy="kActivity.selectableLevels.lazy"
+      :lazy="isLazy"
       :marks="true"
       :hide-label="true"
-      :data="kActivity.selectableLevels.values"
+      :data="sliderValues"
+      :min="sliderMin"
+      :max="sliderMax"
+      :interval="sliderInterval"
       :tooltip="'focus'"
       :tooltip-formatter="getFormatedLevel"
       @change="onLevelChanged"
@@ -31,13 +34,29 @@ export default {
     VueSlider
   },
   computed: {
-    hasLevels () { return _.get(this.kActivity.selectableLevels, 'values', []).length > 0 },
-    isVisible () { return this.hasLevels }
+    isVisible () {
+      if (this.sliderValues) return this.sliderValues.length > 0
+      if ((this.sliderMin !== undefined) && (this.sliderMax !== undefined)) return true
+      return false
+    },
+    isLazy () { return _.get(this.kActivity.selectableLevels, 'lazy', true) },
+    sliderValues () {
+      return _.get(this.kActivity.selectableLevels, 'values')
+    },
+    sliderMin () {
+      return _.get(this.kActivity.selectableLevels, 'min')
+    },
+    sliderMax () {
+      return _.get(this.kActivity.selectableLevels, 'max')
+    },
+    sliderInterval () {
+      return _.get(this.kActivity.selectableLevels, 'interval', 1)
+    }
   },
   methods: {
     setLevel (value) {
       this.kActivity.selectedLevel = value
-      this.$emit('selected-level-changed', this.kActivity.selectedLevel)
+      this.kActivity.$emit('selected-level-changed', this.kActivity.selectedLevel)
     },
     onLevelChanged (level) {
       this.setLevel(level)
