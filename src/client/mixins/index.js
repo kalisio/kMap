@@ -5,6 +5,7 @@ import time from './mixin.time'
 import weacast from './mixin.weacast'
 import activity from './mixin.activity'
 import locationIndicator from './mixin.location-indicator'
+import levels from './mixin.levels'
 
 export default {
   geolocation,
@@ -13,5 +14,6 @@ export default {
   time,
   weacast,
   activity,
-  locationIndicator
+  locationIndicator,
+  levels
 }

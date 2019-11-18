@@ -136,7 +136,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         this.cutValueUniform = null
         if (options.cutOver) {
             this.layerUniforms.uniforms.cutOver = 0.0
-            if (typeof options.cutOver === 'string') {
+            if (options.cutOver === 'level') {
                 this.cutValueUniform = 'cutOver'
             } else {
                 this.layerUniforms.uniforms.cutOver = options.cutOver
@@ -144,7 +144,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
         if (options.cutUnder) {
             this.layerUniforms.uniforms.cutUnder = 0.0
-            if (typeof options.cutUnder === 'string') {
+            if (options.cutUnder === 'level') {
                 this.cutValueUniform = 'cutUnder'
             } else {
                 this.layerUniforms.uniforms.cutUnder = options.cutUnder
@@ -396,7 +396,6 @@ export default {
                 this.tiledMeshLayer.setCutValue(value)
         },
 
-        /*
         onShowTiledMeshLayer (layer, engineLayer) {
             // layer being shown, display slider if 'levels' are present
             if (engineLayer instanceof TiledMeshLayer) {
@@ -404,8 +403,7 @@ export default {
                 if (!levels || !levels.values || _.isEmpty(levels.values))
                     return
 
-                this.setSelectableLevels(layer, levels)
-                this.setSelectableLevel(levels.values[0])
+                this.setSelectableLevels(layer, levels, levels.values[0])
             }
         },
 
@@ -413,23 +411,18 @@ export default {
             // layer being hidden, hide slider if any was required
             this.clearSelectableLevels(layer)
         }
-        */
     },
 
     created () {
         this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
-        /*
         this.$on('layer-shown', this.onShowTiledMeshLayer)
         this.$on('layer-hidden', this.onHideTiledMeshLayer)
-        this.$on('selectable-level-changed', this.setCutValue)
-        */
+        this.$on('selected-level-changed', this.setCutValue)
     },
 
   beforeDestroy () {
-        /*
         this.$off('layer-shown', this.onShowTiledMeshLayer)
         this.$off('layer-hidden', this.onHideTiledMeshLayer)
-        this.$off('selectable-level-changed', this.setCutValue)
-        */
+        this.$off('selected-level-changed', this.setCutValue)
     }
 }

@@ -6,40 +6,23 @@ export default {
   data () {
     return {
       selectedLevel: 0,
-      selectableLevels: {}
+      selectableLevels: { lazy: true }
     }
   },
   methods: {
-    createLevelSlider () {
-      if (this.levelSlider) return
-      const Component = Vue.extend(KLevelSilder)
-      this.levelSlider = new Component({
-        propsData: {
-          level:  this.selectedLevel,
-          levels: this.selectableLevels
-        }
-      })
-    },
-    removeLevelSlider () {
-      if (!this.levelSlider) return
-      this.levelSlider = null
-    },
-    setSelectableLevels (layer, levels) {
+    setSelectableLevels (layer, levels, initialLevel) {
+      this.selectedLevel = initialLevel
       this.selectableLevels = levels
       this.selectableLevelsLayer = layer
+      this.$emit('selected-level-changed', this.selectedLevel)
+      // this.slider.setLevel(this.selectedLevel)
     },
     clearSelectableLevels (layer) {
       if (this.selectableLevelsLayer && (this.selectableLevelsLayer._id === layer._id)) {
         this.selectedLevel = 0
-        this.selectableLevels = []
+        this.selectableLevels = { lazy: true }
         this.selectableLevelsLayer = null
       }
     }
-  },
-  beforeCreate () {
-  },
-  mounted () {
-  },
-  beforeDestroy () {
   }
 }

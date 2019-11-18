@@ -1,20 +1,20 @@
 <template>
-  <div v-if="isVisible" class="k-level-slider">
+  <div v-if="isVisible">
     <vue-slider class="text-primary"
-      v-model="level"
+      v-model="kActivity.selectedLevel"
       :direction="'btt'"
       :height="100"
       :width="4"
-      :lazy="levels.lazy"
+      :lazy="kActivity.selectableLevels.lazy"
       :marks="true"
       :hide-label="true"
-      :data="levels.values"
+      :data="kActivity.selectableLevels.values"
       :tooltip="'focus'"
       :tooltip-formatter="getFormatedLevel"
       @change="onLevelChanged"
     />
     <p class="text-secondary text-caption" style="transform: rotate(-90deg) translateX(24px);">
-      <b>{{$t(levels.label)}} - {{getFormatedLevel(level)}}</b>
+      <b>{{$t(kActivity.selectableLevels.label)}} - {{getFormatedLevel(kActivity.selectedLevel)}}</b>
     </p>
   </div>
 </template>
@@ -30,36 +30,27 @@ export default {
   components: {
     VueSlider
   },
-  props: {
-    level:  { type: Number, default: 0 },
-    levels: { type: Object, default: () => { lazy: true } }
-  },
   computed: {
-    hasLevels () { return _.get(this.levels, 'values', []).length > 0 },
-    isVisible () { return this.hasLevels() }
+    hasLevels () { return _.get(this.kActivity.selectableLevels, 'values', []).length > 0 },
+    isVisible () { return this.hasLevels }
   },
   methods: {
     setLevel (value) {
-      this.level = value
-      this.$emit('level-changed', this.level)
+      this.kActivity.selectedLevel = value
+      this.$emit('selected-level-changed', this.kActivity.selectedLevel)
     },
     onLevelChanged (level) {
-      this.setLevel (level)
+      this.setLevel(level)
     },
     getFormatedLevel (level) {
-      const unit = _.get(this.levels, 'units[0]')
-      return `${level || this.level} ${unit}`
+      const unit = _.get(this.kActivity.selectableLevels, 'units[0]')
+      return `${level || this.kActivity.selectedLevel} ${unit}`
     }
-  },
-  mounted () {
-  },
-  beforeDestroy () {
   }
 }
 </script>
 
-<style>
-/*
+<style lang="stylus">
 .vue-slider-rail
   background-color: $secondary;
 
@@ -88,5 +79,4 @@ export default {
 
 .vue-slider-mark-step-active
   background-color: $primary;
-*/
 </style>
