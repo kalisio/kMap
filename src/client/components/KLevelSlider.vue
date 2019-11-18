@@ -35,22 +35,28 @@ export default {
   },
   computed: {
     isVisible () {
+      // visible wether there are predefined values
+      // OR if there are min/max values defined
       if (this.sliderValues) return this.sliderValues.length > 0
       if ((this.sliderMin !== undefined) && (this.sliderMax !== undefined)) return true
       return false
     },
-    isLazy () { return _.get(this.kActivity.selectableLevels, 'lazy', true) },
+    isLazy () {
+      // lazy by default
+      return _.get(this.kActivity.selectableLevels, 'lazy', true)
+    },
     sliderValues () {
       return _.get(this.kActivity.selectableLevels, 'values')
     },
     sliderMin () {
-      return _.get(this.kActivity.selectableLevels, 'min')
+      return _.get(this.kActivity.selectableLevels, 'range.min')
     },
     sliderMax () {
-      return _.get(this.kActivity.selectableLevels, 'max')
+      return _.get(this.kActivity.selectableLevels, 'range.max')
     },
     sliderInterval () {
-      return _.get(this.kActivity.selectableLevels, 'interval', 1)
+      // default interval is 1
+      return _.get(this.kActivity.selectableLevels, 'range.interval', 1)
     }
   },
   methods: {

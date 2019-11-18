@@ -6,7 +6,7 @@ export default {
   data () {
     return {
       selectedLevel: 0,
-      selectableLevels: { lazy: true }
+      selectableLevels: {}
     }
   },
   methods: {
@@ -20,7 +20,7 @@ export default {
     clearSelectableLevels (layer) {
       if (this.selectableLevelsLayer && (this.selectableLevelsLayer._id === layer._id)) {
         this.selectedLevel = 0
-        this.selectableLevels = { lazy: true }
+        this.selectableLevels = {}
         this.selectableLevelsLayer = null
       }
     }
