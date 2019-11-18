@@ -136,7 +136,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         this.cutValueUniform = null
         if (options.cutOver) {
             this.layerUniforms.uniforms.cutOver = 0.0
-            if (options.cutOver === 'level') {
+            if (options.cutOver === 'levels') {
                 this.cutValueUniform = 'cutOver'
             } else {
                 this.layerUniforms.uniforms.cutOver = options.cutOver
@@ -144,7 +144,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
         if (options.cutUnder) {
             this.layerUniforms.uniforms.cutUnder = 0.0
-            if (options.cutUnder === 'level') {
+            if (options.cutUnder === 'levels') {
                 this.cutValueUniform = 'cutUnder'
             } else {
                 this.layerUniforms.uniforms.cutUnder = options.cutUnder

@@ -1,9 +1,9 @@
 <template>
-  <div v-if="isVisible">
+  <div v-if="isVisible" class="k-level-slider">
     <vue-slider class="text-primary"
       v-model="kActivity.selectedLevel"
       :direction="'btt'"
-      :height="100"
+      :height="150"
       :width="4"
       :lazy="kActivity.selectableLevels.lazy"
       :marks="true"
@@ -13,7 +13,7 @@
       :tooltip-formatter="getFormatedLevel"
       @change="onLevelChanged"
     />
-    <p class="text-secondary text-caption" style="transform: rotate(-90deg) translateX(24px);">
+    <p class="text-secondary text-caption" style="writing-mode: vertical-lr; transform-origin: 100% 0%; transform: rotate(180deg);">
       <b>{{$t(kActivity.selectableLevels.label)}} - {{getFormatedLevel(kActivity.selectedLevel)}}</b>
     </p>
   </div>
