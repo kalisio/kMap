@@ -298,7 +298,7 @@ const TiledMeshLayer = L.GridLayer.extend({
             // remove and destroy tile mesh
             this.pixiRoot.removeChild(event.tile.mesh)
             // this.pixiLayer.redraw()
-            event.tile.mesh.geometry.destroy()
+            event.tile.mesh.destroy()
             event.tile.mesh = null
         }
     },
@@ -327,6 +327,7 @@ const TiledMeshLayer = L.GridLayer.extend({
             if (mesh.zoomLevel == zoomLevel)
                 mesh.visible = true
         }
+        this.pixiLayer.redraw()
     },
 
     onDataChanged () {
