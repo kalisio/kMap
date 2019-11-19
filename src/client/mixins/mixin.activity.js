@@ -147,7 +147,7 @@ export default function (name) {
             if (this.$t(layer.description)) layer.description = this.$t(layer.description)
             // Check for Weacast API availability
             const isWeacastLayer = _.get(layer, `${this.engine}.type`, '').startsWith('weacast.')
-            if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) return
+            if (isWeacastLayer && (!this.weacastApi || !this.forecastModel)) continue
             await this.addLayer(layer)
           }
           // Filter layers with variables, not just visible ones because we might want to
