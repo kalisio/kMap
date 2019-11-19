@@ -298,6 +298,7 @@ const TiledMeshLayer = L.GridLayer.extend({
             // remove and destroy tile mesh
             this.pixiRoot.removeChild(event.tile.mesh)
             // this.pixiLayer.redraw()
+            event.tile.mesh.geometry.destroy()
             event.tile.mesh = null
         }
     },
