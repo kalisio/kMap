@@ -102,10 +102,12 @@ export default {
         })
         if (result.features.length > 0) {
           this.probedLocation = result.features[0]
-          // Fake ID used to ensure matching when updating data
-          this.probedLocation._id = 'probe'
-          this.$emit('probed-location-changed', this.probedLocation)
-        } else throw new Error('Cannot find valid measure for feature')
+        } else {
+          this.probedLocation = _.cloneDeep(feature)
+        }
+        // Assign a default id
+        this.probedLocation._id = 'probe'
+        this.$emit('probed-location-changed', this.probedLocation)
       } catch (error) {
         this.probedLocation = null
         logger.error(error)

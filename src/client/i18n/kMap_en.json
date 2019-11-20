@@ -183,6 +183,9 @@
     "SEARCH": "Search",
     "BACK": "Back"
   },
+  "KTimeSeries": {
+    "NO_DATA_AVAILABLE": "No Data Available"
+  },
   "KCatalogPanel": {
     "BASE_LAYERS": "Base Layers",
     "TERRAIN_LAYERS": "Terrain layers",

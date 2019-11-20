@@ -1,11 +1,26 @@
 <template>
   <div>
     <q-resize-observer @resize="onTimeseriesWidgetResized" />
-    <k-widget ref="timeseriesWidget" :title="probedLocationName"
-      :style="timeseriesWidgetStyle()" @state-changed="onUpdateTimeseriesWidget">
+    <k-widget ref="timeseriesWidget" 
+      :title="probedLocationName"
+      :style="timeseriesWidgetStyle()" 
+      @state-changed="onUpdateTimeseriesWidget">
       <div slot="widget-content">
-        <canvas ref="chart"></canvas>
+        <div v-if="hasGraph">
+          <canvas ref="chart"></canvas>
+        </div>
+        <div v-else class="absolute-center">
+          <div class="full-width column items-center">
+            <div>
+              <q-icon size="3rem" name="error_outline" />
+            </div>
+            <div>
+              {{$t('KTimeSeries.NO_DATA_AVAILABLE')}}
+            </div>
+          </div>
+        </div>
       </div>
+
     </k-widget>
   </div>
 </template>
@@ -29,8 +44,14 @@ export default {
     QTooltip
   },
   props: {
-    variables: { type: Array, default: () => [] },
-    decimationFactor: { type: Number, default: 1 }
+    variables: { 
+      type: Array, 
+      default: () => [] 
+    },
+    decimationFactor: { 
+      type: Number, 
+      default: 1 
+    }
   },
   watch: {
     variables: function () { this.setupGraph() },
@@ -48,13 +69,18 @@ export default {
       return name || ''
     }
   },
+  data () {
+    return {
+      hasGraph: false
+    }
+  },
   methods: {
     timeseriesWidgetStyle () {
       if (this.$refs.timeseriesWidget &&
           this.$refs.timeseriesWidget.isOpen() &&
           !this.$refs.timeseriesWidget.isMinimized()) return 'width: 100vw;height: 100vh;'
-      else if (this.$q.screen.lt.md) return `width: 100vw;height: 40vh;min-height: ${MIN_HEIGHT}px;`
-      else return `width: 80vw;height: 40vh;min-height: ${MIN_HEIGHT}px;`
+      else if (this.$q.screen.lt.md) return `width: 100vw;height: 35vh;min-height: ${MIN_HEIGHT}px;`
+      else return `width: 80vw;height: 35vh;min-height: ${MIN_HEIGHT}px;`
     },
     filter (value, index) {
       // We filter one value out of N according to decimation factor
@@ -180,17 +206,32 @@ export default {
 
       this.chart.update(this.config)
     },
+    hasAvailableDatasets () {
+      const keys = Object.keys(this.kActivity.probedLocation.properties)
+      console.log(keys)
+      for (let i = 0; i < this.variables.length; i++) {
+        console.log(this.variables[i].name)
+        if (_.indexOf(keys, this.variables[i].name) !== -1) return true
+      }
+      return false
+    },
     async setupGraph () {
       if (!this.kActivity.probedLocation || !this.isTimeseriesOpen()) return
-      // We need to force a refresh so that the prop is correctly updated by Vuejs in child component
-      await this.$nextTick()
-
+      
       // Destroy previous graph if any
       if (this.chart) {
         this.chart.destroy()
         this.chart = null
       }
 
+      // Check whether weed need a graph 
+      this.hasGraph = this.hasAvailableDatasets()
+      if (!this.hasGraph) return
+ 
+      // We need to force a refresh so that the prop is correctly updated by Vuejs in child component
+      await this.$nextTick()
+
+      // Setup the graph
       this.setupAvailableTimes()
       this.setupTimeTicks()
       this.setupAvailableDatasets()
@@ -371,8 +412,9 @@ export default {
           await this.kActivity.getForecastForFeature(_.get(feature, this.kActivity.probe.featureId), start, end)
         }
       } else if (options.variables && options.service) { // Static measure probe
-        await this.kActivity.getMeasureForFeature(options, feature,
-          this.kActivity.currentTime.clone().subtract({ seconds: options.history }), this.kActivity.currentTime.clone())
+          const startTime = this.kActivity.currentTime.clone().subtract({ seconds: options.history })
+          const endTime = this.kActivity.currentTime.clone()
+          await this.kActivity.getMeasureForFeature(options, feature, startTime, endTime)
       } else if (isWeatherProbe) { // Dynamic weacast probe
         this.kActivity.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
       } else {

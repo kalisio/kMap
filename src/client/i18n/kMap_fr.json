@@ -183,6 +183,9 @@
     "SEARCH": "Rechercher",
     "BACK": "Retour"
   },
+  "KTimeSeries": {
+    "NO_DATA_AVAILABLE": "Aucune donnée disponible"
+  },
   "KCatalogPanel": {
     "BASE_LAYERS": "Fonds cartographiques",
     "TERRAIN_LAYERS": "Couches terrain",
