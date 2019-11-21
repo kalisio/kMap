@@ -52,10 +52,6 @@ export class BaseGrid {
 }
 
 export class GridSource {
-    constructor () {
-       
-    }
-
     getBBox () {
         return null
     }
