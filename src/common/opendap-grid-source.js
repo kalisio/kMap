@@ -45,9 +45,9 @@ export class OpenDapGridSource extends GridSource {
     this.canUseGrid2D = false
 
     const descriptor = await dap.fetchDescriptor(this.options.url)
-    if (!dap.variableIsGrid(descriptor, this.options.query)) throw `${this.options.query} is not a grid variable!`
-    if (!dap.variableIsArray(descriptor, this.options.latitude)) throw `${this.options.latitude} is expected to be an array variable!`
-    if (!dap.variableIsArray(descriptor, this.options.longitude)) throw `${this.options.longitude} is expected to be an array variable!`
+    if (!dap.variableIsGrid(descriptor, this.options.query)) throw new Error(`${this.options.query} is not a grid variable!`)
+    if (!dap.variableIsArray(descriptor, this.options.latitude)) throw new Error(`${this.options.latitude} is expected to be an array variable!`)
+    if (!dap.variableIsArray(descriptor, this.options.longitude)) throw new Error(`${this.options.longitude} is expected to be an array variable!`)
 
     const latIndex = dap.getGridDimensionIndex(descriptor, this.options.query, this.options.latitude)
     const latCount = dap.getGridDimensionLength(descriptor, this.options.query, latIndex)
@@ -59,7 +59,7 @@ export class OpenDapGridSource extends GridSource {
     dimensions[this.options.latitude] = `0:${latCount-1}`
     dimensions[this.options.longitude] = `0:${lonCount-1}`
     const indices = dap.makeGridIndices(descriptor, this.options.query, dimensions)
-    if (indices.length == 0) throw ''
+    if (indices.length === 0) throw new Error('Couldn\'t create index array for grid')
 
     this.descriptor = descriptor
     this.indices = indices
@@ -71,8 +71,8 @@ export class OpenDapGridSource extends GridSource {
     // if lat and lon dimensions are the last in the query, we can
     // use a Grid2D directly (cheaper on cpu)
     const last = this.indices.length - 1
-    if (this.latIndex == last && this.lonIndex == (last - 1) ||
-        this.latIndex == (last - 1) && this.lonIndex == last) {
+    if ((this.latIndex === last && this.lonIndex === (last - 1)) ||
+        (this.latIndex === (last - 1) && this.lonIndex === last)) {
       this.canUseGrid2D = true
     }
 
@@ -138,12 +138,12 @@ export class OpenDapGridSource extends GridSource {
     iMaxLat = Math.min(Math.max(iMaxLat, 0), this.latCount - 1)
     iMaxLon = Math.min(Math.max(iMaxLon, 0), this.lonCount - 1)
 
-    if (this.latSortOrder == SortOrder.DESCENDING) {
+    if (this.latSortOrder === SortOrder.DESCENDING) {
       const tmp = iMinLat
       iMinLat = this.latCount - 1 - iMaxLat
       iMaxLat = this.latCount - 1 - tmp
     }
-    if (this.lonSortOrder == SortOrder.DESCENDING) {
+    if (this.lonSortOrder === SortOrder.DESCENDING) {
       const tmp = iMinLon
       iMinLon = this.lonCount - 1 - iMaxLon
       iMaxLon = this.lonCount - 1 - tmp
