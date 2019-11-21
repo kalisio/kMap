@@ -1,6 +1,5 @@
 import * as GeoTIFF from 'geotiff'
 import { makeFetchSource } from 'geotiff/dist/source.js'
-import moment from 'moment'
 import aws4 from 'aws4'
 import fetch from 'node-fetch'
 import { SortOrder, GridSource, Grid1D } from './grid'
@@ -158,7 +157,7 @@ export class GeoTiffGridSource extends GridSource {
             for (let band = 0; band < data.length && hasData === false; ++band) {
                 const bandData = data[band]
                 for (let i = 0; i < bandData.length && hasData === false; ++i) {
-                    if (bandData[i] != this.options.nodata)
+                    if (bandData[i] !== this.options.nodata)
                         hasData = true
                 }
             }

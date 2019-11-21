@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 export const SortOrder = {
     ASCENDING  : 0,
     DESCENDING : 1
@@ -39,7 +41,7 @@ export class BaseGrid {
     }
 
     getIndices (lat, lon) {
-        if (lat < this.bbox[0] || lat > this.bbox[2] || lon < this.bbox[1] || lon > this.bbox[2])
+        if (lat < this.bbox[0] || lat > this.bbox[2] || lon < this.bbox[1] || lon > this.bbox[2])
             return null
 
         const ilat = (lat - this.bbox[0]) / this.resolution[0]
