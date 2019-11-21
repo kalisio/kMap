@@ -1,5 +1,7 @@
 import fetch from 'node-fetch'
 import jsdap from 'jsdap'
+import parser from 'jsdap/src/parser'
+import xdr from 'jsdap/src/xdr'
 import { BaseGrid } from './grid.js'
 
 export const opendapTypes = new Set(['Float32', 'Float64'])
@@ -32,7 +34,7 @@ export async function fetchData(query, abort = null) {
   let byteIndex = 0
   while (byteIndex < view.byteLength) {
     const u8 = view.getUint8(byteIndex)
-    if (u8 == '\n' || u8 == 10) {
+    if (u8 === '\n' || u8 === 10) {
       const str = String.fromCodePoint(
         view.getUint8(byteIndex+1),
         view.getUint8(byteIndex+2),
