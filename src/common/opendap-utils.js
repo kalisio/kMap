@@ -50,6 +50,7 @@ export async function fetchData(query, abort = null) {
     ++byteIndex
   }
 
+  /*eslint new-cap: ["error", { "newIsCap": false }]*/
   const dapvar = new parser.ddsParser(dds).parse()
   return new xdr.dapUnpacker(data.slice(byteIndex+7), dapvar).getValue()
 }
@@ -67,7 +68,7 @@ export function variableIsArray(descriptor, variable) {
     return false;
   if (varDesc.shape === undefined)
     return false;
-  return varDesc.shape.length == 1 && opendapTypes.has(varDesc.type)
+  return varDesc.shape.length === 1 && opendapTypes.has(varDesc.type)
 }
 
 export function getArrayVariableLength(descriptor, variable) {
