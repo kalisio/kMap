@@ -37,7 +37,7 @@ export class BaseGrid {
     }
 
     getValue (ilat, ilon) {
-        throw ''
+        throw new Error('Not implemented')
     }
 
     getIndices (lat, lon) {
@@ -61,15 +61,15 @@ export class GridSource {
     }
 
     getDataBounds () {
-        throw ''
+        throw new Error('Not implemented')
     }
 
     async setup (options) {
-        throw ''
+        throw new Error('Not implemented')
     }
 
     async fetch (abort, bbox, resolution) {
-        throw ''
+        throw new Error('Not implemented')
     }
 }
 
