@@ -62,7 +62,7 @@ export function GetSupportedFormats (coverage) {
     // 1.0.0
     // CoverageDescription / CoverageOffering / supportedFormats
     const root = _.get(coverage, 'CoverageDescription.CoverageOffering[0].supportedFormats[0]', null)
-    const nativ = _.get(root, '$.nativeFormat', null)
+    // const nativ = _.get(root, '$.nativeFormat', null)
     const formats = _.get(root, 'formats')
     // TODO: put native format as first entry
     // MapServer nativeFormat='geotiff' but this is not listed in
@@ -114,11 +114,11 @@ export async function DescribeCoverage (url, coverage) {
 
 export async function GetCoverage (url, coverage, format, bbox, width, height, axisNames) {
     const subsets = [
-        { axis: axisNames[0], low: bbox[0], high: bbox [2] }
+        { axis: axisNames[0], low: bbox[0], high: bbox[2] }
         , { axis: axisNames[1], low: bbox[1], high: bbox[3] } ]
     const scaleSizes = [
         { axis: axisNames[0], size: height }
-        , { axis: axisNames[1], size: width }]
+        , { axis: axisNames[1], size: width } ]
     const query = makeGetCoverageQuery(url, coverage, format, subsets, scaleSizes)
     return fetch(query)
         .then(response => response.blob())
