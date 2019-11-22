@@ -49,6 +49,59 @@ export const toHalf = (function() {
 
 }());
 
+export function buildColorMapFunction (options) {
+    let thresholds = []
+    let colors = []
+    let interpolate = false
+    if (options.domain) {
+        colors = options.colors.slice()
+        if (options.domain.length === options.colors.length) {
+            thresholds = options.domain.slice()
+        } else if (options.domain.length < options.colors.length) {
+            const step = (options.domain[options.domain.length-1] - options.domain[0]) / (options.colors.length - 1)
+            for (let i = 0; i < options.colors.length; ++i) {
+                thresholds.push(options.domain[0] + (i * step))
+            }
+        }
+        interpolate = true
+    } else if (options.classes) {
+        colors = options.colors.slice()
+        thresholds = options.classes.slice()
+        interpolate = false
+    }
+
+    if (options.invertScale) {
+        thresholds = thresholds.reverse()
+        colors = colors.reverse()
+    }
+
+    let code = 'vec4 ColorMap(float value) {\n'
+    if (!interpolate) {
+        for (let i = 0; i < thresholds.length; ++i) {
+            const threshold = thresholds[i]
+            const color = colors[i]
+            code += `  if (value <= float(${threshold})) { return vec4(${color}); }\n`
+        }
+    } else {
+        code += `  if (value < float(${thresholds[0]})) { return vec4(${colors[0].join(',')}); }\n`
+        code += `  if (value > float(${thresholds[thresholds.length-1]})) { return vec4(${colors[colors.length-1].join(',')}); }\n`
+        for (let i = 1; i < thresholds.length; ++i) {
+            const t0 = thresholds[i-1]
+            const t1 = thresholds[i]
+            const dt = t1 - t0
+            const c0 = colors[i-1]
+            const c1 = colors[i]
+            code += `  if (value <= float(${t1})) {
+    float t = (value - float(${t0})) / float(${dt});
+    return mix(vec4(${c0.join(',')}), vec4(${c1.join(',')}), t);
+  }
+`
+        }
+    }
+    code += '}\n'
+    return code
+}
+
 export class ColorMapHook {
     constructor (colormap, attribute) {
         this.colormap = colormap
