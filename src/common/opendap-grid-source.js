@@ -152,12 +152,22 @@ export class OpenDapGridSource extends GridSource {
     }
 
     // compute ideal stride according to requested resolution
-    const resLat = Math.max(1, Math.floor(resolution[0] / this.latStep))
-    const resLon = Math.max(1, Math.floor(resolution[1] / this.lonStep))
+    const strideLat = Math.max(1, Math.floor(resolution[0] / this.latStep))
+    const strideLon = Math.max(1, Math.floor(resolution[1] / this.lonStep))
+
+    // eventually adjust iMLax{Lat,Lon} when using a stride != 1
+    // this ensure we'll get our initial iMin/iMax range no matter
+    // what the stride is
+    if (strideLat > 1) {
+      iMaxLat = Math.min(this.latCount - 1, iMaxLat + strideLat)
+    }
+    if (strideLon > 1) {
+      iMaxLon = Math.min(this.lonCount - 1, iMaxLon + strideLon)
+    }
 
     const indices = [...this.indices]
-    indices[this.latIndex] = `${iMinLat}:${resLat}:${iMaxLat}`
-    indices[this.lonIndex] = `${iMinLon}:${resLon}:${iMaxLon}`
+    indices[this.latIndex] = `${iMinLat}:${strideLat}:${iMaxLat}`
+    indices[this.lonIndex] = `${iMinLon}:${strideLon}:${iMaxLon}`
     return dap.makeGridQuery(this.options.url, this.options.query, indices)
   }
 
