@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import * as PIXI from 'pixi.js'
 
 export const toHalf = (function() {
@@ -49,6 +50,80 @@ export const toHalf = (function() {
 
 }());
 
+export const WEBGL_FUNCTIONS = {
+    latLonToWebMercator: `vec2 latLonToWebMercator(vec3 latLonZoom) {
+  const float d = 3.14159265359 / 180.0;
+  const float maxLat = 85.0511287798;     // max lat using Web Mercator, used by EPSG:3857 CRS
+  const float R = 6378137.0;              // earth radius
+
+  // project
+  // float lat = max(min(maxLat, latLonZoom[0]), -maxLat);
+  float lat = clamp(latLonZoom[0], -maxLat, maxLat);
+  float sla = sin(lat * d);
+  vec2 point = vec2(R * latLonZoom[1] * d, R * log((1.0 + sla) / (1.0 - sla)) / 2.0);
+
+  // scale
+  float scale = 256.0 * pow(2.0, latLonZoom[2]);
+
+  // transform
+  const float s = 0.5 / (3.14159265359 * R);
+  const vec4 abcd = vec4(s, 0.5, -s, 0.5);
+
+  return scale * ((point * abcd.xz) + abcd.yw);
+}`,
+    unpack1: `float unpack1(float v, vec2 offsetScale) {
+  return offsetScale.x + v * offsetScale.y;
+}`,
+    unpack2: `vec2 unpack2(vec2 v, vec4 offsetScale) {
+  return offsetScale.xy + v * offsetScale.zw;
+}`
+}
+
+// define half float vertex webgl type
+PIXI.TYPES.HALF_FLOAT_VERTEX = 0x140b
+
+export function buildShaderCode (features) {
+    let vtxCode = ''
+    let frgCode = ''
+    // attributes, uniforms and varyings
+    vtxCode += '/// attributes, uniforms and varyings\n'
+    frgCode += '/// uniforms and varyings\n'
+    for (const feat of features) {
+        let addVtx = ''
+        let addFrg = ''
+        for (const v of _.get(feat, 'vertex.attributes', [])) addVtx += `attribute ${v};\n`
+        for (const v of _.get(feat, 'vertex.uniforms', [])) addVtx += `uniform ${v};\n`
+        for (const v of _.get(feat, 'fragment.uniforms', [])) addFrg += `uniform ${v};\n`
+        for (const v of _.get(feat, 'varyings', [])) {
+            addVtx += `varying ${v};\n`
+            addFrg += `varying ${v};\n`
+        }
+
+        if (addVtx) vtxCode += `// ${feat.name} ------\n${addVtx}`
+        if (addFrg) frgCode += `// ${feat.name} ------\n${addFrg}`
+    }
+    // additional functions
+    vtxCode += '\n/// additional functions\n'
+    frgCode += '\n/// additional functions\n'
+    for (const feat of features) {
+        for (const v of _.get(feat, 'vertex.functions', [])) vtxCode += `// ${feat.name} ------\n${v}\n`
+        for (const v of _.get(feat, 'fragment.functions', [])) frgCode += `// ${feat.name} ------\n${v}\n`
+    }
+    // main
+    vtxCode += '\n/// vertex shader code\nvoid main()\n{\n'
+    frgCode += '\n/// fragment shader code\nvoid main()\n{\n'
+    for (const feat of features) {
+        const vc = _.get(feat, 'vertex.code')
+        const fc = _.get(feat, 'fragment.code')
+        if (vc) vtxCode += `// ${feat.name} ------\n${vc}\n`
+        if (fc) frgCode += `// ${feat.name} ------\n${fc}\n`
+    }
+    vtxCode += '}'
+    frgCode += '}'
+
+    return [vtxCode, frgCode]
+}
+
 export function buildColorMapFunction (options) {
     let thresholds = []
     let colors = []
@@ -98,7 +173,7 @@ export function buildColorMapFunction (options) {
 `
         }
     }
-    code += '}\n'
+    code += '}'
     return code
 }
 
@@ -212,7 +287,7 @@ export function buildPixiMeshFromGrid(grid, hooks) {
     }
 
     const geometry = new PIXI.Geometry()
-        .addAttribute('position', position, 2, false, 0x140b /*PIXI.TYPES.HALF_FLOAT*/)
+        .addAttribute('in_layerPosition', position, 2, false, PIXI.TYPES.HALF_FLOAT_VERTEX)
         // .addAttribute('position', position, 2)
         .addIndex(index)
 

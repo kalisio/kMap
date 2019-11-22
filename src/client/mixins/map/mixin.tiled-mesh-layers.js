@@ -6,119 +6,7 @@ import 'leaflet-pixi-overlay'
 import AbortController from 'abort-controller'
 
 import { makeGridSource } from '../../../common/grid'
-import { ColorMapHook, RawValueHook, buildPixiMeshFromGrid, buildColorMapFunction } from '../../pixi-utils'
-
-const vtxShaderSrc = `
-  precision mediump float;
-
-  attribute vec2 position;
-#if COLORMAPPED_COLOR
-  attribute vec4 color;
-#elif FILL_COLOR
-  uniform vec4 color;
-#endif
-  uniform mat3 translationMatrix;
-  uniform mat3 projectionMatrix;
-  uniform float zoomLevel;
-  uniform vec4 offsetScale;
-  // uniform vec2 dataOffsetScale;
-  varying vec4 vColor;
-  varying vec2 vLatLon;
-
-#if HAS_NODATA
-  uniform float nodata;
-  varying float vValid;
-#endif
-
-/*#if CUT_OVER || CUT_UNDER*/
-  attribute float value;
-  varying float vValue;
-/*#endif*/
-
-  vec2 LatLonToWebMercator(vec3 latLonZoom) {
-    const float d = 3.14159265359 / 180.0;
-    const float maxLat = 85.0511287798;     // max lat using Web Mercator, used by EPSG:3857 CRS
-    const float R = 6378137.0;              // earth radius
-
-    // project
-    // float lat = max(min(maxLat, latLonZoom[0]), -maxLat);
-    float lat = clamp(latLonZoom[0], -maxLat, maxLat);
-    float sla = sin(lat * d);
-    vec2 point = vec2(R * latLonZoom[1] * d, R * log((1.0 + sla) / (1.0 - sla)) / 2.0);
-
-    // scale
-    float scale = 256.0 * pow(2.0, latLonZoom[2]);
-
-    // transform
-    const float s = 0.5 / (3.14159265359 * R);
-    const vec4 abcd = vec4(s, 0.5, -s, 0.5);
-
-    return scale * ((point * abcd.xz) + abcd.yw);
-  }
-
-  void main() {
-//#if CUT_OVER || CUT_UNDER
-    vValue = value;
-    // vValue = offsetScale.x + value * offsetScale.y;
-// #endif
-
-#if HAS_NODATA
-    vValid = (vValue == nodata ? 0.0 : 1.0);
-#endif
-
-    // vColor = color;
-    vColor = ColorMap(vValue);
-    vLatLon = offsetScale.xy + position.xy * offsetScale.zw;
-    // vLatLon = position.xy;
-    vec2 projected = LatLonToWebMercator(vec3(vLatLon, zoomLevel));
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(projected, 1.0)).xy, 0.0, 1.0);
-  }`
-
-const frgShaderSrc = `
-  precision mediump float;
-
-  varying vec4 vColor;
-  varying vec2 vLatLon;
-  uniform float alpha;
-  uniform vec4 latLonBounds;
-
-#if CUT_OVER || CUT_UNDER
-  varying float vValue;
-#if CUT_OVER
-  uniform float cutOver;
-#endif
-#if CUT_UNDER
-  uniform float cutUnder;
-#endif
-#endif
-
-#if HAS_NODATA
-  varying float vValid;
-#endif
-
-  void main() {
-    bvec4 outside = bvec4(lessThan(vLatLon, latLonBounds.xy), greaterThan(vLatLon, latLonBounds.zw));
-    if (any(outside))
-      discard;
-
-#if HAS_NODATA
-    if (vValid != 1.0)
-      discard;
-#endif
-
-#if CUT_OVER
-    if (vValue > cutOver)
-      discard;
-#endif
-
-#if CUT_UNDER
-    if (vValue < cutUnder)
-      discard;
-#endif
-
-    gl_FragColor.rgb = vColor.rgb * alpha;
-    gl_FragColor.a = alpha;
-  }`
+import { ColorMapHook, RawValueHook, buildPixiMeshFromGrid, buildColorMapFunction, buildShaderCode, WEBGL_FUNCTIONS } from '../../pixi-utils'
 
 // TODO
 // figure out initialZoom stuff
@@ -132,7 +20,6 @@ const TiledMeshLayer = L.GridLayer.extend({
         this.options.render = {
             cutOver: options.cutOver,
             cutUnder: options.cutUnder,
-            fillColor: options.fillColor
         }
         // keep debug options
         this.options.debug = {
@@ -149,7 +36,7 @@ const TiledMeshLayer = L.GridLayer.extend({
             utils => this.renderPixiLayer(utils),
             this.pixiRoot,
             { destroyInteractionManager: true, shouldRedrawOnMove: function () { return true } })
-        this.layerUniforms = new PIXI.UniformGroup({ alpha: options.opacity, zoomLevel: 1.0 })
+        this.layerUniforms = new PIXI.UniformGroup({ in_layerAlpha: options.opacity, in_zoomLevel: 1.0 })
         this.pixiState = new PIXI.State()
         this.pixiState.culling = true
         this.pixiState.blendMode = PIXI.BLEND_MODES.SCREEN
@@ -159,21 +46,18 @@ const TiledMeshLayer = L.GridLayer.extend({
         if (options.cutOver) {
             this.layerUniforms.uniforms.cutOver = 0.0
             if (typeof options.cutOver === 'string') {
-                this.cutValueUniform = 'cutOver'
+                this.cutValueUniform = 'in_cutOver'
             } else {
-                this.layerUniforms.uniforms.cutOver = options.cutOver
+                this.layerUniforms.uniforms.in_cutOver = options.cutOver
             }
         }
         if (options.cutUnder) {
             this.layerUniforms.uniforms.cutUnder = 0.0
             if (typeof options.cutUnder === 'string') {
-                this.cutValueUniform = 'cutUnder'
+                this.cutValueUniform = 'in_cutUnder'
             } else {
-                this.layerUniforms.uniforms.cutUnder = options.cutUnder
+                this.layerUniforms.uniforms.in_cutUnder = options.cutUnder
             }
-        }
-        if (options.fillColor) {
-            this.layerUniforms.uniforms.color = Float32Array.from(options.fillColor)
         }
 
         // register event callbacks
@@ -237,7 +121,7 @@ const TiledMeshLayer = L.GridLayer.extend({
                 tile.fetchController = null
                 if (grid && grid.hasData()) {
                     // build mesh
-                    const raw = new RawValueHook('value')
+                    const raw = new RawValueHook('in_layerValue')
                     const geometry = buildPixiMeshFromGrid(grid, [ raw ])
 
                     // compute tile specific uniforms
@@ -247,12 +131,12 @@ const TiledMeshLayer = L.GridLayer.extend({
                         dataBBox[2] - dataBBox[0], dataBBox[3] - dataBBox[1]
                     ]
                     const uniforms = {
-                        latLonBounds: Float32Array.from(reqBBox),
-                        offsetScale: Float32Array.from(offsetScale),
+                        in_layerBounds: Float32Array.from(reqBBox),
+                        in_layerOffsetScale: Float32Array.from(offsetScale),
                         layerUniforms: this.layerUniforms
                     }
                     if (grid.nodata !== undefined)
-                        uniforms.nodata = grid.nodata
+                        uniforms.in_nodata = grid.nodata
 
                     const shader = new PIXI.Shader(this.program, uniforms)
                     const mode = this.options.debug.meshAsPoints ? PIXI.DRAW_MODES.POINTS : PIXI.DRAW_MODES.TRIANGLE_STRIP
@@ -388,15 +272,6 @@ const TiledMeshLayer = L.GridLayer.extend({
     },
 
     updateShader () {
-        // build shader code corresponding to enabled options
-        let defines = `
-#define CUT_OVER  ${this.options.render.cutOver ? '1' : '0'}
-#define CUT_UNDER ${this.options.render.cutUnder ? '1': '0'}
-#define FILL_COLOR ${this.options.render.fillColor ? '1' : '0'}
-#define COLORMAPPED_COLOR ${this.options.render.fillColor ? '0' : '1'}
-#define HAS_NODATA ${this.gridSource.supportsNoData() ? '1' : '0'}
-`
-
         let colorMapCode
         const domain = _.get(this.options.chromajs, 'domain')
         const classes = _.get(this.options.chromajs, 'classes')
@@ -416,8 +291,84 @@ const TiledMeshLayer = L.GridLayer.extend({
             colorMapCode = buildColorMapFunction(options)
         }
 
-        const vtxCode = defines + colorMapCode + vtxShaderSrc
-        const frgCode = defines + frgShaderSrc
+        let features = [
+            {
+                name: 'layerPosition',
+                varyings: [ 'vec2 frg_layerPosition' ],
+                vertex: {
+                    attributes: [ 'vec2 in_layerPosition' ],
+                    uniforms: [ 'mat3 translationMatrix', 'mat3 projectionMatrix', 'float in_zoomLevel', 'vec4 in_layerOffsetScale' ],
+                    functions: [ WEBGL_FUNCTIONS.latLonToWebMercator, WEBGL_FUNCTIONS.unpack2 ],
+                    code: `  frg_layerPosition = unpack2(in_layerPosition, in_layerOffsetScale);
+  vec2 projected = latLonToWebMercator(vec3(frg_layerPosition, in_zoomLevel));
+  gl_Position = vec4((projectionMatrix * translationMatrix * vec3(projected, 1.0)).xy, 0.0, 1.0);`
+                },
+                fragment: {
+                    uniforms: [ 'vec4 in_layerBounds' ],
+                    code: `  bvec4 outside = bvec4(lessThan(frg_layerPosition, in_layerBounds.xy), greaterThan(frg_layerPosition, in_layerBounds.zw));
+  if (any(outside))
+    discard;`
+                }
+            },
+            {
+                name: 'layerValue',
+                varyings: [ 'float frg_layerValue' ],
+                vertex: {
+                    attributes: [ 'float in_layerValue' ],
+                    code: '  frg_layerValue = in_layerValue;'
+                }
+            }
+        ]
+
+        if (this.options.render.cutOver) {
+            features.push({
+                name: 'cutOver',
+                fragment: {
+                    uniforms: [ 'float in_cutOver' ],
+                    code: '  if (frg_layerValue > in_cutOver) discard;'
+                }
+            })
+        }
+        if (this.options.render.cutUnder) {
+            features.push({
+                name: 'cutUnder',
+                fragment: {
+                    uniforms: [ 'float in_cutUnder' ],
+                    code: '  if (frg_layerValue < in_cutUnder) discard;'
+                }
+            })
+        }
+        if (this.gridSource.supportsNoData()) {
+            features.push({
+                name: 'nodata',
+                varyings: [ 'float frg_validValue' ],
+                vertex: {
+                    uniforms: [ 'float in_nodata' ],
+                    code: '  frg_validValue = (in_layerValue == in_nodata ? 0.0 : 1.0);'
+                },
+                fragment: {
+                    code: '  if (frg_validValue != 1.0) discard;'
+                }
+            })
+        }
+
+        features.push({
+            name: 'colormap',
+            fragment: {
+                functions: [ colorMapCode ],
+                code: '  vec4 color = ColorMap(frg_layerValue);'
+            }
+        })
+        features.push({
+            name: 'tail',
+            fragment: {
+                uniforms: [ 'float in_layerAlpha' ],
+                code: `  gl_FragColor.rgb = color.rgb * in_layerAlpha;
+  gl_FragColor.a = in_layerAlpha;`
+            }
+        })
+
+        const [ vtxCode, frgCode ] = buildShaderCode(features)
         this.program = new PIXI.Program(vtxCode, frgCode)
 
         if (this.options.debug.showShader) {
@@ -429,7 +380,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     },
 
     renderPixiLayer (utils) {
-        this.layerUniforms.uniforms.zoomLevel = this.pixiLayer._initialZoom
+        this.layerUniforms.uniforms.in_zoomLevel = this.pixiLayer._initialZoom
         const renderer = utils.getRenderer()
         renderer.render(this.pixiRoot)
     },
