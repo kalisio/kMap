@@ -72,7 +72,7 @@ export class GeoTiffGridSource extends GridSource {
     }
 
     async setup (options) {
-        this.options = options
+        this.nodata = options.nodata
         this.usable = false
 
         this.minMaxLat = null
@@ -85,45 +85,16 @@ export class GeoTiffGridSource extends GridSource {
         // for now only consider first image
         // const count = await this.geotiff.getImageCount()
         const image = await this.geotiff.getImage()
+        if (this.nodata === undefined) {
+            // try to get it from image metadata
+            // const meta = image.getGDALMetadata()
+            const meta = image.getFileDirectory()
+            this.nodata = parseFloat(meta.GDAL_NODATA)
+        }
 
         const tiffBbox = image.getBoundingBox()
         this.minMaxLat = [ tiffBbox[1], tiffBbox[3] ]
         this.minMaxLon = [ tiffBbox[0], tiffBbox[2] ]
-
-        /*
-        if (this.minMaxLon[0] > 180 || this.minMaxLon[1] > 180) {
-            // this translates an input bbox with longitude [-180, 180]
-            // to a bbox with longitude expressed as required for the source geotiff
-            this.translateFetchBbox = function (bbox) {
-                const tiffMinLon = tiffBbox[0]
-                const tiffMaxLon = tiffBbox[2]
-                let reqMinLon = bbox[0]
-                const reqMinLat = bbox[1]
-                let reqMaxLon = bbox[2]
-                const reqMaxLat = bbox[3]
-
-                if (reqMinLon < tiffMinLon) reqMinLon += 360.0
-                if (reqMinLon > tiffMaxLon) reqMinLon -= 360.0
-                if (reqMaxLon < tiffMinLon) reqMaxLon += 360.0
-                if (reqMaxLon > tiffMaxLon) reqMaxLon -= 360.0
-
-                return [ reqMinLon, reqMinLat, reqMaxLon, reqMaxLat ]
-            }
-
-            let minLon = this.minMaxLon[0]
-            let maxLon = this.minMaxLon[1]
-            if (minLon > 180) minLon -= 360
-            if (maxLon > 180) maxLon -= 360
-            this.minMaxLon[0] = Math.min(minLon, maxLon)
-            this.minMaxLon[1] = Math.max(minLon, maxLon)
-        } else {
-            this.translateFetchBbox = null
-        }
-
-        if (this.minMaxLon[0] === this.minMaxLon[1]) {
-            this.minMaxLon = [-180.0, 180.0]
-        }
-        */
 
         this.usable = true
     }
@@ -140,31 +111,14 @@ export class GeoTiffGridSource extends GridSource {
         const height = Math.trunc((bbox[2] - bbox[0]) / resolution[0])
 
         let fetchBbox = [reqMinLon, reqMinLat, reqMaxLon, reqMaxLat]
-        if (this.translateFetchBbox) {
-            fetchBbox = this.translateFetchBbox(fetchBbox)
-        }
-
         const data = await this.geotiff.readRasters({
             bbox: fetchBbox,
             // interleave: true,
             width: width,
             height: height,
-            fillValue: this.options.nodata
+            fillValue: this.nodata
         })
 
-        if (this.options.nodata !== undefined) {
-            let hasData = false
-            for (let band = 0; band < data.length && hasData === false; ++band) {
-                const bandData = data[band]
-                for (let i = 0; i < bandData.length && hasData === false; ++i) {
-                    if (bandData[i] !== this.options.nodata)
-                        hasData = true
-                }
-            }
-            if (!hasData)
-                return null
-        }
-
-        return new Grid1D(bbox, [height, width], data[0], true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+        return new Grid1D(bbox, [height, width], data[0], true, SortOrder.DESCENDING, SortOrder.ASCENDING, this.nodata)
     }
 }

@@ -10,10 +10,11 @@ export const gridSourceFactories = {  }
 // Base 2d grid class
 // TODO: add interpolate/bilinearInterpolate and other missing stuff from weacast grid
 export class BaseGrid {
-    constructor (bbox, dimensions) {
+    constructor (bbox, dimensions, nodata = undefined) {
         this.bbox = bbox
         this.dimensions = dimensions
         this.resolution = [(bbox[2] - bbox[0]) / (dimensions[0] - 1), (bbox[3] - bbox[1]) / (dimensions[1] - 1)]
+        this.nodata = nodata
     }
 
     getDimensions () {
@@ -26,6 +27,52 @@ export class BaseGrid {
 
     getBBox () {
         return this.bbox
+    }
+
+    hasData () {
+        for (let ilat = 0; ilat < this.dimensions[0]; ++ilat) {
+            for (let ilon = 0; ilon < this.dimensions[1]; ++ilon) {
+                const value = this.getValue(ilat, ilon)
+                if (value !== this.nodata)
+                    return true
+            }
+        }
+
+        return false
+    }
+
+    getDataBounds () {
+        // if already computed, return
+        if (this.dataBounds)
+            return this.dataBounds
+
+        // find initial value (!= nodata)
+        let ilat = 0
+        let ilon = 0
+        let minVal, maxVal = undefined
+        for (; ilat < this.dimensions[0] && maxVal === undefined; ++ilat) {
+            for (; ilon < this.dimensions[1] && maxVal === undefined; ++ilon) {
+                const value = this.getValue(ilat, ilon)
+                if (value === this.nodata)
+                    continue
+                minVal = maxVal = value
+            }
+        }
+
+        // scan through data set
+        for (; ilat < this.dimensions[0]; ++ilat) {
+            for (; ilon < this.dimensions[1]; ++ilon) {
+                const value = this.getValue(ilat, ilon)
+                if (value === this.nodata)
+                    continue
+
+                minVal = Math.min(minVal, value)
+                maxVal = Math.max(maxVal, value)
+            }
+        }
+
+        this.dataBounds = [ minVal, maxVal ]
+        return this.dataBounds
     }
 
     getLat (ilat) {
@@ -58,6 +105,10 @@ export class GridSource {
 
     getDataBounds () {
         throw new Error('Not implemented')
+    }
+
+    supportsNoData () {
+        return this.nodata !== undefined
     }
 
     async setup (options) {
@@ -100,8 +151,8 @@ const grid1DAccessFunctions = [
 ]
 
 export class Grid1D extends BaseGrid {
-    constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder) {
-        super(bbox, dimensions)
+    constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder, nodata = undefined) {
+        super(bbox, dimensions, nodata)
 
         this.data = data
 
@@ -136,8 +187,8 @@ const grid2DAccessFunctions = [
 ]
 
 export class Grid2D extends BaseGrid {
-    constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder) {
-        super(bbox, dimensions)
+    constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder, nodata = undefined) {
+        super(bbox, dimensions, nodata)
         this.data = data
 
         const index = lonSortOrder + (latSortOrder * 2) + ((latFirst ? 1 : 0) * 4)
