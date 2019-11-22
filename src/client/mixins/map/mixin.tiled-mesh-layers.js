@@ -351,7 +351,6 @@ const TiledMeshLayer = L.GridLayer.extend({
                 }
             })
         }
-
         features.push({
             name: 'colormap',
             fragment: {
@@ -359,6 +358,19 @@ const TiledMeshLayer = L.GridLayer.extend({
                 code: '  vec4 color = ColorMap(frg_layerValue);'
             }
         })
+        /*
+        features.push({
+            name: 'colormap',
+            varyings: [ 'vec4 frg_color' ],
+            vertex: {
+                functions: [ colorMapCode ],
+                code: '  frg_color = ColorMap(frg_layerValue);'
+            },
+            fragment: {
+                code: '  vec4 color = frg_color;'
+            }
+        })
+        */
         features.push({
             name: 'tail',
             fragment: {
