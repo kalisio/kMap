@@ -10,12 +10,15 @@ export default {
     }
   },
   methods: {
-    setSelectableLevels (layer, levels, initialLevel) {
-      this.selectedLevel = initialLevel
+    setSelectableLevels (layer, levels, initialLevel = undefined) {
       this.selectableLevels = levels
       this.selectableLevelsLayer = layer
-      this.$emit('selected-level-changed', this.selectedLevel)
-      // this.slider.setLevel(this.selectedLevel)
+      if (initialLevel === undefined) {
+        initialLevel = _.get(levels, 'values[0]')
+        if (initialLevel === undefined)
+          initialLevel = _.get(levels, 'range.min')
+      }
+      this.setLevel(initialLevel)
     },
     clearSelectableLevels (layer) {
       if (this.selectableLevelsLayer && (this.selectableLevelsLayer._id === layer._id)) {
@@ -23,6 +26,10 @@ export default {
         this.selectableLevels = {}
         this.selectableLevelsLayer = null
       }
+    },
+    setLevel (level) {
+      this.selectedLevel = level
+      this.$emit('selected-level-changed', level)
     }
   }
 }

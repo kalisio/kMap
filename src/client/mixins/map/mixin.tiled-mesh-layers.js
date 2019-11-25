@@ -402,10 +402,9 @@ export default {
             // layer being shown, display slider if 'levels' are present
             if (engineLayer instanceof TiledMeshLayer) {
                 const levels = _.get(layer, 'levels')
-                if (!levels || !levels.values || _.isEmpty(levels.values))
-                    return
-
-                this.setSelectableLevels(layer, levels, levels.values[0])
+                if (levels) {
+                    this.setSelectableLevels(layer, levels)
+                }
             }
         },
 

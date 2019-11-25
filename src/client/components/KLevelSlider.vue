@@ -9,8 +9,8 @@
       :marks="true"
       :hide-label="true"
       :data="sliderValues"
-      :min="sliderMin"
-      :max="sliderMax"
+      :min="sliderMinValue"
+      :max="sliderMaxValue"
       :interval="sliderInterval"
       :tooltip="'focus'"
       :tooltip-formatter="getFormatedLevel"
@@ -35,11 +35,9 @@ export default {
   },
   computed: {
     isVisible () {
-      // visible wether there are predefined values
-      // OR if there are min/max values defined
-      if (this.sliderValues) return this.sliderValues.length > 0
-      if ((this.sliderMin !== undefined) && (this.sliderMax !== undefined)) return true
-      return false
+      if (this.sliderValues)
+        return this.sliderValues.length > 0
+      return this.sliderMinValue !== undefined && this.sliderMaxValue !== undefined
     },
     isLazy () {
       // lazy by default
@@ -48,24 +46,19 @@ export default {
     sliderValues () {
       return _.get(this.kActivity.selectableLevels, 'values')
     },
-    sliderMin () {
+    sliderMinValue () {
       return _.get(this.kActivity.selectableLevels, 'range.min')
     },
-    sliderMax () {
+    sliderMaxValue () {
       return _.get(this.kActivity.selectableLevels, 'range.max')
     },
     sliderInterval () {
-      // default interval is 1
       return _.get(this.kActivity.selectableLevels, 'range.interval', 1)
     }
   },
   methods: {
-    setLevel (value) {
-      this.kActivity.selectedLevel = value
-      this.kActivity.$emit('selected-level-changed', this.kActivity.selectedLevel)
-    },
     onLevelChanged (level) {
-      this.setLevel(level)
+      this.kActivity.setLevel(level)
     },
     getFormatedLevel (level) {
       const unit = _.get(this.kActivity.selectableLevels, 'units[0]')
