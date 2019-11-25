@@ -403,14 +403,18 @@ export default {
             if (engineLayer instanceof TiledMeshLayer) {
                 const levels = _.get(layer, 'levels')
                 if (levels) {
+                    this.$on('selected-level-changed', this.setCutValue)
                     this.setSelectableLevels(layer, levels)
                 }
+
             }
         },
 
         onHideTiledMeshLayer (layer) {
             // layer being hidden, hide slider if any was required
-            this.clearSelectableLevels(layer)
+            if (this.clearSelectableLevels(layer)) {
+                this.$off('selected-level-changed', this.setCutValue)
+            }
         }
     },
 
@@ -418,12 +422,10 @@ export default {
         this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
         this.$on('layer-shown', this.onShowTiledMeshLayer)
         this.$on('layer-hidden', this.onHideTiledMeshLayer)
-        this.$on('selected-level-changed', this.setCutValue)
     },
 
   beforeDestroy () {
         this.$off('layer-shown', this.onShowTiledMeshLayer)
         this.$off('layer-hidden', this.onHideTiledMeshLayer)
-        this.$off('selected-level-changed', this.setCutValue)
     }
 }

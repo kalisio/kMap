@@ -25,7 +25,12 @@ export default {
         this.selectedLevel = 0
         this.selectableLevels = {}
         this.selectableLevelsLayer = null
+        // level slider was associated with given layer
+        return true
       }
+
+      // level slider wasn't associated with given layer
+      return false
     },
     setLevel (level) {
       this.selectedLevel = level

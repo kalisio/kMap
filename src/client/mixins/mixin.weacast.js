@@ -242,16 +242,18 @@ export default {
       // Check for valid types
       if (engineLayer instanceof L.weacast.ForecastLayer) {
         const levels = _.get(layer, 'levels')
-        if (!levels || !levels.values || _.isEmpty(levels.values)) {
+        if (!levels) {
           this.setForecastLevel(0)
           return
         }
-        // Select first available level by default
-        this.setSelectableLevels(layer, levels, levels.values[0])
+        this.setSelectableLevels(layer, levels)
+        this.$on('selected-level-changed', this.setForecastLevel)
       }
     },
     onWeacastHideLayer (layer) {
-      this.clearSelectableLevels(layer)
+      if (this.clearSelectableLevels(layer)) {
+        this.$off('selected-level-changed', this.setForecastLevel)
+      }
     }
   },
   created () {
