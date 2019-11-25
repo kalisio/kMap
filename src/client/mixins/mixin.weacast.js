@@ -9,14 +9,7 @@ export default {
   data () {
     return {
       forecastModel: null,
-      forecastModels: [],
-      forecastLevel: 0,
-      forecastLevels: {}
-    }
-  },
-  computed: {
-    hasForecastLevels () {
-      return _.get(this.forecastLevels, 'values', []).length > 0
+      forecastModels: []
     }
   },
   methods: {
@@ -74,10 +67,6 @@ export default {
     setForecastLevel (level) {
       this.forecastLevel = level
       this.$emit('forecast-level-changed', this.forecastLevel)
-    },
-    getFormatedForecastLevel (level) {
-      const unit = _.get(this.forecastLevels, 'units[0]')
-      return `${level || this.forecastLevel} ${unit}`
     },
     async getForecastForLocation (long, lat, startTime, endTime) {
       // Not yet ready
@@ -253,21 +242,17 @@ export default {
       // Check for valid types
       if (engineLayer instanceof L.weacast.ForecastLayer) {
         const levels = _.get(layer, 'levels')
-        if (!levels || !levels.values || _.isEmpty(levels.values)) {
+        if (!levels) {
           this.setForecastLevel(0)
           return
         }
-        this.forecastLevels = levels
-        this.forecastLevelsLayer = layer
-        // Select first available level by default
-        this.setForecastLevel(levels.values[0])
+        this.setSelectableLevels(layer, levels)
+        this.$on('selected-level-changed', this.setForecastLevel)
       }
     },
     onWeacastHideLayer (layer) {
-      if (this.forecastLevelsLayer && (this.forecastLevelsLayer._id === layer._id)) {
-        this.forecastLevels = []
-        this.forecastLevelsLayer = null
-        this.forecastLevel = 0
+      if (this.clearSelectableLevels(layer)) {
+        this.$off('selected-level-changed', this.setForecastLevel)
       }
     }
   },
