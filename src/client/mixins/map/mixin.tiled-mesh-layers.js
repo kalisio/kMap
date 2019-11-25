@@ -437,7 +437,6 @@ export default {
             if (engineLayer instanceof TiledMeshLayer) {
                 this.currentTiledMeshLayer = engineLayer
             }
-            /*
             // layer being shown, display slider if 'levels' are present
             if (engineLayer instanceof TiledMeshLayer) {
                 const levels = _.get(layer, 'levels')
@@ -447,7 +446,6 @@ export default {
                 }
 
             }
-            */
         },
 
         onHideTiledMeshLayer (layer) {
