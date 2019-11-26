@@ -389,24 +389,23 @@ export default {
             const geotiff = _.get(options, 'geotiff', null)
             if (geotiff) Object.assign(leafletOptions, { geotiff: geotiff })
 
-            this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
-            return this.tiledMeshLayer
+            return new TiledMeshLayer(leafletOptions)
         },
 
         setCutValue (value) {
-            if (this.tiledMeshLayer)
-                this.tiledMeshLayer.setCutValue(value)
+            if (this.currentTiledMeshLayer)
+                this.currentTiledMeshLayer.setCutValue(value)
         },
 
         onShowTiledMeshLayer (layer, engineLayer) {
             // layer being shown, display slider if 'levels' are present
             if (engineLayer instanceof TiledMeshLayer) {
+                this.currentTiledMeshLayer = engineLayer
                 const levels = _.get(layer, 'levels')
                 if (levels) {
                     this.$on('selected-level-changed', this.setCutValue)
                     this.setSelectableLevels(layer, levels)
                 }
-
             }
         },
 
