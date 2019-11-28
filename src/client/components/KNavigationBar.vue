@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isVisible" class="row items-center k-navigation-bar no-wrap" :style="navBarStyle()">
+  <div v-if="isVisible" class="row items-center k-navigation-bar no-wrap">
     <!--
       Before section
     -->
@@ -10,18 +10,18 @@
       The location input
     -->
     <template v-if="hasLocationInput">
-      <q-btn v-if="(mode === 'searchbar')" icon="arrow_back" color="primary" round flat @click="mode='toolbar'" >
+      <q-btn v-if="(mode === 'searchbar')" icon="arrow_back" color="primary" round flat @click="mode = 'toolbar'" >
         <q-tooltip>{{ $t('KNavigationBar.BACK') }}</q-tooltip>
       </q-btn>
       <k-location-input
-        :class="(mode === 'searchbar' || !$q.screen.lt.md) ? 'full-width q-pr-sm' : ''"
-        :user="mode === 'toolbar'"
+        :class="(mode === 'searchbar') ? 'full-width q-pr-sm' : ''"
+        :user="(mode === 'toolbar')"
         :map="null"
-        :search="(mode === 'searchbar') || (mode === 'toolbar' && !$q.screen.lt.md)"
+        :search="(mode === 'searchbar')"
         :dense="true"
         :style=""
         @input="onLocationChanged" />
-      <q-btn v-if="(mode === 'toolbar') && $q.screen.lt.md" icon="search" color="primary" round flat @click="mode='searchbar'" >
+      <q-btn v-if="(mode === 'toolbar')" icon="search" color="primary" round flat @click="mode = 'searchbar'" >
         <q-tooltip>{{ $t('KNavigationBar.SEARCH') }}</q-tooltip>
       </q-btn>
     </template>
@@ -53,10 +53,6 @@ export default {
     isVisible () { return this.hasBeforeActions || this.hasAfterActions || this.hasLocationInput }
   },
   methods: {
-    navBarStyle () {
-      if (this.$q.screen.lt.md) return ''
-      else return 'width: 80vw'
-    },
     onLocationChanged (location) {
       if (location) this.kActivity.center(location.longitude, location.latitude)
     }

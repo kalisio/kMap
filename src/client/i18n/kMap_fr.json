@@ -42,6 +42,8 @@
       "TOGGLE_SIDENAV": "Menu",
       "TOGGLE_FULLSCREEN": "Plein écran",
       "TOGGLE_CATALOG": "Catalogue",
+      "TOGGLE_MAP": "2D",
+      "TOGGLE_GLOBE": "3D",
       "TOGGLE_VR": "VR",
       "TRACK_LOCATION": "Suivi de coordonnées",
       "PROBE": "Sonder"

@@ -66,9 +66,12 @@ export default function (name) {
         }
         // Nav bar
         let defaultTools = ['side-nav', 'zoom', 'track-location', 'location-bar', 'fullscreen', 'catalog']
-        if (this.engine === 'cesium') defaultTools = defaultTools.concat(['vr'])
+        if (this.engine === 'cesium') defaultTools = defaultTools.concat(['globe', 'vr'])
+        else defaultTools = defaultTools.concat(['map'])
         const tools = _.get(this, 'activityOptions.tools', defaultTools)
         const hasSideNavTool = tools.includes('side-nav')
+        const hasMapTool = tools.includes('map')
+        const hasGlobeTool = tools.includes('globe')
         const hasVrTool = tools.includes('vr')
         const hasFullscreenTool = (typeof this.onToggleFullscreen === 'function') && tools.includes('fullscreen')
         const hasZoomTool = tools.includes('zoom')
@@ -100,9 +103,19 @@ export default function (name) {
           })
         }
         const afterActions = []
+        if (hasMapTool) {
+          afterActions.push({
+            name: 'map-toggle', label: this.$t('mixins.activity.TOGGLE_MAP'), icon: 'map', route: { name: 'map', query: true }
+          })
+        }
+        if (hasGlobeTool) {
+          afterActions.push({
+            name: 'globe-toggle', label: this.$t('mixins.activity.TOGGLE_GLOBE'), icon: 'terrain', route: { name: 'globe', query: true }
+          })
+        }
         if (hasVrTool) {
           afterActions.push({
-            name: 'vr-toggle', label: this.$t('mixins.activity.TOGGLE_VR'), icon: 'terrain', handler: this.onToggleVr
+            name: 'vr-toggle', label: this.$t('mixins.activity.TOGGLE_VR'), icon: 'burst_mode', handler: this.onToggleVr
           })
         }
         if (hasFullscreenTool) {

@@ -1,5 +1,5 @@
 <template>
-  <div class="column items-center fixed-bottom" style="bottom: 32px" >
+  <div class="column items-center fixed-top" style="top: 64px" >
     <q-chip color="secondary" text-color="white" removable @remove="onRemove()">
       {{ currentFormattedLocation }}
     </q-chip>
