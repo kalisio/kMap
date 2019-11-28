@@ -18,7 +18,7 @@ export default {
         if (initialLevel === undefined)
           initialLevel = _.get(levels, 'range.min')
       }
-      this.setLevel(initialLevel)
+      this.setSelectedLevel(initialLevel)
     },
     clearSelectableLevels (layer) {
       if (this.selectableLevelsLayer && (this.selectableLevelsLayer._id === layer._id)) {
@@ -32,7 +32,7 @@ export default {
       // level slider wasn't associated with given layer
       return false
     },
-    setLevel (level) {
+    setSelectedLevel (level) {
       this.selectedLevel = level
       this.$emit('selected-level-changed', level)
     }
