@@ -64,7 +64,10 @@ export class WcsGridSource extends GridSource {
         const wcsbbox = [reqMinLon, reqMinLat, reqMaxLon, reqMaxLat]
 
         const image = await wcs.GetCoverage(abort, this.options.url, this.options.coverage, this.queryFormat, wcsbbox, width, height)
-              .then(blob => GeoTIFF.fromBlob(blob))
+        // geotiff.js will try to use a FileReader to read from the blob
+        // this class doesn't exist in node.js so we use fromArrayBuffer
+              .then(blob => blob.arrayBuffer())
+              .then(buffer => GeoTIFF.fromArrayBuffer(buffer))
               .then(tiff => tiff.getImage())
         const data = image.readRasters()
         const databbox = image.getBoundingBox()

@@ -13,9 +13,10 @@ export function makeDescribeCoverageQuery(url, coverage) {
 }
 
 export function makeGetCoverageQuery (url, coverage, format, bbox, width, height) {
-    return `${url}?SERVICE=WCS&VERSION=1.0.0&
-REQUEST=GetCoverage&COVERAGE=${coverage}&
-CRS=EPSG:4326&BBOX=${bbox.join(',')}&WIDTH=${width}&HEIGHT=${height}&FORMAT=${format}`
+    let q = `${url}?SERVICE=WCS&VERSION=1.0.0&`
+    q += `REQUEST=GetCoverage&COVERAGE=${coverage}&`
+    q += `CRS=EPSG:4326&BBOX=${bbox.join(',')}&WIDTH=${width}&HEIGHT=${height}&FORMAT=${format}`
+    return q
 }
 
 export async function GetCapabilities (url) {

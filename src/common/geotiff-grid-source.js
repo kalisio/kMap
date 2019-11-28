@@ -1,5 +1,5 @@
 import * as GeoTIFF from 'geotiff'
-import { makeFetchSource } from 'geotiff/dist/source.js'
+import { makeRemoteSource } from 'geotiff/dist/source.js'
 import aws4 from 'aws4'
 import fetch from 'node-fetch'
 import { SortOrder, GridSource, Grid1D } from './grid'
@@ -44,7 +44,7 @@ function fetchFromS3 (url) {
 }
 
 function makeSource(options) {
-    const source = makeFetchSource(options.url)
+    const source = makeRemoteSource(options.url, {})
     if (options.s3) {
         source.retrievalFunction = fetchFromS3(options.url)
     }
