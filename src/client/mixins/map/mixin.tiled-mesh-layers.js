@@ -136,7 +136,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         this.cutValueUniform = null
         if (options.cutOver) {
             this.layerUniforms.uniforms.cutOver = 0.0
-            if (typeof options.cutOver === 'string') {
+            if (options.cutOver === 'levels') {
                 this.cutValueUniform = 'cutOver'
             } else {
                 this.layerUniforms.uniforms.cutOver = options.cutOver
@@ -144,7 +144,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
         if (options.cutUnder) {
             this.layerUniforms.uniforms.cutUnder = 0.0
-            if (typeof options.cutUnder === 'string') {
+            if (options.cutUnder === 'levels') {
                 this.cutValueUniform = 'cutUnder'
             } else {
                 this.layerUniforms.uniforms.cutUnder = options.cutUnder
@@ -389,49 +389,42 @@ export default {
             const geotiff = _.get(options, 'geotiff', null)
             if (geotiff) Object.assign(leafletOptions, { geotiff: geotiff })
 
-            this.tiledMeshLayer = new TiledMeshLayer(leafletOptions)
-            return this.tiledMeshLayer
+            return new TiledMeshLayer(leafletOptions)
         },
 
         setCutValue (value) {
-            if (this.tiledMeshLayer)
-                this.tiledMeshLayer.setCutValue(value)
+            if (this.currentTiledMeshLayer)
+                this.currentTiledMeshLayer.setCutValue(value)
         },
 
-        /*
         onShowTiledMeshLayer (layer, engineLayer) {
             // layer being shown, display slider if 'levels' are present
             if (engineLayer instanceof TiledMeshLayer) {
+                this.currentTiledMeshLayer = engineLayer
                 const levels = _.get(layer, 'levels')
-                if (!levels || !levels.values || _.isEmpty(levels.values))
-                    return
-
-                this.setSelectableLevels(layer, levels)
-                this.setSelectableLevel(levels.values[0])
+                if (levels) {
+                    this.$on('selected-level-changed', this.setCutValue)
+                    this.setSelectableLevels(layer, levels)
+                }
             }
         },
 
         onHideTiledMeshLayer (layer) {
             // layer being hidden, hide slider if any was required
-            this.clearSelectableLevels(layer)
+            if (this.clearSelectableLevels(layer)) {
+                this.$off('selected-level-changed', this.setCutValue)
+            }
         }
-        */
     },
 
     created () {
         this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
-        /*
         this.$on('layer-shown', this.onShowTiledMeshLayer)
         this.$on('layer-hidden', this.onHideTiledMeshLayer)
-        this.$on('selectable-level-changed', this.setCutValue)
-        */
     },
 
   beforeDestroy () {
-        /*
         this.$off('layer-shown', this.onShowTiledMeshLayer)
         this.$off('layer-hidden', this.onHideTiledMeshLayer)
-        this.$off('selectable-level-changed', this.setCutValue)
-        */
     }
 }
