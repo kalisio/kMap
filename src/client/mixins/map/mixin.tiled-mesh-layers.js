@@ -285,8 +285,9 @@ const TiledMeshLayer = L.GridLayer.extend({
 
             options.invertScale = this.options.chromajs.invertScale
             options.colors = []
-            for (const c of this.colorMap.colors())
-              options.colors.push(chroma(c).gl())
+            for (const c of this.colorMap.colors()) {
+                options.colors.push(chroma(c).gl())
+            }
 
             colorMapCode = buildColorMapFunction(options)
         }

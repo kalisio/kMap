@@ -140,6 +140,7 @@ export function buildColorMapFunction (options) {
         }
         interpolate = true
     } else if (options.classes) {
+        // expect one color less than classes
         colors = options.colors.slice()
         thresholds = options.classes.slice()
         interpolate = false
@@ -151,27 +152,26 @@ export function buildColorMapFunction (options) {
     }
 
     let code = 'vec4 ColorMap(float value) {\n'
+    for (let i = 0; i < colors.length; ++i) {
+        code += `  const vec4 color${i} = vec4(${colors[i].join(',')});\n`
+    }
+    code += '\n'
+
     if (!interpolate) {
-        for (let i = 0; i < thresholds.length; ++i) {
+        for (let i = 1; i < thresholds.length - 1; ++i) {
             const threshold = thresholds[i]
-            const color = colors[i]
-            code += `  if (value <= float(${threshold})) { return vec4(${color}); }\n`
+            code += `  if (value < float(${threshold})) { return color${i-1}; }\n`
         }
+        code += `  return color${colors.length-1};\n`
     } else {
-        code += `  if (value < float(${thresholds[0]})) { return vec4(${colors[0].join(',')}); }\n`
-        code += `  if (value > float(${thresholds[thresholds.length-1]})) { return vec4(${colors[colors.length-1].join(',')}); }\n`
+        code += `  if (value < float(${thresholds[0]})) { return color0; }\n`
         for (let i = 1; i < thresholds.length; ++i) {
             const t0 = thresholds[i-1]
             const t1 = thresholds[i]
             const dt = t1 - t0
-            const c0 = colors[i-1]
-            const c1 = colors[i]
-            code += `  if (value <= float(${t1})) {
-    float t = (value - float(${t0})) / float(${dt});
-    return mix(vec4(${c0.join(',')}), vec4(${c1.join(',')}), t);
-  }
-`
+            code += `  if (value <= float(${t1})) { float t = (value - float(${t0})) / float(${dt}); return mix(color${i-1}, color${i}, t); }\n`
         }
+        code += `  return color${colors.length-1};\n`
     }
     code += '}'
     return code
