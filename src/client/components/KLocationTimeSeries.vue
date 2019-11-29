@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="z-index: 1;">
     <q-resize-observer @resize="onTimeseriesWidgetResized" />
     <k-widget ref="timeseriesWidget" 
       :title="probedLocationName"
