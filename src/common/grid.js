@@ -78,6 +78,15 @@ export function makeGridSource (options) {
     return null
 }
 
+export function copyGridSourceOptions (options) {
+    for (const key of Object.keys(options)) {
+        const factory = _.get(gridSourceFactories, key, null)
+        if (factory)
+            return _.pick(options, key)
+    }
+    return null
+}
+
 // these allow to query grid with ascending lat/lon
 const grid1DAccessFunctions = [
     // lonFirst, latOrder=SortOrder.ASCENDING, lonOrder=SortOrder.ASCENDING

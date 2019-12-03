@@ -381,13 +381,8 @@ export default {
             // Copy options
             const colorMap = _.get(options, 'variables[0].chromajs', null)
             if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
-            // TODO: do not copy option and let factory find what's there
-            const opendap = _.get(options, 'opendap', null)
-            if (opendap) Object.assign(leafletOptions, { opendap: opendap })
-            const wcs = _.get(options, 'wcs', null)
-            if (wcs) Object.assign(leafletOptions, { wcs: wcs })
-            const geotiff = _.get(options, 'geotiff', null)
-            if (geotiff) Object.assign(leafletOptions, { geotiff: geotiff })
+            const gridSourceOptions = copyGridSourceOptions(options)
+            if (gridSourceOptions) Object.assign(leafletOptions, gridSourceOptions)
 
             return new TiledMeshLayer(leafletOptions)
         },
