@@ -60,6 +60,21 @@ export class GridSource {
         throw new Error('Not implemented')
     }
 
+    /**
+     * @returns {Number} Returns a new longitude with the value wrapped so it's always in the same range than the given bounding box (e.g. between -180 and +180 degrees).
+     */
+    wrapLongitude (lon, bounds) {
+      // We have longitudes in range [-180, 180] so take care if longitude is given in range [0, 360]
+      if (bounds[0] < 0) {
+        return lon > 180 ? lon - 360 : lon
+      } else if (bounds[2] > 180) {
+        // We have longitudes in range [0, 360] so take care if longitude is given in range [-180, 180]
+        return lon < 0 ? lon + 360 : lon
+      } else {
+        return lon
+      }
+    }
+
     async setup (options) {
         throw new Error('Not implemented')
     }
