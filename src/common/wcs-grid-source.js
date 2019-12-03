@@ -48,6 +48,8 @@ export class WcsGridSource extends GridSource {
         this.minMaxLon = [ bounds[1], bounds[3] ]
 
         this.usable = true
+
+        this.dataChanged()
     }
 
     async fetch (abort, bbox, resolution) {

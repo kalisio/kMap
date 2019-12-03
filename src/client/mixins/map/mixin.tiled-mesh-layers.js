@@ -5,7 +5,7 @@ import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
 import AbortController from 'abort-controller'
 
-import { makeGridSource } from '../../../common/grid'
+import { makeGridSource, copyGridSourceOptions } from '../../../common/grid'
 import { ColorMapHook, RawValueHook, buildPixiMeshFromGrid } from '../../pixi-utils'
 
 const vtxShaderSrc = `
@@ -176,7 +176,10 @@ const TiledMeshLayer = L.GridLayer.extend({
         // instanciate grid source
         const [gridSource, gridOptions] = makeGridSource(options)
         this.gridSource = gridSource
-        this.gridSource.setup(gridOptions).then(() => { self.onDataChanged() })
+        // keep ref on callback to be able to remove it
+        this.onDataChangedCallback = this.onDataChanged.bind(this)
+        this.gridSource.on('data-changed', this.onDataChangedCallback)
+        this.gridSource.setup(gridOptions)
     },
 
     onAdd (map) {

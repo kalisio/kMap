@@ -52,6 +52,10 @@ export class BaseGrid {
 }
 
 export class GridSource {
+    constructor () {
+        this.events = {}
+    }
+
     getBBox () {
         return null
     }
@@ -66,6 +70,29 @@ export class GridSource {
 
     async fetch (abort, bbox, resolution) {
         throw new Error('Not implemented')
+    }
+
+    on (event, callback) {
+        const callbacks = _.get(this.events, event, [])
+        callbacks.push(callback)
+        if (callbacks.length === 1)
+            this.events[event] = callbacks
+    }
+
+    off (event, callback) {
+        const callbacks = _.get(this.events, event, [])
+        _.pull(callbacks, callback)
+    }
+
+    emit (event) {
+        const callbacks = _.get(this.events, event, [])
+        for (const cb of callbacks) {
+            cb()
+        }
+    }
+
+    dataChanged () {
+        this.emit('data-changed')
     }
 }
 

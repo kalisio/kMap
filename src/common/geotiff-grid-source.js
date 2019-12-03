@@ -126,6 +126,8 @@ export class GeoTiffGridSource extends GridSource {
         */
 
         this.usable = true
+
+        this.dataChanged()
     }
 
     async fetch (abort, bbox, resolution) {
