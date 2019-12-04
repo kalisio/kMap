@@ -60,19 +60,40 @@ export class WeacastGridSource extends GridSource {
 
         const query = {
             time: this.currentForecastTime.format(),
-            $select: ['forecastTime', 'data'],
+            $select: ['forecastTime', 'data', 'geometry', 'size'],
             $paginate: false,
-            // Resample according to input parameters
+            // This is to target tiles instead of raw data
+            geometry: {
+                $geoIntersects: {
+                    $geometry: {
+                        type: "Polygon" ,
+                         coordinates: [ // BBox as a polygon
+                           [ [ bbox[1], bbox[0] ], [ bbox[3], bbox[0] ],
+                             [ bbox[3], bbox[2] ], [ bbox[1], bbox[2] ], [ bbox[1], bbox[0] ] ] // Closing point
+                         ]
+                    }
+                }
+            }
+            // This is to target raw data by resampling according to input parameters
+            /*
             oLon: this.wrapLongitude(bbox[1], this.model.bounds),
             oLat: bbox[2],
             sLon: width,
             sLat: height,
             dLon: resolution[1],
             dLat: resolution[0]
+            */
         }
         
         const results = await this.api.getService(this.service).find({ query })
         if (results.length === 0) return null
-        else return new Grid1D(bbox, [width, height], results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+        else {
+            // This is to target raw data
+            //return new Grid1D(bbox, [width, height], results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+            // This is to target tiles instead of raw data
+            const tileBBox = results[0].geometry.coordinates[0] // BBox as a polygon
+            const tileBounds = [ tileBBox[0][1], tileBBox[0][0], tileBBox[2][1], tileBBox[2][0] ]
+            return new Grid1D(tileBounds, results[0].size, results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+        }
     }
 }
