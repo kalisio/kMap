@@ -1,4 +1,4 @@
-import { SortOrder, GridSource, Grid1D } from './grid'
+import { SortOrder, GridSource, Grid1D, TiledGrid } from './grid'
 import { getNearestForecastTime } from 'weacast-core/common'
 
 export class WeacastGridSource extends GridSource {
@@ -91,9 +91,13 @@ export class WeacastGridSource extends GridSource {
             // This is to target raw data
             //return new Grid1D(bbox, [width, height], results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING)
             // This is to target tiles instead of raw data
-            const tileBBox = results[0].geometry.coordinates[0] // BBox as a polygon
-            const tileBounds = [ tileBBox[0][1], tileBBox[0][0], tileBBox[2][1], tileBBox[2][0] ]
-            return new Grid1D(tileBounds, results[0].size, results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+            const tiles = []
+            for (const res of results) {
+                const tileBBox = res.geometry.coordinates[0] // BBox as a polygon
+                const tileBounds = [ tileBBox[0][1], tileBBox[0][0], tileBBox[2][1], tileBBox[2][0] ]
+                tiles.push(new Grid1D(tileBounds, res.size, res.data, true, SortOrder.DESCENDING, SortOrder.ASCENDING))
+            }
+            return new TiledGrid(tiles)
         }
     }
 }

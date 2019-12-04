@@ -166,15 +166,22 @@ export class Grid2D extends BaseGrid {
 
 export class TiledGrid extends BaseGrid {
     constructor (tiles) {
+        const bbox0 = tiles[0].getBBox()
+        const dim0 = tiles[0].getDimensions()
+        const res0 = tiles[0].getResolution()
+        super(bbox0, dim0)
+
         this.dimensions = [0, 0]
-        this.bbox = tiles[0].getBBox()
-        this.resolution = tiles[0].getResolution()
+        this.bbox = [bbox0[0], bbox0[1], bbox0[2], bbox0[3]]
+        this.resolution = [res0[0], res0[1]]
 
         for (const tile of tiles) {
             // make sure resolution match between tiles
+            /*
             const res = tile.getResolution()
             if (res[0] !== this.resolution[0] || res[1] !== this.resolution[1])
                 throw new Error('Resolution does not latch between tiles')
+            */
 
             // update grid dimensions
             const dim = tile.getDimensions()
@@ -196,10 +203,11 @@ export class TiledGrid extends BaseGrid {
             const bbox = tile.getBBox()
             const meta = {
                 tile: tile,
+                // latMin
                 iLatMin: Math.floor((bbox[0] - this.bbox[0]) / this.resolution[0]),
-                iLatMax: Math.floor((bbox[2] - this.bbox[2]) / this.resolution[0]),
+                iLatMax: Math.floor((bbox[2] - this.bbox[0]) / this.resolution[0]),
                 iLonMin: Math.floor((bbox[1] - this.bbox[1]) / this.resolution[1]),
-                iLonMax: Math.floor((bbox[3] - this.bbox[3]) / this.resolution[1])
+                iLonMax: Math.floor((bbox[3] - this.bbox[1]) / this.resolution[1])
             }
 
             this.tiles.push(meta)
@@ -213,11 +221,12 @@ export class TiledGrid extends BaseGrid {
             if (ilat < t.iLatMin || ilat > t.iLatMax || ilon < t.iLonMin || ilon > t.iLonMax)
                 continue
             tile = t
+            break
         }
 
         if (!tile)
             return 0
 
-        return tile.tile.getValue(iLat - tile.iLatMin, iLon - tile.iLonMin)
+        return tile.tile.getValue(ilat - tile.iLatMin, ilon - tile.iLonMin)
     }
 }
