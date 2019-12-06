@@ -270,19 +270,16 @@ export class TiledGrid extends BaseGrid {
                 throw new Error('Resolution does not latch between tiles')
             */
 
-            // update grid dimensions
-            const dim = tile.getDimensions()
-            this.dimensions[0] += dim[0]
-            this.dimensions[1] += dim[1]
-
             // update grid bbox and make sure it is contiguous
             const bbox = tile.getBBox()
             this.bbox[0] = Math.min(this.bbox[0], bbox[0])
             this.bbox[1] = Math.min(this.bbox[1], bbox[1])
             this.bbox[2] = Math.max(this.bbox[2], bbox[2])
             this.bbox[3] = Math.max(this.bbox[3], bbox[3])
-
         }
+
+        this.dimensions[0] = Math.trunc((this.bbox[2] - this.bbox[0]) / this.resolution[0])
+        this.dimensions[1] = Math.trunc((this.bbox[3] - this.bbox[1]) / this.resolution[1])
 
         this.tiles = []
 
