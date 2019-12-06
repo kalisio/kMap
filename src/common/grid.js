@@ -64,6 +64,21 @@ export class GridSource {
         throw new Error('Not implemented')
     }
 
+    /**
+     * @returns {Number} Returns a new longitude with the value wrapped so it's always in the same range than the given bounding box (e.g. between -180 and +180 degrees).
+     */
+    wrapLongitude (lon, bounds) {
+      // We have longitudes in range [-180, 180] so take care if longitude is given in range [0, 360]
+      if (bounds[0] < 0) {
+        return lon > 180 ? lon - 360 : lon
+      } else if (bounds[2] > 180) {
+        // We have longitudes in range [0, 360] so take care if longitude is given in range [-180, 180]
+        return lon < 0 ? lon + 360 : lon
+      } else {
+        return lon
+      }
+    }
+
     async setup (options) {
         throw new Error('Not implemented')
     }
@@ -182,5 +197,72 @@ export class Grid2D extends BaseGrid {
 
     getValue (ilat, ilon) {
         return this.getByIndex(this.data, ilat, ilon, this.dimensions[0], this.dimensions[1])
+    }
+}
+
+export class TiledGrid extends BaseGrid {
+    constructor (tiles) {
+        const bbox0 = tiles[0].getBBox()
+        const dim0 = tiles[0].getDimensions()
+        const res0 = tiles[0].getResolution()
+        super(bbox0, dim0)
+
+        this.dimensions = [0, 0]
+        this.bbox = [bbox0[0], bbox0[1], bbox0[2], bbox0[3]]
+        this.resolution = [res0[0], res0[1]]
+
+        for (const tile of tiles) {
+            // make sure resolution match between tiles
+            /*
+            const res = tile.getResolution()
+            if (res[0] !== this.resolution[0] || res[1] !== this.resolution[1])
+                throw new Error('Resolution does not latch between tiles')
+            */
+
+            // update grid dimensions
+            const dim = tile.getDimensions()
+            this.dimensions[0] += dim[0]
+            this.dimensions[1] += dim[1]
+
+            // update grid bbox and make sure it is contiguous
+            const bbox = tile.getBBox()
+            this.bbox[0] = Math.min(this.bbox[0], bbox[0])
+            this.bbox[1] = Math.min(this.bbox[1], bbox[1])
+            this.bbox[2] = Math.max(this.bbox[2], bbox[2])
+            this.bbox[3] = Math.max(this.bbox[3], bbox[3])
+
+        }
+
+        this.tiles = []
+
+        for (const tile of tiles) {
+            const bbox = tile.getBBox()
+            const meta = {
+                tile: tile,
+                // latMin
+                iLatMin: Math.floor((bbox[0] - this.bbox[0]) / this.resolution[0]),
+                iLatMax: Math.floor((bbox[2] - this.bbox[0]) / this.resolution[0]),
+                iLonMin: Math.floor((bbox[1] - this.bbox[1]) / this.resolution[1]),
+                iLonMax: Math.floor((bbox[3] - this.bbox[1]) / this.resolution[1])
+            }
+
+            this.tiles.push(meta)
+        }
+    }
+
+    getValue (ilat, ilon) {
+        // find which tile holds our data
+        let tile = null
+        for (const t of this.tiles) {
+            if (ilat < t.iLatMin || ilat > t.iLatMax || ilon < t.iLonMin || ilon > t.iLonMax)
+                continue
+            tile = t
+            break
+        }
+
+        if (!tile)
+            return 0
+
+        return tile.tile.getValue(ilat - tile.iLatMin, ilon - tile.iLonMin)
     }
 }

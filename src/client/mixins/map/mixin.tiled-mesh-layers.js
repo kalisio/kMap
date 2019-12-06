@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import moment from 'moment'
 import L from 'leaflet'
 import chroma from 'chroma-js'
 import * as PIXI from 'pixi.js'
@@ -104,7 +105,7 @@ const frgShaderSrc = `
 // check why when i store options it screw leaflet up
 
 const TiledMeshLayer = L.GridLayer.extend({
-    initialize (options) {
+    async initialize (options) {
         // keep color scale options
         this.options.chromajs = options.chromajs
 
@@ -175,11 +176,14 @@ const TiledMeshLayer = L.GridLayer.extend({
 
         // instanciate grid source
         const [gridSource, gridOptions] = makeGridSource(options)
+        // keept track of it and required options
         this.gridSource = gridSource
         // keep ref on callback to be able to remove it
         this.onDataChangedCallback = this.onDataChanged.bind(this)
         this.gridSource.on('data-changed', this.onDataChangedCallback)
-        this.gridSource.setup(gridOptions)
+        this.gridOptions = gridOptions
+        this.gridUrlCompiler = (gridOptions.url ? _.template(gridOptions.url) : null)
+        // this.gridSource.setup(gridOptions)
     },
 
     onAdd (map) {
@@ -370,6 +374,28 @@ const TiledMeshLayer = L.GridLayer.extend({
             this.layerUniforms.uniforms[this.cutValueUniform] = value
             this.pixiLayer.redraw()
         }
+    },
+
+    async setCurrentTime (datetime) {
+        if (typeof this.gridSource.setCurrentTime === 'function') this.gridSource.setCurrentTime(datetime)
+        // Perform URL templating with context
+        if (this.gridUrlCompiler) {
+            const now = moment.utc()
+            let context = { now, current: datetime }
+            // Check if we need to round to some interval
+            if (this.gridOptions.interval) {
+                let value = datetime[this.gridOptions.interval.unit]()
+                value = Math.floor(value / this.gridOptions.interval.value) * this.gridOptions.interval.value
+                context.rounded = datetime.clone()[this.gridOptions.interval.unit](value)
+
+                if (this.gridOptions.timelag) {
+                  context.rounded.add(this.gridOptions.timelag.value, this.gridOptions.timelag.unit)
+                }
+            }
+            this.gridOptions.url = this.gridUrlCompiler(context)
+        }
+        await this.gridSource.setup(this.gridOptions)
+        this.onDataChanged()
     }
 })
 
@@ -385,6 +411,13 @@ export default {
             const colorMap = _.get(options, 'variables[0].chromajs', null)
             if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
             const gridSourceOptions = copyGridSourceOptions(options)
+            // We need to pass dynamic weacast objects
+            const weacast = _.get(gridSourceOptions, 'weacast', null)
+            if (weacast) {
+                Object.assign(gridSourceOptions, {
+                    weacast: Object.assign({ api: this.weacastApi, model: this.forecastModel }, weacast)
+                })
+            }
             if (gridSourceOptions) Object.assign(leafletOptions, gridSourceOptions)
 
             return new TiledMeshLayer(leafletOptions)
