@@ -394,8 +394,7 @@ const TiledMeshLayer = L.GridLayer.extend({
             }
             this.gridOptions.url = this.gridUrlCompiler(context)
         }
-        await this.gridSource.setup(this.gridOptions)
-        this.onDataChanged()
+        this.gridSource.setup(this.gridOptions)
     }
 })
 
