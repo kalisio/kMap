@@ -252,11 +252,11 @@ export class Grid2D extends BaseGrid {
 }
 
 export class TiledGrid extends BaseGrid {
-    constructor (tiles) {
+    constructor (tiles, nodata = undefined) {
         const bbox0 = tiles[0].getBBox()
         const dim0 = tiles[0].getDimensions()
         const res0 = tiles[0].getResolution()
-        super(bbox0, dim0)
+        super(bbox0, dim0, nodata)
 
         this.dimensions = [0, 0]
         this.bbox = [bbox0[0], bbox0[1], bbox0[2], bbox0[3]]
