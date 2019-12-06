@@ -45,6 +45,8 @@ export class WeacastGridSource extends GridSource {
         if (results.length > 0) this.minMaxVal = [ results[0].minValue, results[0].maxValue ]
 
         this.usable = true
+
+        this.dataChanged()
     }
 
     setCurrentTime (datetime) {
