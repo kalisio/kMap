@@ -138,8 +138,8 @@ export class GeoTiffGridSource extends GridSource {
         const reqMinLon = bbox[1]
         const reqMaxLat = bbox[2]
         const reqMaxLon = bbox[3]
-        const width = Math.trunc((bbox[3] - bbox[1]) / resolution[1])
-        const height = Math.trunc((bbox[2] - bbox[0]) / resolution[0])
+        const width = 1 + Math.trunc((bbox[3] - bbox[1]) / resolution[1])
+        const height = 1 + Math.trunc((bbox[2] - bbox[0]) / resolution[0])
 
         let fetchBbox = [reqMinLon, reqMinLat, reqMaxLon, reqMaxLat]
         if (this.translateFetchBbox) {

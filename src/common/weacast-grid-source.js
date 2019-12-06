@@ -57,8 +57,8 @@ export class WeacastGridSource extends GridSource {
         if (!this.usable)
             return null
 
-        const width = Math.trunc((bbox[3] - bbox[1]) / resolution[1])
-        const height = Math.trunc((bbox[2] - bbox[0]) / resolution[0])
+        const width = 1 + Math.trunc((bbox[3] - bbox[1]) / resolution[1])
+        const height = 1 + Math.trunc((bbox[2] - bbox[0]) / resolution[0])
 
         const query = {
             time: this.currentForecastTime.format(),
