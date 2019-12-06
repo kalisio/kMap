@@ -97,6 +97,8 @@ export class GeoTiffGridSource extends GridSource {
         this.minMaxLon = [ tiffBbox[0], tiffBbox[2] ]
 
         this.usable = true
+
+        this.dataChanged()
     }
 
     async fetch (abort, bbox, resolution) {

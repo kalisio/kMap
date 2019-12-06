@@ -81,6 +81,8 @@ export class OpenDapGridSource extends GridSource {
 
     // flag source as usable
     this.usable = true
+
+    this.dataChanged()
   }
 
   async fetch (abort, bbox, resolution) {

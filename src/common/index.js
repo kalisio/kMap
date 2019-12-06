@@ -7,6 +7,7 @@ import { gridSourceFactories } from './grid'
 import { OpenDapGridSource } from './opendap-grid-source'
 import { WcsGridSource } from './wcs-grid-source'
 import { GeoTiffGridSource } from './geotiff-grid-source'
+import { WeacastGridSource } from './weacast-grid-source'
 
 export { errors }
 export { permissions }
@@ -15,3 +16,4 @@ export { permissions }
 gridSourceFactories[OpenDapGridSource.getKey()] = function() { return new OpenDapGridSource() }
 gridSourceFactories[WcsGridSource.getKey()] = function() { return new WcsGridSource() }
 gridSourceFactories[GeoTiffGridSource.getKey()] = function() { return new GeoTiffGridSource() }
+gridSourceFactories[WeacastGridSource.getKey()] = function() { return new WeacastGridSource() }
