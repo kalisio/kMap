@@ -18,7 +18,7 @@ export function makeDescribeCoverageQuery(url, coverage) {
     SERVICE: 'WCS',
     VERSION: '1.0.0',
     REQUEST: 'DescribeCoverage',
-    coverage
+    COVERAGE: coverage
   })
 }
 
@@ -30,7 +30,9 @@ export function makeGetCoverageQuery (url, coverage, format, bbox, width, height
     COVERAGE: coverage,
     CRS: 'EPSG:4326',
     BBOX: `${bbox.join(',')}`,
-    width, height, format
+    WIDTH: width,
+    HEIGHT: height,
+    FORMAT: format
   })
 }
 
