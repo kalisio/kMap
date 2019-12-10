@@ -1,22 +1,39 @@
 import _ from 'lodash'
 import fetch from 'node-fetch'
 import xml2js from 'xml2js'
+import { buildUrl } from '@kalisio/kdk-core/common'
 
 // https://www.opengeospatial.org/standards/wcs
 
 export function makeGetCapabilitiesQuery(url) {
-    return `${url}?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCapabilities`
+  return buildUrl(url, {
+    SERVICE: 'WCS',
+    VERSION: '1.0.0',
+    REQUEST: 'GetCapabilities'
+  })
 }
 
 export function makeDescribeCoverageQuery(url, coverage) {
-    return `${url}?SERVICE=WCS&VERSION=1.0.0&REQUEST=DescribeCoverage&COVERAGE=${coverage}`
+  return buildUrl(url, {
+    SERVICE: 'WCS',
+    VERSION: '1.0.0',
+    REQUEST: 'DescribeCoverage',
+    COVERAGE: coverage
+  })
 }
 
 export function makeGetCoverageQuery (url, coverage, format, bbox, width, height) {
-    let q = `${url}?SERVICE=WCS&VERSION=1.0.0&`
-    q += `REQUEST=GetCoverage&COVERAGE=${coverage}&`
-    q += `CRS=EPSG:4326&BBOX=${bbox.join(',')}&WIDTH=${width}&HEIGHT=${height}&FORMAT=${format}`
-    return q
+  return buildUrl(url, {
+    SERVICE: 'WCS',
+    VERSION: '1.0.0',
+    REQUEST: 'GetCoverage',
+    COVERAGE: coverage,
+    CRS: 'EPSG:4326',
+    BBOX: `${bbox.join(',')}`,
+    WIDTH: width,
+    HEIGHT: height,
+    FORMAT: format
+  })
 }
 
 export async function GetCapabilities (url) {

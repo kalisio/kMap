@@ -95,9 +95,7 @@ export function makeGridIndices(descriptor, variable, dimensions) {
 }
 
 export function makeGridQuery(base, variable, indices) {
-  // %5B = '[' %5D = ']'
-  // query won't work if characters are not encoded
-  return base + '.dods?' + variable + '%5B' + indices.join('%5D%5B') + '%5D'
+  return encodeURI(base + '.dods?' + variable + '[' + indices.join('][') + ']')
 }
 
 export function getGridDimensionIndex(descriptor, variable, dimension) {
