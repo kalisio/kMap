@@ -1,56 +1,5 @@
 import * as GeoTIFF from 'geotiff'
-import { makeRemoteSource } from 'geotiff/dist/source.js'
-import aws4 from 'aws4'
-import fetch from 'node-fetch'
 import { SortOrder, GridSource, Grid1D } from './grid'
-
-function fetchFromS3 (url) {
-    return async function (offset, length) {
-        const res = new URL(url)
-        let opts = {
-            host: res.hostname,
-            path: res.pathname,
-            headers: { 'range': `bytes=${offset}-${offset + length}` }
-        }
-        // this relies on the existence of:
-        // - AWS_SECRET_ACCESS_KEY
-        // - AWS_ACCESS_KEY_ID
-        // in the process environment
-        opts = aws4.sign(opts)
-
-        const response = await fetch(url, { headers: opts.headers })
-
-        // check the response was okay and if the server actually understands range requests
-        if (!response.ok) {
-            throw new Error('Error fetching data.')
-        } else if (response.status === 206) {
-            const data = response.arrayBuffer ?
-                  await response.arrayBuffer() : (await response.buffer()).buffer
-            return {
-                data,
-                offset,
-                length,
-            }
-        } else {
-            const data = response.arrayBuffer ?
-                  await response.arrayBuffer() : (await response.buffer()).buffer
-            return {
-                data,
-                offset: 0,
-                length: data.byteLength,
-            }
-        }
-    }
-}
-
-function makeSource(options) {
-    const source = makeRemoteSource(options.url, {})
-    if (options.s3) {
-        source.retrievalFunction = fetchFromS3(options.url)
-    }
-
-    return source
-}
 
 export class GeoTiffGridSource extends GridSource {
     static getKey () {
@@ -79,8 +28,7 @@ export class GeoTiffGridSource extends GridSource {
         this.minMaxLon = null
         this.minMaxVal = null
 
-        const source = makeSource(options)
-        this.geotiff = await GeoTIFF.GeoTIFF.fromSource(source)
+        this.geotiff = await GeoTIFF.fromUrl(options.url)
 
         // for now only consider first image
         // const count = await this.geotiff.getImageCount()
