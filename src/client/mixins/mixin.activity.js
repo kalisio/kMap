@@ -149,7 +149,7 @@ export default function (name) {
         this.variables = []
         let catalogLayers = await this.getCatalogLayers()
         // Apply global layer filter
-        catalogLayers = sift(_.get(this, 'activityOptions.catalog.filter', {}), catalogLayers)
+        catalogLayers = catalogLayers.filter(sift(_.get(this, 'activityOptions.catalog.filter', {})))
         // Iterate and await layers as creation is async and we need to have all layers ready
         // before checking if there is some background layer
         for (let i = 0; i < catalogLayers.length; i++) {

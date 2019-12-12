@@ -37,7 +37,7 @@ export default {
       const layers = _.values(this.layers)
       const layersByCategory = {}
       this.categories.forEach(category => {
-        layersByCategory[category.name] = sift(_.get(category, 'options.filter', {}), layers)
+        layersByCategory[category.name] = layers.filter(sift(_.get(category, 'options.filter', {})))
       })
       return layersByCategory
     }
