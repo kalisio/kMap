@@ -1,9 +1,9 @@
 <template>
   <div style="z-index: 1;">
     <q-resize-observer @resize="onTimeseriesWidgetResized" />
-    <k-widget ref="timeseriesWidget" 
+    <k-widget ref="timeseriesWidget"
       :title="probedLocationName"
-      :style="timeseriesWidgetStyle()" 
+      :style="timeseriesWidgetStyle()"
       @state-changed="onUpdateTimeseriesWidget">
       <div slot="widget-content">
         <div v-if="hasGraph">
@@ -44,13 +44,13 @@ export default {
     QTooltip
   },
   props: {
-    variables: { 
-      type: Array, 
-      default: () => [] 
+    variables: {
+      type: Array,
+      default: () => []
     },
-    decimationFactor: { 
-      type: Number, 
-      default: 1 
+    decimationFactor: {
+      type: Number,
+      default: 1
     }
   },
   watch: {
@@ -217,17 +217,17 @@ export default {
     },
     async setupGraph () {
       if (!this.kActivity.probedLocation || !this.isTimeseriesOpen()) return
-      
+
       // Destroy previous graph if any
       if (this.chart) {
         this.chart.destroy()
         this.chart = null
       }
 
-      // Check whether weed need a graph 
+      // Check whether weed need a graph
       this.hasGraph = this.hasAvailableDatasets()
       if (!this.hasGraph) return
- 
+
       // We need to force a refresh so that the prop is correctly updated by Vuejs in child component
       await this.$nextTick()
 
@@ -412,9 +412,9 @@ export default {
           await this.kActivity.getForecastForFeature(_.get(feature, this.kActivity.probe.featureId), start, end)
         }
       } else if (options.variables && options.service) { // Static measure probe
-          const startTime = this.kActivity.currentTime.clone().subtract({ seconds: options.history })
-          const endTime = this.kActivity.currentTime.clone()
-          await this.kActivity.getMeasureForFeature(options, feature, startTime, endTime)
+        const startTime = this.kActivity.currentTime.clone().subtract({ seconds: options.history })
+        const endTime = this.kActivity.currentTime.clone()
+        await this.kActivity.getMeasureForFeature(options, feature, startTime, endTime)
       } else if (isWeatherProbe) { // Dynamic weacast probe
         this.kActivity.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
       } else {

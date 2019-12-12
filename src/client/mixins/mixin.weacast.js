@@ -269,4 +269,3 @@ export default {
     this.$off('layer-hidden', this.onWeacastHideLayer)
   }
 }
-

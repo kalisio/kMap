@@ -6,7 +6,7 @@ import { BaseGrid } from './grid.js'
 
 export const opendapTypes = new Set(['Float32', 'Float64'])
 
-export async function fetchDescriptor(url) {
+export async function fetchDescriptor (url) {
   return new Promise((resolve, reject) => {
     jsdap.loadDataset(url, descriptor => {
       resolve(descriptor)
@@ -14,7 +14,7 @@ export async function fetchDescriptor(url) {
   })
 }
 
-export async function fetchData(query, abort = null) {
+export async function fetchData (query, abort = null) {
   /*
   return new Promise((resolve, reject) => {
     jsdap.loadData(query, data => {
@@ -26,7 +26,7 @@ export async function fetchData(query, abort = null) {
   // rewritten to use fetch and support aborting request
   const init = abort ? { signal: abort } : { }
   const data = await fetch(query, init)
-        .then(response => response.arrayBuffer())
+    .then(response => response.arrayBuffer())
   const view = new DataView(data)
 
   // accumulate string till '\nData:\n' marker
@@ -36,86 +36,80 @@ export async function fetchData(query, abort = null) {
     const u8 = view.getUint8(byteIndex)
     if (u8 === '\n' || u8 === 10) {
       const str = String.fromCodePoint(
-        view.getUint8(byteIndex+1),
-        view.getUint8(byteIndex+2),
-        view.getUint8(byteIndex+3),
-        view.getUint8(byteIndex+4),
-        view.getUint8(byteIndex+5),
-        view.getUint8(byteIndex+6))
-      if (str === 'Data:\n')
-        break
+        view.getUint8(byteIndex + 1),
+        view.getUint8(byteIndex + 2),
+        view.getUint8(byteIndex + 3),
+        view.getUint8(byteIndex + 4),
+        view.getUint8(byteIndex + 5),
+        view.getUint8(byteIndex + 6))
+      if (str === 'Data:\n') { break }
     }
 
     dds += String.fromCodePoint(u8)
     ++byteIndex
   }
 
-  /*eslint new-cap: ["error", { "newIsCap": false }]*/
+  /* eslint new-cap: ["error", { "newIsCap": false }] */
   const dapvar = new parser.ddsParser(dds).parse()
-  return new xdr.dapUnpacker(data.slice(byteIndex+7), dapvar).getValue()
+  return new xdr.dapUnpacker(data.slice(byteIndex + 7), dapvar).getValue()
 }
 
-export function variableIsGrid(descriptor, variable) {
+export function variableIsGrid (descriptor, variable) {
   const varDesc = descriptor[variable]
-  if (varDesc === undefined)
-    return false;
+  if (varDesc === undefined) { return false }
   return varDesc.type === 'Grid'
 }
 
-export function variableIsArray(descriptor, variable) {
+export function variableIsArray (descriptor, variable) {
   const varDesc = descriptor[variable]
-  if (varDesc === undefined)
-    return false;
-  if (varDesc.shape === undefined)
-    return false;
+  if (varDesc === undefined) { return false }
+  if (varDesc.shape === undefined) { return false }
   return varDesc.shape.length === 1 && opendapTypes.has(varDesc.type)
 }
 
-export function getArrayVariableLength(descriptor, variable) {
+export function getArrayVariableLength (descriptor, variable) {
   const varDesc = descriptor[variable]
   return varDesc.shape[0]
 }
 
-export function getGridDimensionLength(descriptor, variable, dimension) {
+export function getGridDimensionLength (descriptor, variable, dimension) {
   const varDesc = descriptor[variable]
   return varDesc.array.shape[dimension]
 }
 
-export function makeGridIndices(descriptor, variable, dimensions) {
+export function makeGridIndices (descriptor, variable, dimensions) {
   const varDesc = descriptor[variable]
-  let indices = []
+  const indices = []
   for (let i = 0; i < varDesc.array.dimensions.length; ++i) {
     const value = dimensions[varDesc.array.dimensions[i]]
-    if (value === undefined)
-      return []
+    if (value === undefined) { return [] }
     indices.push(value)
   }
 
   return indices
 }
 
-export function makeGridQuery(base, variable, indices) {
+export function makeGridQuery (base, variable, indices) {
   return encodeURI(base + '.dods?' + variable + '[' + indices.join('][') + ']')
 }
 
-export function getGridDimensionIndex(descriptor, variable, dimension) {
+export function getGridDimensionIndex (descriptor, variable, dimension) {
   const varDesc = descriptor[variable]
-  if (varDesc === undefined)
-    return -1
+  if (varDesc === undefined) { return -1 }
   return varDesc.array.dimensions.indexOf(dimension)
 }
 
-export function getMinMaxArray(vec) {
+export function getMinMaxArray (vec) {
   const bounds = vec.reduce((accu, value) => {
     accu[0] = Math.min(accu[0], value)
     accu[1] = Math.max(accu[1], value)
     return accu
-  }, [ vec[0], vec[0] ])
+  }, [vec[0], vec[0]])
   return bounds
 }
 
-function getFirstGridValue(grid, dimension) {
-  return dimension > 1 ? getFirstGridValue(grid[0], dimension-1) : grid[0]
+function getFirstGridValue (grid, dimension) {
+  return dimension > 1 ? getFirstGridValue(grid[0], dimension - 1) : grid[0]
 }
 
 /*
@@ -130,7 +124,7 @@ function getFirstGridValue(grid, dimension) {
   }
 */
 
-export function getMinMaxGrid(grid, dimension) {
+export function getMinMaxGrid (grid, dimension) {
   /* this implementation is 10x slower on chrome
      let minVal = getGridValue(grid, dimension)
      let maxVal = minVal
@@ -144,17 +138,17 @@ export function getMinMaxGrid(grid, dimension) {
   if (dimension > 1) {
     const init = getFirstGridValue(grid, dimension)
     return grid.reduce((accu, value) => {
-      const local = getMinMaxGrid(value, dimension-1)
-      return [ Math.min(accu[0], local[0]), Math.max(accu[1], local[1]) ]
+      const local = getMinMaxGrid(value, dimension - 1)
+      return [Math.min(accu[0], local[0]), Math.max(accu[1], local[1])]
     }, [init, init])
   } else {
     return getMinMaxArray(grid)
   }
 }
 
-export function gridValue(grid, indices, offset = 0) {
+export function gridValue (grid, indices, offset = 0) {
   if (offset < indices.length - 1) {
-    return gridValue(grid[indices[offset]], indices, offset+1)
+    return gridValue(grid[indices[offset]], indices, offset + 1)
   } else {
     return grid[indices[offset]]
   }
@@ -172,23 +166,23 @@ const makeIndicesFunctions = [
   function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
     const local = [...indices]
     local[latIndex] = ilat
-    local[lonIndex] = lonCount - (ilon+1)
+    local[lonIndex] = lonCount - (ilon + 1)
     return local
   },
   // latSortOrder = SortOrder.DESCENDING, lonSortOrder = SortOrder.ASCENDING
   function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
     const local = [...indices]
-    local[latIndex] = latCount - (ilat+1)
+    local[latIndex] = latCount - (ilat + 1)
     local[lonIndex] = ilon
     return local
   },
   // latSortOrder = SortOrder.DESCENDING, lonSortOrder = SortOrder.DESCENDING
   function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
     const local = [...indices]
-    local[latIndex] = latCount - (ilat+1)
-    local[lonIndex] = lonCount - (ilon+1)
+    local[latIndex] = latCount - (ilat + 1)
+    local[lonIndex] = lonCount - (ilon + 1)
     return local
-  },
+  }
 ]
 
 export class OpenDAPGrid extends BaseGrid {

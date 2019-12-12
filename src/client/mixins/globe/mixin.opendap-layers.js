@@ -15,14 +15,14 @@ export default {
           const url = new Cesium.Resource({
             url: 'http://localhost:8081/api/daptiles/tileset.json',
             headers: {
-              'Authorization': `Bearer ${accessToken}`
+              Authorization: `Bearer ${accessToken}`
             },
             queryParameters: {
-              'file': 'mf-arpege-01/2019/06/15/11360000000.20190615180000.grib',
-              'query': 'Temperature_height_above_ground',
-              'dimensions': JSON.stringify({ time2: 0, height_above_ground1: 0 }),
-              'latitude': 'lat',
-              'longitude': 'lon'
+              file: 'mf-arpege-01/2019/06/15/11360000000.20190615180000.grib',
+              query: 'Temperature_height_above_ground',
+              dimensions: JSON.stringify({ time2: 0, height_above_ground1: 0 }),
+              latitude: 'lat',
+              longitude: 'lon'
             }
           })
           resolve(url)

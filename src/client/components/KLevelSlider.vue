@@ -35,8 +35,7 @@ export default {
   },
   computed: {
     isVisible () {
-      if (this.sliderValues)
-        return this.sliderValues.length > 0
+      if (this.sliderValues) { return this.sliderValues.length > 0 }
       return this.sliderMinValue !== undefined && this.sliderMaxValue !== undefined
     },
     isLazy () {
