@@ -317,7 +317,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     // when alpha blending is used, this is annoying
     const zoomLevel = this.map.getZoom()
     for (const mesh of this.pixiRoot.children) {
-      if (mesh.zoomLevel == zoomLevel) { mesh.visible = false }
+      if (mesh.zoomLevel === zoomLevel) { mesh.visible = false }
     }
   },
 
@@ -329,7 +329,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     // because some meshes may not have been evicted yet
     const zoomLevel = this.map.getZoom()
     for (const mesh of this.pixiRoot.children) {
-      if (mesh.zoomLevel == zoomLevel) { mesh.visible = true }
+      if (mesh.zoomLevel === zoomLevel) { mesh.visible = true }
     }
     this.pixiLayer.redraw()
   },
