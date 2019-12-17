@@ -48,7 +48,6 @@ export function createAlertsService (options = {}) {
   return app.createService('alerts', Object.assign({
     servicesPath,
     modelsPath,
-    events: ['created', 'removed', 'patched', 'alert'],
     paginate
   }, options))
 }

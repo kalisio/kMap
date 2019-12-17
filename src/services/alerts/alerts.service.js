@@ -75,7 +75,7 @@ export default {
     return result.features
   },
 
-  async checkAlert (alert, options = { patch: true, event: true, callWebhook: true }) {
+  async checkAlert (alert, options = { patch: true, callWebhook: true }) {
     const now = moment.utc()
     debug('Checking alert at ' + now.format(), _.omit(alert, ['status', 'webhook']))
     // First check if still valid
@@ -108,7 +108,6 @@ export default {
     if (options.patch) await this.patch(alert._id.toString(), { status: Object.assign({}, status) })
     // Keep track of changes in memory as well
     Object.assign(alert, { status })
-    if (options.event) this.emit('alert', event)
     // If a webhook is configured call it
     const webhook = alert.webhook
     if (options.callWebhook && webhook) {

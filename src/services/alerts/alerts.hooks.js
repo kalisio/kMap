@@ -22,9 +22,7 @@ module.exports = {
   },
 
   after: {
-    all: [
-      
-    ],
+    all: [],
     find: [
       coreHooks.unprocessTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt'])
     ],
