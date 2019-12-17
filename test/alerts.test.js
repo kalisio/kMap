@@ -117,7 +117,7 @@ describe('kMap:alerts', () => {
     app.configure(map)
     alertService = app.getService('alerts')
     expect(alertService).toExist()
-    alertService.on('alert', checkAlertEvent)
+    alertService.on('patched', checkAlertEvent)
     spyRegisterAlert = chai.spy.on(alertService, 'registerAlert')
     spyUnregisterAlert = chai.spy.on(alertService, 'unregisterAlert')
     spyCheckAlert = chai.spy.on(alertService, 'checkAlert')
