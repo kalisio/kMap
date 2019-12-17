@@ -40,20 +40,20 @@ export function removeCatalogService (options) {
   // TODO
 }
 
-export function createGeoAlertsService (options = {}) {
+export function createAlertsService (options = {}) {
   const app = this
 
-  debug('Creating geoalerts service with options', options)
+  debug('Creating alerts service with options', options)
   const paginate = { default: 5000, max: 10000 }
-  return app.createService('geoalerts', Object.assign({
+  return app.createService('alerts', Object.assign({
     servicesPath,
     modelsPath,
-    events: ['created', 'removed', 'patched', 'geoalert'],
+    events: ['created', 'removed', 'patched', 'alert'],
     paginate
   }, options))
 }
 
-export function removeGeoAlertsService (options) {
+export function removeAlertsService (options) {
   // TODO
 }
 
@@ -70,11 +70,11 @@ export default async function () {
   if (!_.get(geocoderOptions.disabled)) {
     app.createService('geocoder', Object.assign({ servicesPath }, geocoderOptions))
   }
-  const alertsOptions = app.getServiceOptions('geoalerts')
+  const alertsOptions = app.getServiceOptions('alerts')
   if (!_.get(alertsOptions.disabled)) {
-    const alertsService = createGeoAlertsService.call(app, alertsOptions)
+    const alertsService = createAlertsService.call(app, alertsOptions)
     // On startup restore alerts CRON tasks if service not disabled
-    if (alertsService) {
+    if (alertsService && !alertsOptions.memory) {
       const alerts = await alertsService.find({ paginate: false })
       alerts.forEach(alert => alertsService.registerAlert(alert))
     }

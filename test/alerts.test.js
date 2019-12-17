@@ -15,7 +15,7 @@ import distribution from '@kalisio/feathers-distributed'
 import core, { kalisio, hooks } from '@kalisio/kdk-core'
 import map, { createFeaturesService } from '../src'
 
-describe('kMap:geoalerts', () => {
+describe('kMap:alerts', () => {
   let app, weacastApp, server, port, externalApp, externalServer, externalPort,
     alertService, vigicruesObsService, uService, vService, probeService,
     alertObject, spyRegisterAlert, spyUnregisterAlert, spyCheckAlert
@@ -115,9 +115,9 @@ describe('kMap:geoalerts', () => {
   it('registers the alert service', (done) => {
     app.configure(core)
     app.configure(map)
-    alertService = app.getService('geoalerts')
+    alertService = app.getService('alerts')
     expect(alertService).toExist()
-    alertService.on('geoalert', checkAlertEvent)
+    alertService.on('alert', checkAlertEvent)
     spyRegisterAlert = chai.spy.on(alertService, 'registerAlert')
     spyUnregisterAlert = chai.spy.on(alertService, 'unregisterAlert')
     spyCheckAlert = chai.spy.on(alertService, 'checkAlert')
@@ -149,11 +149,11 @@ describe('kMap:geoalerts', () => {
       },
       forecast: 'gfs-world',
       elements: ['u-wind', 'v-wind', 'windSpeed'],
+      geometry: {
+        type: 'Point',
+        coordinates: [144.29091388888889, -5.823011111111111]
+      },
       conditions: {
-        geometry: {
-          type: 'Point',
-          coordinates: [144.29091388888889, -5.823011111111111]
-        },
         windSpeed: { $gte: 0 } // Set a large range so that we are sure it will trigger
       },
       webhook: {
@@ -179,8 +179,8 @@ describe('kMap:geoalerts', () => {
     expect(results[0].status.active).beTrue()
     expect(results[0].status.triggeredAt).toExist()
     expect(results[0].status.checkedAt).toExist()
-    expect(results[0].status.triggeredAt.isAfter(now)).beTrue()
-    expect(results[0].status.checkedAt.isAfter(results[0].status.triggeredAt)).beTrue()
+    expect(results[0].status.triggeredAt.isSameOrAfter(now.format())).beTrue() // Registering trigger a check
+    expect(results[0].status.checkedAt.isSameOrAfter(results[0].status.triggeredAt.format())).beTrue()
   })
   // Let enough time to process
     .timeout(15000)
@@ -212,11 +212,11 @@ describe('kMap:geoalerts', () => {
       },
       forecast: 'gfs-world',
       elements: ['u-wind', 'v-wind', 'windSpeed'],
+      geometry: {
+        type: 'Point',
+        coordinates: [144.29091388888889, -5.823011111111111]
+      },
       conditions: {
-        geometry: {
-          type: 'Point',
-          coordinates: [144.29091388888889, -5.823011111111111]
-        },
         windSpeed: { $lt: -10 } // Set an invalid range so that we are sure it will not trigger
       },
       webhook: {
@@ -290,6 +290,7 @@ describe('kMap:geoalerts', () => {
         end: { hours: 48 }
       },
       service: 'vigicrues-observations',
+      featureId: 'CdStationH',
       feature: 'A282000101',
       conditions: {
         H: { $gte: 0.6 } // Set a large range so that we are sure it will trigger
@@ -317,8 +318,8 @@ describe('kMap:geoalerts', () => {
     expect(results[0].status.active).beTrue()
     expect(results[0].status.triggeredAt).toExist()
     expect(results[0].status.checkedAt).toExist()
-    expect(results[0].status.triggeredAt.isAfter(now)).beTrue()
-    expect(results[0].status.checkedAt.isAfter(results[0].status.triggeredAt)).beTrue()
+    expect(results[0].status.triggeredAt.isSameOrAfter(now.format())).beTrue() // Registering trigger a check
+    expect(results[0].status.checkedAt.isSameOrAfter(results[0].status.triggeredAt.format())).beTrue()
   })
   // Let enough time to process
     .timeout(15000)
@@ -349,6 +350,7 @@ describe('kMap:geoalerts', () => {
         end: { hours: 48 }
       },
       service: 'vigicrues-observations',
+      featureId: 'CdStationH',
       feature: 'A282000101',
       conditions: {
         H: { $lt: -10 } // Set an invalid range so that we are sure it will not trigger
@@ -401,7 +403,6 @@ describe('kMap:geoalerts', () => {
     if (externalServer) await externalServer.close()
     if (server) await server.close()
     await weacastApp.getService('forecasts').Model.drop()
-    await probeService.Model.drop()
     await uService.Model.drop()
     await vService.Model.drop()
     await weacastApp.db.disconnect()

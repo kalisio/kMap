@@ -1,10 +1,10 @@
 <template>
   <div>
-    <q-expansion-item ref="timePeriod" default-opened icon="fas fa-clock" :label="$t('KGeoAlertForm.TIME_PERIOD')" group="group">
+    <q-expansion-item ref="timePeriod" default-opened icon="fas fa-clock" :label="$t('KAlertForm.TIME_PERIOD')" group="group">
       <q-list dense class="row items-center justify-around q-pa-md">
         <q-item>
           <q-item-section>
-          {{$t('KGeoAlertForm.TIME_PERIOD_RANGE')}}
+          {{$t('KAlertForm.TIME_PERIOD_RANGE')}}
           </q-item-section>
           <q-item-section v-if="isMeasure" avatar>
             <q-select v-model="period.start" :options="generateTimeOptions([1, 3, 6, 12, 24, 48, 72, 96])" emit-value map-options>
@@ -19,7 +19,7 @@
         </q-item>
         <q-item>
           <q-item-section>
-            {{$t('KGeoAlertForm.FREQUENCY')}}
+            {{$t('KAlertForm.FREQUENCY')}}
           </q-item-section>
           <q-item-section avatar>
             <q-select v-model="frequency" :options="generateTimeOptions([1, 2, 3, 6, 12, 24])" emit-value map-options>
@@ -28,7 +28,7 @@
         </q-item>
       </q-list>
     </q-expansion-item>
-    <q-expansion-item ref="conditions" default-opened icon="fab fa-cloudversify" :label="$t('KGeoAlertForm.CONDITIONS')" group="group">
+    <q-expansion-item ref="conditions" default-opened icon="fab fa-cloudversify" :label="$t('KAlertForm.CONDITIONS')" group="group">
       <q-list dense class="q-pa-md">
         <q-item class="row items-center justify-around" v-for="(variable, index) in variables" :key="variable.name">
           <q-item-section avatar>
@@ -45,11 +45,11 @@
         </q-item>
       </q-list>
     </q-expansion-item>
-    <q-expansion-item ref="event" default-opened icon="fas fa-bell" :label="$t('KGeoAlertForm.EVENT')" group="group">
+    <q-expansion-item ref="event" default-opened icon="fas fa-bell" :label="$t('KAlertForm.EVENT')" group="group">
       <q-list dense class="row items-center justify-around q-pa-md">
         <q-item class="col-12">
           <q-item-section class="col-6">
-          {{$t('KGeoAlertForm.EVENT_TEMPLATE')}}
+          {{$t('KAlertForm.EVENT_TEMPLATE')}}
           </q-item-section>
           <q-item-section class="col-6">
             <k-item-chooser :multiselect="false" :default-items="[]" :services="[eventTemplatesService]" @changed="onEventTemplateSelected" />
@@ -77,7 +77,7 @@ import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 import { QSlider } from 'quasar'
 
 export default {
-  name: 'k-geoalert-form',
+  name: 'k-alert-form',
   components: {
     QSlider
   },
@@ -107,10 +107,10 @@ export default {
       },
       frequency: 6,
       operators: [{
-        label: this.$i18n.t('KGeoAlertForm.GREATER_THAN'),
+        label: this.$i18n.t('KAlertForm.GREATER_THAN'),
         value: '$gte'
       }, {
-        label: this.$i18n.t('KGeoAlertForm.LOWER_THAN'),
+        label: this.$i18n.t('KAlertForm.LOWER_THAN'),
         value: '$lte'
       }],
       conditions: [],
@@ -169,8 +169,9 @@ export default {
       this.hasError = false
     },
     async fill (values) {
-      logger.debug('Filling geoalert form', values)
-      this.period.start = _.get(values, 'period.start.hours')
+      logger.debug('Filling alert form', values)
+      // Future for forecast, past for measure
+      this.period.start = this.isWeather ? _.get(values, 'period.start.hours') : -_.get(values, 'period.start.hours')
       this.period.end = _.get(values, 'period.end.hours')
       this.frequency = this.cronToFrequency(values.cron)
       this.conditions = new Array(this.variables.length)
@@ -189,15 +190,15 @@ export default {
       })
     },
     validate () {
-      logger.debug('Validating geoalert form')
+      logger.debug('Validating alert form')
       this.hasError = false
       if (!this.hasActiveVariable()) {
         this.hasError = true
-        this.error = this.$t('KGeoAlertForm.CONDITIONS_REQUIRED')
+        this.error = this.$t('KAlertForm.CONDITIONS_REQUIRED')
         this.$refs.conditions.show()
       } else if (!this.eventTemplate) {
         this.hasError = true
-        this.error = this.$t('KGeoAlertForm.EVENT_TEMPLATE_REQUIRED')
+        this.error = this.$t('KAlertForm.EVENT_TEMPLATE_REQUIRED')
         this.$refs.event.show()
       }
       return {
@@ -206,8 +207,9 @@ export default {
       }
     },
     values () {
-      const values = {}
-      _.set(values, 'period.start.hours', this.period.start)
+      const values = { type: 'Feature' } // We store alerts as GeoJson features
+      // Future for forecast, past for measure
+      _.set(values, 'period.start.hours', this.isWeather ? this.period.start : -this.period.start)
       _.set(values, 'period.end.hours', this.period.end)
       _.set(values, 'cron', this.frequencyToCron(this.frequency))
       if (this.isWeather) {
@@ -225,11 +227,13 @@ export default {
       })
       // No expiration date for now
       values.expireAt = undefined
-      _.set(values, 'conditions.geometry', this.feature.geometry)
+      _.set(values, 'geometry', this.feature.geometry)
       // Add reference to feature service whenever required
       if (this.layer.service) {
         _.set(values, 'service', this.layer.service)
-        _.set(values, 'feature', this.feature._id)
+        if (this.layer.featureId) _.set(values, 'featureId', this.layer.featureId)
+        _.set(values, 'feature', this.layer.featureId ?
+          _.get(this.feature, 'properties.' + this.layer.featureId) : this.feature._id)
       }
       // Setup style if any provided
       if (_.has(this.layer, 'leaflet.icon-classes')) {
