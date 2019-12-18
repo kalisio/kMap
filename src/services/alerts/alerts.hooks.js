@@ -24,7 +24,8 @@ module.exports = {
   after: {
     all: [],
     find: [
-      coreHooks.unprocessTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt'])
+      coreHooks.unprocessTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt']),
+      coreHooks.convertToJson(['conditions'])
     ],
     get: [
       coreHooks.unprocessTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt']),
