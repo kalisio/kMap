@@ -3,7 +3,7 @@
       :style="radialFabStyle"
       :start-angle="0"
       :end-angle="-180"
-      :radius="80"
+      :radius="100"
       @close="unselectFeatureForAction">
       <!--q-btn slot="closed-menu-container"
         round color="secondary" icon="keyboard_arrow_up" /-->
@@ -60,12 +60,11 @@ export default {
     },
     async onFeatureActionButtons (layer, event) {
       const leafletLayer = event && event.target
-      if (!leafletLayer) return
-      const feature = _.get(leafletLayer, 'feature')
-      if (!feature) return
+      const feature = leafletLayer && _.get(leafletLayer, 'feature')
       this.featureActions = this.kActivity.getFeatureActions(feature, layer)
-      // Nothing allowed on this feature or close menu on the same one
-      if ((this.getFeatureForAction() === feature) || (this.featureActions.length === 0)) {
+      if (this.featureActions.length === 0) {
+        this.$refs.radialFab.close() // Closing should be bound to unselect
+      } else if (feature && (this.getFeatureForAction() === feature)) { // Close menu on the same one
         this.$refs.radialFab.close() // Closing should be bound to unselect
       } else {
         this.selectFeatureForAction(layer, event)
@@ -74,9 +73,8 @@ export default {
       }
     },
     onFeatureActionClicked (action) {
-      const { feature, layer, target } = this.selectionForAction
       // If a handler is given call it
-      if (action.handler) action.handler.call(this, feature, layer, target)
+      if (action.handler) action.handler.call(this, this.selectionForAction)
       // If a route is given activate it
       else if (action.route) this.$router.push(action.route)
     }
