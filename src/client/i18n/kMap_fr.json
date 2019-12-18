@@ -196,17 +196,5 @@
     "METEO_LAYERS": "Prévisions météo",
     "BUSINESS_LAYERS": "Couches métier",
     "FORECASTS_LABEL": "Modèles de prévision"
-  },
-  "KAlertForm": {
-    "TIME_PERIOD": "Période temporelle d'analyse",
-    "TIME_PERIOD_RANGE": "Temps courant",
-    "FREQUENCY": "A vérifier toutes les",
-    "CONDITIONS": "Conditions de déclenchement",
-    "CONDITIONS_REQUIRED": "Au moins une condition est requise",
-    "GREATER_THAN": "supérieur à",
-    "LOWER_THAN": "inférieur à",
-    "EVENT": "Evénement à déclencher",
-    "EVENT_TEMPLATE": "Saisissez le modèle d'événement à déclencher",
-    "EVENT_TEMPLATE_REQUIRED": "Le modèle d'événement est requis"
   }
 }

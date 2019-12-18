@@ -10,12 +10,12 @@ const debug = makeDebug('kalisio:kMap:alerts:service')
 const alerts = {}
 
 export default {
-  async registerAlert (alert) {
+  async registerAlert (alert, check = true) {
     if (alerts[alert._id.toString()]) return
     debug('Registering new alert ', alert)
     const cronJob = new CronJob(alert.cron, () => this.checkAlert(alert))
     alerts[alert._id.toString()] = cronJob
-    await this.checkAlert(alert)
+    if (check) await this.checkAlert(alert)
     cronJob.start()
   },
 
@@ -101,11 +101,9 @@ export default {
       } else { // Else keep track of previous trigger time stamp
         status.triggeredAt = _.get(alert, 'status.triggeredAt').clone()
       }
+      status.triggers = results
     }
     debug('Alert ' + alert._id.toString() + ' status', status, ' with ' + results.length + ' triggers')
-    // Emit event
-    const event = { alert }
-    if (isActive) event.triggers = results
     // As we keep in-memory objects avoid them being mutated by hooks processing operation payload
     if (options.patch) await this.patch(alert._id.toString(), { status: Object.assign({}, status) })
     // Keep track of changes in memory as well
@@ -114,7 +112,6 @@ export default {
     const webhook = alert.webhook
     if (options.callWebhook && webhook) {
       const body = Object.assign({ alert: _.omit(alert, ['webhook']) }, _.omit(webhook, ['url']))
-      if (isActive) body.triggers = results
       await request.post(webhook.url, body)
     }
     return alert
