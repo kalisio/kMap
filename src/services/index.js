@@ -69,14 +69,19 @@ export default async function () {
   if (!_.get(geocoderOptions.disabled)) {
     app.createService('geocoder', Object.assign({ servicesPath }, geocoderOptions))
   }
+  // Add app-specific hooks to required services
+  app.on('service', async service => {
+    if (service.name === 'alerts') {
+      // On startup restore alerts CRON tasks if service not disabled
+      if (!service.memory) {
+        const alerts = await service.find({ paginate: false })
+        alerts.forEach(alert => service.registerAlert(alert))
+      }
+    }
+  })
   const alertsOptions = app.getServiceOptions('alerts')
   if (!_.get(alertsOptions.disabled)) {
-    const alertsService = createAlertsService.call(app, alertsOptions)
-    // On startup restore alerts CRON tasks if service not disabled
-    if (alertsService && !alertsOptions.memory) {
-      const alerts = await alertsService.find({ paginate: false })
-      alerts.forEach(alert => alertsService.registerAlert(alert))
-    }
+    createAlertsService.call(app, alertsOptions)
   }
 
   /*

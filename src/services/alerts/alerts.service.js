@@ -28,12 +28,14 @@ export default {
     delete alerts[id.toString()]
   },
 
+  getConditions(alert) {
+    return _.mapKeys(alert.conditions, (value, key) => 'properties.' + key)
+  },
+
   async checkWeatherAlert (alert) {
     const now = moment.utc()
     // Convert conditions to internal data model
-    const conditions = _.mapKeys(alert.conditions, (value, key) => {
-      return (alert.elements.includes(key) ? 'properties.' + key : key)
-    })
+    const conditions = this.getConditions(alert)
     const probesService = this.app.getService('probes')
     // Perform aggregation over time range
     const query = Object.assign({
@@ -60,7 +62,7 @@ export default {
   async checkMeasureAlert (alert) {
     const now = moment.utc()
     // Convert conditions to internal data model
-    const conditions = _.mapKeys(alert.conditions, (value, key) => 'properties.' + key)
+    const conditions = this.getConditions(alert)
     const featureService = this.app.getService(alert.service)
     // Perform aggregation over time range
     const query = Object.assign({
