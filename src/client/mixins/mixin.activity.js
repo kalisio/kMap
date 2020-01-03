@@ -366,6 +366,8 @@ export default function (name) {
         this.createModal.$on('applied', async createdLayer => {
           this.createModal.close()
           this.createModal = null
+          // Update filter in layer as well
+          createdLayer = await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
           // Create an empty layer used as a container
           await this.addLayer(createdLayer)
           // Start editing
