@@ -241,6 +241,7 @@ export default function (name) {
           }
         }
         this.$set(layer, 'actions', actions)
+        return actions
       },
       onLayerAdded (layer) {
         this.registerLayerActions(layer)
