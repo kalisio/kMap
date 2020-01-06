@@ -13,7 +13,7 @@ export { errors }
 export { permissions }
 
 // register factories for known grid sources
-gridSourceFactories[OpenDapGridSource.getKey()] = function() { return new OpenDapGridSource() }
-gridSourceFactories[WcsGridSource.getKey()] = function() { return new WcsGridSource() }
-gridSourceFactories[GeoTiffGridSource.getKey()] = function() { return new GeoTiffGridSource() }
-gridSourceFactories[WeacastGridSource.getKey()] = function() { return new WeacastGridSource() }
+gridSourceFactories[OpenDapGridSource.getKey()] = function () { return new OpenDapGridSource() }
+gridSourceFactories[WcsGridSource.getKey()] = function () { return new WcsGridSource() }
+gridSourceFactories[GeoTiffGridSource.getKey()] = function () { return new GeoTiffGridSource() }
+gridSourceFactories[WeacastGridSource.getKey()] = function () { return new WeacastGridSource() }

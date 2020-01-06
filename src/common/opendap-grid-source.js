@@ -56,8 +56,8 @@ export class OpenDapGridSource extends GridSource {
 
     // build grid indexing array
     const dimensions = this.options.dimensions
-    dimensions[this.options.latitude] = `0:${latCount-1}`
-    dimensions[this.options.longitude] = `0:${lonCount-1}`
+    dimensions[this.options.latitude] = `0:${latCount - 1}`
+    dimensions[this.options.longitude] = `0:${lonCount - 1}`
     const indices = dap.makeGridIndices(descriptor, this.options.query, dimensions)
     if (indices.length === 0) throw new Error('Couldn\'t create index array for grid')
 
@@ -86,22 +86,20 @@ export class OpenDapGridSource extends GridSource {
   }
 
   async fetch (abort, bbox, resolution) {
-    if (!this.usable)
-      return null
+    if (!this.usable) { return null }
 
     const query = this.makeQuery(bbox, resolution)
-    if (!query)
-      return null
+    if (!query) { return null }
 
     const data = await dap.fetchData(query, abort)
     const valData = data[0][0]
-    const latData = data[0][this.latIndex+1]
-    const lonData = data[0][this.lonIndex+1]
+    const latData = data[0][this.latIndex + 1]
+    const lonData = data[0][this.lonIndex + 1]
 
     const lat0 = latData[0]
-    const lat1 = latData[latData.length-1]
+    const lat1 = latData[latData.length - 1]
     let lon0 = lonData[0]
-    let lon1 = lonData[lonData.length-1]
+    let lon1 = lonData[lonData.length - 1]
 
     // normalize bounds
     if (lon0 > 180.0) lon0 -= 360.0
@@ -109,7 +107,7 @@ export class OpenDapGridSource extends GridSource {
     const databbox = [Math.min(lat0, lat1), Math.min(lon0, lon1), Math.max(lat0, lat1), Math.max(lon0, lon1)]
 
     if (this.canUseGrid2D) {
-      const indices = this.indices.slice(0, this.indices.length-2)
+      const indices = this.indices.slice(0, this.indices.length - 2)
       const subgrid = dap.gridValue(valData, indices)
       return new Grid2D(
         databbox, [latData.length, lonData.length],
@@ -174,23 +172,23 @@ export class OpenDapGridSource extends GridSource {
   async computeMetaDataFromData () {
     // fetch whole variable to compute metadata
     const indices = [...this.indices]
-    indices[this.latIndex] = `0:${this.latCount-1}`
-    indices[this.lonIndex] = `0:${this.lonCount-1}`
+    indices[this.latIndex] = `0:${this.latCount - 1}`
+    indices[this.lonIndex] = `0:${this.lonCount - 1}`
     const allQuery = dap.makeGridQuery(this.options.url, this.options.query, indices)
     const all = await dap.fetchData(allQuery)
 
     // compute bounds
     const valData = all[0][0]
-    const latData = all[0][this.latIndex+1]
-    const lonData = all[0][this.lonIndex+1]
+    const latData = all[0][this.latIndex + 1]
+    const lonData = all[0][this.lonIndex + 1]
     this.minMaxVal = dap.getMinMaxGrid(valData, indices.length)
     // this.minMaxLat = dap.getMinMaxArray(latData)
     const lat0 = latData[0]
-    const lat1 = latData[latData.length-1]
+    const lat1 = latData[latData.length - 1]
     this.minMaxLat = [Math.min(lat0, lat1), Math.max(lat0, lat1)]
     // this.minMaxLon = dap.getMinMaxArray(lonData)
     const lon0 = lonData[0] > 180.0 ? lonData[0] - 360.0 : lonData[0]
-    const lon1 = lonData[lonData.length-1] > 180.0 ? lonData[lonData.length-1] - 360.0 : lonData[lonData.length-1]
+    const lon1 = lonData[lonData.length - 1] > 180.0 ? lonData[lonData.length - 1] - 360.0 : lonData[lonData.length - 1]
     this.minMaxLon = [Math.min(lon0, lon1), Math.max(lon0, lon1)]
 
     // grid resolution

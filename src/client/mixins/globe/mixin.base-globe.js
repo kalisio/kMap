@@ -144,8 +144,7 @@ export default {
         this.viewer.scene.imageryLayers.add(cesiumLayer)
       } else if (cesiumLayer instanceof Cesium.Cesium3DTileset) {
         cesiumLayer.show = true
-        if (!this.viewer.scene.primitives.contains(cesiumLayer))
-          this.viewer.scene.primitives.add(cesiumLayer);
+        if (!this.viewer.scene.primitives.contains(cesiumLayer)) { this.viewer.scene.primitives.add(cesiumLayer) }
       } else {
         this.viewer.dataSources.add(cesiumLayer)
       }
@@ -166,7 +165,7 @@ export default {
       } else if (cesiumLayer instanceof Cesium.ImageryLayer) {
         this.viewer.scene.imageryLayers.remove(cesiumLayer, false)
       } else if (cesiumLayer instanceof Cesium.Cesium3DTileset) {
-        cesiumLayer.show = false;
+        cesiumLayer.show = false
       } else {
         this.viewer.dataSources.remove(cesiumLayer, false)
       }

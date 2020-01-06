@@ -25,7 +25,7 @@ describe('kMap:daptiles', () => {
         // app.configure(map)
         daptilesService = app.getService('daptiles')
         expect(daptilesService).toExist()
-       
+
         // Now app is configured launch the server
         server = app.listen(port)
         server.once('listening', _ => done())

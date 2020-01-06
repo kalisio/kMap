@@ -4,38 +4,38 @@ import sift from 'sift'
 import request from 'superagent'
 import { CronJob } from 'cron'
 import makeDebug from 'debug'
-const debug = makeDebug('kalisio:kMap:geoalerts:service')
+const debug = makeDebug('kalisio:kMap:alerts:service')
 
 // Alert map
 const alerts = {}
 
 export default {
-
-  async registerAlert (alert) {
+  async registerAlert (alert, check = true) {
     if (alerts[alert._id.toString()]) return
     debug('Registering new alert ', alert)
     const cronJob = new CronJob(alert.cron, () => this.checkAlert(alert))
-    cronJob.start()
     alerts[alert._id.toString()] = cronJob
-    await this.checkAlert(alert)
+    if (check) await this.checkAlert(alert)
+    cronJob.start()
   },
 
-  unregisterAlert (alert) {
-    const cronJob = alerts[alert._id.toString()]
+  async unregisterAlert (alert) {
+    const id = (typeof alert === 'string' ? alert : alert._id)
+    const cronJob = alerts[id.toString()]
     if (!cronJob) return
     debug('Unregistering new alert ', alert)
     cronJob.stop()
-    delete alerts[alert._id.toString()]
+    delete alerts[id.toString()]
+  },
+
+  getConditions(alert) {
+    return _.mapKeys(alert.conditions, (value, key) => 'properties.' + key)
   },
 
   async checkWeatherAlert (alert) {
     const now = moment.utc()
-    // Retrieve geometry
-    const geometry = _.get(alert, 'conditions.geometry')
     // Convert conditions to internal data model
-    const conditions = _.mapKeys(_.omit(alert.conditions, ['geometry']), (value, key) => {
-      return (alert.elements.includes(key) ? 'properties.' + key : key)
-    })
+    const conditions = this.getConditions(alert)
     const probesService = this.app.getService('probes')
     // Perform aggregation over time range
     const query = Object.assign({
@@ -45,7 +45,7 @@ export default {
       },
       geometry: {
         $geoIntersects: {
-          $geometry: geometry
+          $geometry: _.get(alert, 'geometry')
         }
       },
       aggregate: false
@@ -62,7 +62,7 @@ export default {
   async checkMeasureAlert (alert) {
     const now = moment.utc()
     // Convert conditions to internal data model
-    const conditions = _.mapKeys(alert.conditions, (value, key) => 'properties.' + key)
+    const conditions = this.getConditions(alert)
     const featureService = this.app.getService(alert.service)
     // Perform aggregation over time range
     const query = Object.assign({
@@ -70,19 +70,19 @@ export default {
         $gte: now.clone().add(_.get(alert, 'period.start', { seconds: 0 })).toDate(),
         $lte: now.clone().add(_.get(alert, 'period.end', { seconds: 24 * 3600 })).toDate()
       },
-      ['properties.' + featureService.options.featureId]: alert.feature
+      [alert.featureId ? 'properties.' + alert.featureId : '_id']: alert.feature
     }, conditions)
 
     const result = await featureService.find({ query })
     return result.features
   },
 
-  async checkAlert (alert) {
+  async checkAlert (alert, options = { patch: true, callWebhook: true }) {
     const now = moment.utc()
     debug('Checking alert at ' + now.format(), _.omit(alert, ['status', 'webhook']))
     // First check if still valid
     if (now.isAfter(alert.expireAt)) {
-      this.unregisterAlert(alert)
+      await this.unregisterAlert(alert)
       return
     }
     const results = (alert.feature ? await this.checkMeasureAlert(alert) : await this.checkWeatherAlert(alert))
@@ -92,28 +92,29 @@ export default {
     // Then update alert status
     const status = {
       active: isActive,
-      checkedAt: now
+      checkedAt: now.clone()
     }
-    // If not previously active and it is now add first time stamp
-    if (!wasActive && isActive) {
-      status.triggeredAt = now
-    } else if (wasActive) { // Else keep track of previous trigger time stamp
-      status.triggeredAt = _.get(alert, 'status.triggeredAt')
+    if (isActive) {
+      // If not previously active and it is now add first time stamp
+      if (!wasActive) {
+        status.triggeredAt = now.clone()
+      } else { // Else keep track of previous trigger time stamp
+        status.triggeredAt = _.get(alert, 'status.triggeredAt').clone()
+      }
+      status.triggers = results
     }
     debug('Alert ' + alert._id.toString() + ' status', status, ' with ' + results.length + ' triggers')
-    // Emit event
-    const event = { alert }
-    if (isActive) event.triggers = results
-    const result = await this.patch(alert._id.toString(), { status })
+    // As we keep in-memory objects avoid them being mutated by hooks processing operation payload
+    if (options.patch) await this.patch(alert._id.toString(), { status: Object.assign({}, status) })
     // Keep track of changes in memory as well
-    Object.assign(alert, result)
-    this.emit('geoalert', event)
+    Object.assign(alert, { status })
     // If a webhook is configured call it
     const webhook = alert.webhook
-    if (webhook) {
+    if (options.callWebhook && webhook) {
       const body = Object.assign({ alert: _.omit(alert, ['webhook']) }, _.omit(webhook, ['url']))
-      if (isActive) body.triggers = results
-      return request.post(webhook.url, body)
+      await request.post(webhook.url, body)
     }
+    return alert
   }
 }
+

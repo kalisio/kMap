@@ -90,10 +90,16 @@ export function asGeoJson (options = {}) {
       })
     }
     // Copy pagination information so that client can use it anyway
-    hook.result = Object.assign({
-      type: 'FeatureCollection',
-      features: results
-    }, pagination)
+    if (_.get(options, 'asFeatureCollection', true)) {
+      hook.result = Object.assign({
+        type: 'FeatureCollection',
+        features: results
+      }, pagination)
+    } else {
+      hook.result = Object.assign({
+        data: results
+      }, pagination)
+    }
   }
 }
 

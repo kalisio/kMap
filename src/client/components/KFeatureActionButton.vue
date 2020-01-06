@@ -3,8 +3,8 @@
       :style="radialFabStyle"
       :start-angle="0"
       :end-angle="-180"
-      :radius="80"
-      @close="unselectFeatureForAction">
+      :radius="50"
+      @close="onCloseMenu">
       <!--q-btn slot="closed-menu-container"
         round color="secondary" icon="keyboard_arrow_up" /-->
       <q-btn slot="open-menu-container"
@@ -12,7 +12,11 @@
       <k-radial-fab-item
         v-for="(action, index) in featureActions"
         :key="index">
-        <q-btn round color="secondary" :icon="action.icon" @click="onFeatureActionClicked(action)" />
+        <q-btn round color="secondary" :icon="action.icon" @click="onFeatureActionClicked(action)">
+          <q-tooltip v-if="action.label">
+            {{action.label}}
+          </q-tooltip>
+        </q-btn>
       </k-radial-fab-item>
     </k-radial-fab>
 </template>
@@ -49,6 +53,10 @@ export default {
     unselectFeatureForAction () {
       this.selectionForAction = {}
     },
+    onCloseMenu () {
+      this.unselectFeatureForAction()
+      this.menuPosition = null
+    },
     updateRadialMenuPosition (event) {
       if (event.containerPoint) this.radialFabPosition = event.containerPoint
       else if (this.selectionForAction.latlng) {
@@ -59,24 +67,29 @@ export default {
       }
     },
     async onFeatureActionButtons (layer, event) {
+      // We receive contextmenu events from both marker and map,
+      // so we only take the first one into account
+      const point = event.layerPoint
+      if (point && this.menuPosition && point.equals(this.menuPosition)) return
       const leafletLayer = event && event.target
-      if (!leafletLayer) return
-      const feature = _.get(leafletLayer, 'feature')
-      if (!feature) return
+      const feature = leafletLayer && _.get(leafletLayer, 'feature')
       this.featureActions = this.kActivity.getFeatureActions(feature, layer)
-      // Nothing allowed on this feature or close menu on the same one
-      if ((this.getFeatureForAction() === feature) || (this.featureActions.length === 0)) {
+      if (this.featureActions.length === 0) {
         this.$refs.radialFab.close() // Closing should be bound to unselect
+        this.menuPosition = null
+      } else if (feature && (this.getFeatureForAction() === feature)) { // Close menu on the same one
+        this.$refs.radialFab.close() // Closing should be bound to unselect
+        this.menuPosition = null
       } else {
         this.selectFeatureForAction(layer, event)
         this.updateRadialMenuPosition(event)
         this.$refs.radialFab.open()
+        this.menuPosition = point
       }
     },
     onFeatureActionClicked (action) {
-      const { feature, layer, target } = this.selectionForAction
       // If a handler is given call it
-      if (action.handler) action.handler.call(this, feature, layer, target)
+      if (action.handler) action.handler.call(this, this.selectionForAction)
       // If a route is given activate it
       else if (action.route) this.$router.push(action.route)
     }

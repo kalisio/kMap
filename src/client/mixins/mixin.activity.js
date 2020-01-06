@@ -149,7 +149,7 @@ export default function (name) {
         this.variables = []
         let catalogLayers = await this.getCatalogLayers()
         // Apply global layer filter
-        catalogLayers = sift(_.get(this, 'activityOptions.catalog.filter', {}), catalogLayers)
+        catalogLayers = catalogLayers.filter(sift(_.get(this, 'activityOptions.catalog.filter', {})))
         // Iterate and await layers as creation is async and we need to have all layers ready
         // before checking if there is some background layer
         for (let i = 0; i < catalogLayers.length; i++) {
@@ -241,6 +241,7 @@ export default function (name) {
           }
         }
         this.$set(layer, 'actions', actions)
+        return actions
       },
       onLayerAdded (layer) {
         this.registerLayerActions(layer)
@@ -365,6 +366,8 @@ export default function (name) {
         this.createModal.$on('applied', async createdLayer => {
           this.createModal.close()
           this.createModal = null
+          // Update filter in layer as well
+          createdLayer = await this.$api.getService('catalog').patch(createdLayer._id, { baseQuery: { layer: createdLayer._id } })
           // Create an empty layer used as a container
           await this.addLayer(createdLayer)
           // Start editing

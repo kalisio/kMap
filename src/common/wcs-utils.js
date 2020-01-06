@@ -5,7 +5,7 @@ import { buildUrl } from '@kalisio/kdk-core/common'
 
 // https://www.opengeospatial.org/standards/wcs
 
-export function makeGetCapabilitiesQuery(url) {
+export function makeGetCapabilitiesQuery (url) {
   return buildUrl(url, {
     SERVICE: 'WCS',
     VERSION: '1.0.0',
@@ -13,7 +13,7 @@ export function makeGetCapabilitiesQuery(url) {
   })
 }
 
-export function makeDescribeCoverageQuery(url, coverage) {
+export function makeDescribeCoverageQuery (url, coverage) {
   return buildUrl(url, {
     SERVICE: 'WCS',
     VERSION: '1.0.0',
@@ -37,59 +37,58 @@ export function makeGetCoverageQuery (url, coverage, format, bbox, width, height
 }
 
 export async function GetCapabilities (url) {
-    const query = makeGetCapabilitiesQuery(url)
-    return fetch(query)
-        .then(response => response.text())
-        .then(txt => xml2js.parseStringPromise(txt))
+  const query = makeGetCapabilitiesQuery(url)
+  return fetch(query)
+    .then(response => response.text())
+    .then(txt => xml2js.parseStringPromise(txt))
 }
 
 export async function DescribeCoverage (url, coverage) {
-    const query = makeDescribeCoverageQuery(url, coverage)
-    return fetch(query)
-        .then(response => response.text())
-        .then(txt => xml2js.parseStringPromise(txt))
+  const query = makeDescribeCoverageQuery(url, coverage)
+  return fetch(query)
+    .then(response => response.text())
+    .then(txt => xml2js.parseStringPromise(txt))
 }
 
 export async function GetCoverage (abort, url, coverage, format, bbox, width, height) {
-    const query = makeGetCoverageQuery(url, coverage, format, bbox, width, height)
-    return fetch(query, { method: 'get', signal: abort })
-        .then(response => response.blob())
+  const query = makeGetCoverageQuery(url, coverage, format, bbox, width, height)
+  return fetch(query, { method: 'get', signal: abort })
+    .then(response => response.blob())
 }
 
 export function GetCoverageSpatialBounds (coverage) {
-    // 1.0.0
-    // CoverageDescription / CoverageOffering / lonLatEnvelope
-    const envelope = _.get(coverage, 'CoverageDescription.CoverageOffering[0].lonLatEnvelope[0].gml:pos', null)
-    if (!envelope)
-        return null
-    // assume lat long & deg & srs = 4326
-    // TODO: check it
-    const lats = []
-    const lons = []
-    for (const p of envelope) {
-        const lonLat = p.split(' ')
-        lons.push(parseFloat(lonLat[0]))
-        lats.push(parseFloat(lonLat[1]))
-    }
-    const minLatLon = [Math.min(...lats), Math.min(...lons)]
-    const maxLatLon = [Math.max(...lats), Math.max(...lons)]
-    return [minLatLon[0], minLatLon[1], maxLatLon[0], maxLatLon[1]]
+  // 1.0.0
+  // CoverageDescription / CoverageOffering / lonLatEnvelope
+  const envelope = _.get(coverage, 'CoverageDescription.CoverageOffering[0].lonLatEnvelope[0].gml:pos', null)
+  if (!envelope) { return null }
+  // assume lat long & deg & srs = 4326
+  // TODO: check it
+  const lats = []
+  const lons = []
+  for (const p of envelope) {
+    const lonLat = p.split(' ')
+    lons.push(parseFloat(lonLat[0]))
+    lats.push(parseFloat(lonLat[1]))
+  }
+  const minLatLon = [Math.min(...lats), Math.min(...lons)]
+  const maxLatLon = [Math.max(...lats), Math.max(...lons)]
+  return [minLatLon[0], minLatLon[1], maxLatLon[0], maxLatLon[1]]
 }
 
 export function GetSupportedFormats (coverage) {
-    // 1.0.0
-    // CoverageDescription / CoverageOffering / supportedFormats
-    const root = _.get(coverage, 'CoverageDescription.CoverageOffering[0].supportedFormats[0]', null)
-    // const nativ = _.get(root, '$.nativeFormat', null)
-    const formats = _.get(root, 'formats')
-    // TODO: put native format as first entry
-    // MapServer nativeFormat='geotiff' but this is not listed in
-    // formats list ...
-    /*
+  // 1.0.0
+  // CoverageDescription / CoverageOffering / supportedFormats
+  const root = _.get(coverage, 'CoverageDescription.CoverageOffering[0].supportedFormats[0]', null)
+  // const nativ = _.get(root, '$.nativeFormat', null)
+  const formats = _.get(root, 'formats')
+  // TODO: put native format as first entry
+  // MapServer nativeFormat='geotiff' but this is not listed in
+  // formats list ...
+  /*
     if (nativ && formats) {
     }
     */
-    return formats
+  return formats
 }
 
 /*

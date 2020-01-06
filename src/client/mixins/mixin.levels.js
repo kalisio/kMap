@@ -15,8 +15,7 @@ export default {
       this.selectableLevelsLayer = layer
       if (initialLevel === undefined) {
         initialLevel = _.get(levels, 'values[0]')
-        if (initialLevel === undefined)
-          initialLevel = _.get(levels, 'range.min')
+        if (initialLevel === undefined) { initialLevel = _.get(levels, 'range.min') }
       }
       this.setSelectedLevel(initialLevel)
     },

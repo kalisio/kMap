@@ -246,12 +246,15 @@ export default {
           this.setForecastLevel(0)
           return
         }
-        this.setSelectableLevels(layer, levels)
-        this.$on('selected-level-changed', this.setForecastLevel)
+        if (typeof this.setSelectableLevels === 'function') {
+          this.setSelectableLevels(layer, levels)
+          this.$on('selected-level-changed', this.setForecastLevel)
+        }
       }
     },
     onWeacastHideLayer (layer) {
-      if (this.clearSelectableLevels(layer)) {
+      if (typeof this.clearSelectableLevels === 'function') {
+        this.clearSelectableLevels(layer)
         this.$off('selected-level-changed', this.setForecastLevel)
       }
     }
@@ -269,4 +272,3 @@ export default {
     this.$off('layer-hidden', this.onWeacastHideLayer)
   }
 }
-
