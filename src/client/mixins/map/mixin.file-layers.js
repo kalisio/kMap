@@ -2,6 +2,7 @@ import L from 'leaflet'
 import logger from 'loglevel'
 import togeojson from 'togeojson'
 import fileLayer from 'leaflet-filelayer'
+import { uid } from 'quasar'
 
 fileLayer(null, L, togeojson)
 
@@ -49,15 +50,20 @@ export default {
           name: event.filename || this.$t('mixins.fileLayers.IMPORTED_DATA_NAME'),
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
+          featureId: '_id',
           leaflet: {
             type: 'geoJson',
             isVisible: true,
-            cluster: { disableClusteringAtZoom: 18 }
+            realtime: true
           }
         })
-        const fileLayer = this.getLeafletLayerByName(event.filename)
-        event.layer.addTo(fileLayer)
-        this.map.fitBounds(fileLayer.getBounds())
+        // Generate temporary IDs for features
+        const geoJson = event.layer.toGeoJSON()
+        const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+        features.forEach(feature => feature._id = uid().toString())
+        await this.updateLayer(event.filename, geoJson)
+        // Zoom to it
+        this.zoomToLayer(event.filename)
       })
       this.loader.on('data:error', event => {
         logger.error(event.error)

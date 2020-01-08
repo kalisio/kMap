@@ -3,6 +3,7 @@ import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
+import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default function (name) {
   return {
@@ -352,11 +353,12 @@ export default function (name) {
               type: 'OverlayLayer',
               icon: 'insert_drive_file',
               service: 'features',
+              featureId: '_id',
               [this.engine]: {
                 type: 'geoJson',
                 isVisible: true,
-                source: '/api/features',
-                cluster: { disableClusteringAtZoom: 18 }
+                realtime: true,
+                source: '/api/features'
               }
             }
           }

@@ -25,6 +25,7 @@
     "featureId": {
       "type": "string", 
       "maxLength": 256,
+      "minLength": 1,
       "field": {
         "component": "form/KTextField",
         "helper": "schemas.CATALOG_FEATURE_ID_FIELD_HELPER"
@@ -39,6 +40,6 @@
       }
     }
   },
-  "required": ["name", "schema"]
+  "required": ["name", "featureId"]
 }
 

@@ -2,13 +2,29 @@ import _ from 'lodash'
 import L from 'leaflet'
 import 'leaflet-draw/dist/leaflet.draw-src.js'
 import 'leaflet-draw/dist/leaflet.draw-src.css'
-import { Dialog } from 'quasar'
-import { bindLeafletEvents } from '../../utils'
+import { Dialog, uid } from 'quasar'
+import { bindLeafletEvents, LeafletEvents } from '../../utils'
 
 export default {
   methods: {
     isLayerEdited (name) {
       return this.editedLayer && (this.editedLayer.name === name)
+    },
+    getGeoJsonEditOptions (options) {
+      // Retrieve base options first
+      const { onEachFeature, style, pointToLayer } = this.getGeoJsonOptions(options)
+      return {
+        onEachFeature,
+        // Use default styling when editing as dynamic styling can conflict
+        style: (feature) => {
+          return Object.assign({}, this.options.editFeatureStyle || this.options.featureStyle)
+        },
+        pointToLayer: (feature, latlng) => {
+          const marker = this.createMarkerFromStyle(latlng, Object.assign({}, this.options.editPointStyle || this.options.pointStyle))
+          if (latlng && marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
+          return marker
+        }
+      }
     },
     async editLayer (name) {
       const options = this.getLayerByName(name)
@@ -30,7 +46,7 @@ export default {
         // Move source layers to edition layers, required as eg clusters are not supported
         const geoJson = leafletLayer.toGeoJSON()
         leafletLayer.clearLayers()
-        this.editableLayer = L.geoJson(geoJson, this.getGeoJsonOptions(options))
+        this.editableLayer = L.geoJson(geoJson, this.getGeoJsonEditOptions(options))
         this.map.addLayer(this.editableLayer)
         // Add UI
         this.editControl = new L.Control.Draw({
@@ -94,6 +110,10 @@ export default {
     },
     async onFeatureCreated (event) {
       let geoJson = event.layer.toGeoJSON()
+      // Generate temporary ID for feature
+      const id = _.get(this.editedLayer, 'featureId')
+      if (id) _.set(geoJson, 'properties.' + id, uid().toString())
+      else geoJson._id = uid().toString()
       // Save changes to DB, we use the layer DB ID as layer ID on features
       geoJson = await this.createFeatures(geoJson, this.editedLayer._id)
       this.editableLayer.addData(geoJson)
@@ -142,6 +162,11 @@ export default {
       marker: {},
       circlemarker: false
     }
+  },
+  created () {
+    // Perform required conversion for default feature styling
+    if (this.options.editFeatureStyle) this.convertFromSimpleStyleSpec(this.options.editFeatureStyle, 'update-in-place')
+    if (this.options.editPointStyle) this.convertFromSimpleStyleSpec(this.options.editPointStyle, 'update-in-place')
   },
   mounted () {
     // Initialize i18n

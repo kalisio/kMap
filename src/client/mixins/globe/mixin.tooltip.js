@@ -27,6 +27,7 @@ export default {
         if (!text) {
           if (tooltipStyle.property) {
             text = _.get(properties, tooltipStyle.property)
+            if (typeof text !== 'string') text = text.toString()
           } else if (tooltipStyle.template) {
             const compiler = tooltipStyle.compiler
             // FIXME: the whole feature is lost by Cesium so that top-level properties have disappeared
