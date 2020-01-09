@@ -53,7 +53,7 @@ export const LeafletEvents = {
   Popup: ['add', 'remove'],
   Tooltip: ['add', 'remove'],
   Layer: ['add', 'remove', 'popupopen', 'popupclose', 'tooltipopen', 'tooltipclose'],
-  Marker: ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'contextmenu',
+  Feature: ['click', 'dblclick', 'mousedown', 'mouseup', 'mouseover', 'mouseout', 'contextmenu',
     'dragstart', 'dragend', 'drag', 'movestart', 'moveend', 'move']
 }
 

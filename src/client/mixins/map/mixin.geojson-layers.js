@@ -3,7 +3,7 @@ import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
 import { GradientPath } from '../../leaflet/GradientPath'
-import { fetchGeoJson, LeafletEvents, bindLeafletEvents } from '../../utils'
+import { fetchGeoJson, LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
 
 // Override default Leaflet GeoJson utility to manage some specific use cases
 const geometryToLayer = L.GeoJSON.geometryToLayer
@@ -223,6 +223,7 @@ export default {
     getGeoJsonOptions (options = {}) {
       const geojsonOptions = {
         onEachFeature: (feature, layer) => {
+          unbindLeafletEvents(layer)
           // Check for custom onEachFeature function
           if (typeof this.onLeafletFeature === 'function') this.onLeafletFeature(feature, layer, options)
           // Then for tooltip/popup
@@ -246,14 +247,13 @@ export default {
             bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this, options)
             if (wasOpen) layer.openTooltip()
           }
+          bindLeafletEvents(layer, LeafletEvents.Feature, this, options)
         },
         style: (feature) => {
           return this.generateLeafletStyle('featureStyle', feature, options)
         },
         pointToLayer: (feature, latlng) => {
-          const marker = this.generateLeafletStyle('markerStyle', feature, latlng, options)
-          if (latlng && marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
-          return marker
+          return this.generateLeafletStyle('markerStyle', feature, latlng, options)
         }
       }
 

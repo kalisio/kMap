@@ -20,9 +20,7 @@ export default {
           return Object.assign({}, this.options.editFeatureStyle || this.options.featureStyle)
         },
         pointToLayer: (feature, latlng) => {
-          const marker = this.createMarkerFromStyle(latlng, Object.assign({}, this.options.editPointStyle || this.options.pointStyle))
-          if (latlng && marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
-          return marker
+          return this.createMarkerFromStyle(latlng, Object.assign({}, this.options.editPointStyle || this.options.pointStyle))
         }
       }
     },
