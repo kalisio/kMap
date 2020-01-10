@@ -49,7 +49,7 @@ export const toHalf = (function () {
 }())
 
 export const WEBGL_FUNCTIONS = {
-    latLonToWebMercator: `vec2 latLonToWebMercator(vec3 latLonZoom) {
+  latLonToWebMercator: `vec2 latLonToWebMercator(vec3 latLonZoom) {
   const float d = 3.14159265359 / 180.0;
   const float maxLat = 85.0511287798;     // max lat using Web Mercator, used by EPSG:3857 CRS
   const float R = 6378137.0;              // earth radius
@@ -69,10 +69,10 @@ export const WEBGL_FUNCTIONS = {
 
   return scale * ((point * abcd.xz) + abcd.yw);
 }`,
-    unpack1: `float unpack1(float v, vec2 offsetScale) {
+  unpack1: `float unpack1(float v, vec2 offsetScale) {
   return offsetScale.x + v * offsetScale.y;
 }`,
-    unpack2: `vec2 unpack2(vec2 v, vec4 offsetScale) {
+  unpack2: `vec2 unpack2(vec2 v, vec4 offsetScale) {
   return offsetScale.xy + v * offsetScale.zw;
 }`
 }
@@ -81,98 +81,98 @@ export const WEBGL_FUNCTIONS = {
 PIXI.TYPES.HALF_FLOAT_VERTEX = 0x140b
 
 export function buildShaderCode (features) {
-    let vtxCode = ''
-    let frgCode = ''
-    // attributes, uniforms and varyings
-    vtxCode += '/// attributes, uniforms and varyings\n'
-    frgCode += '/// uniforms and varyings\n'
-    for (const feat of features) {
-        let addVtx = ''
-        let addFrg = ''
-        for (const v of _.get(feat, 'vertex.attributes', [])) addVtx += `attribute ${v};\n`
-        for (const v of _.get(feat, 'vertex.uniforms', [])) addVtx += `uniform ${v};\n`
-        for (const v of _.get(feat, 'fragment.uniforms', [])) addFrg += `uniform ${v};\n`
-        for (const v of _.get(feat, 'varyings', [])) {
-            addVtx += `varying ${v};\n`
-            addFrg += `varying ${v};\n`
-        }
+  let vtxCode = ''
+  let frgCode = ''
+  // attributes, uniforms and varyings
+  vtxCode += '/// attributes, uniforms and varyings\n'
+  frgCode += '/// uniforms and varyings\n'
+  for (const feat of features) {
+    let addVtx = ''
+    let addFrg = ''
+    for (const v of _.get(feat, 'vertex.attributes', [])) addVtx += `attribute ${v};\n`
+    for (const v of _.get(feat, 'vertex.uniforms', [])) addVtx += `uniform ${v};\n`
+    for (const v of _.get(feat, 'fragment.uniforms', [])) addFrg += `uniform ${v};\n`
+    for (const v of _.get(feat, 'varyings', [])) {
+      addVtx += `varying ${v};\n`
+      addFrg += `varying ${v};\n`
+    }
 
-        if (addVtx) vtxCode += `// ${feat.name} ------\n${addVtx}`
-        if (addFrg) frgCode += `// ${feat.name} ------\n${addFrg}`
-    }
-    // additional functions
-    vtxCode += '\n/// additional functions\n'
-    frgCode += '\n/// additional functions\n'
-    for (const feat of features) {
-        for (const v of _.get(feat, 'vertex.functions', [])) vtxCode += `// ${feat.name} ------\n${v}\n`
-        for (const v of _.get(feat, 'fragment.functions', [])) frgCode += `// ${feat.name} ------\n${v}\n`
-    }
-    // main
-    vtxCode += '\n/// vertex shader code\nvoid main()\n{\n'
-    frgCode += '\n/// fragment shader code\nvoid main()\n{\n'
-    for (const feat of features) {
-        const vc = _.get(feat, 'vertex.code')
-        const fc = _.get(feat, 'fragment.code')
-        if (vc) vtxCode += `// ${feat.name} ------\n${vc}\n`
-        if (fc) frgCode += `// ${feat.name} ------\n${fc}\n`
-    }
-    vtxCode += '}'
-    frgCode += '}'
+    if (addVtx) vtxCode += `// ${feat.name} ------\n${addVtx}`
+    if (addFrg) frgCode += `// ${feat.name} ------\n${addFrg}`
+  }
+  // additional functions
+  vtxCode += '\n/// additional functions\n'
+  frgCode += '\n/// additional functions\n'
+  for (const feat of features) {
+    for (const v of _.get(feat, 'vertex.functions', [])) vtxCode += `// ${feat.name} ------\n${v}\n`
+    for (const v of _.get(feat, 'fragment.functions', [])) frgCode += `// ${feat.name} ------\n${v}\n`
+  }
+  // main
+  vtxCode += '\n/// vertex shader code\nvoid main()\n{\n'
+  frgCode += '\n/// fragment shader code\nvoid main()\n{\n'
+  for (const feat of features) {
+    const vc = _.get(feat, 'vertex.code')
+    const fc = _.get(feat, 'fragment.code')
+    if (vc) vtxCode += `// ${feat.name} ------\n${vc}\n`
+    if (fc) frgCode += `// ${feat.name} ------\n${fc}\n`
+  }
+  vtxCode += '}'
+  frgCode += '}'
 
-    return [vtxCode, frgCode]
+  return [vtxCode, frgCode]
 }
 
 export function buildColorMapFunction (options) {
-    let thresholds = []
-    let colors = []
-    let interpolate = false
-    if (options.domain) {
-        colors = options.colors.slice()
-        if (options.domain.length === options.colors.length) {
-            thresholds = options.domain.slice()
-        } else if (options.domain.length < options.colors.length) {
-            const step = (options.domain[options.domain.length-1] - options.domain[0]) / (options.colors.length - 1)
-            for (let i = 0; i < options.colors.length; ++i) {
-                thresholds.push(options.domain[0] + (i * step))
-            }
-        }
-        interpolate = true
-    } else if (options.classes) {
-        // expect one color less than classes
-        colors = options.colors.slice()
-        thresholds = options.classes.slice()
-        interpolate = false
+  let thresholds = []
+  let colors = []
+  let interpolate = false
+  if (options.domain) {
+    colors = options.colors.slice()
+    if (options.domain.length === options.colors.length) {
+      thresholds = options.domain.slice()
+    } else if (options.domain.length < options.colors.length) {
+      const step = (options.domain[options.domain.length - 1] - options.domain[0]) / (options.colors.length - 1)
+      for (let i = 0; i < options.colors.length; ++i) {
+        thresholds.push(options.domain[0] + (i * step))
+      }
     }
+    interpolate = true
+  } else if (options.classes) {
+    // expect one color less than classes
+    colors = options.colors.slice()
+    thresholds = options.classes.slice()
+    interpolate = false
+  }
 
-    if (options.invertScale) {
-        thresholds = thresholds.reverse()
-        colors = colors.reverse()
-    }
+  if (options.invertScale) {
+    thresholds = thresholds.reverse()
+    colors = colors.reverse()
+  }
 
-    let code = 'vec4 ColorMap(float value) {\n'
-    for (let i = 0; i < colors.length; ++i) {
-        code += `  const vec4 color${i} = vec4(${colors[i].join(',')});\n`
-    }
-    code += '\n'
+  let code = 'vec4 ColorMap(float value) {\n'
+  for (let i = 0; i < colors.length; ++i) {
+    code += `  const vec4 color${i} = vec4(${colors[i].join(',')});\n`
+  }
+  code += '\n'
 
-    if (!interpolate) {
-        for (let i = 1; i < thresholds.length - 1; ++i) {
-            const threshold = thresholds[i]
-            code += `  if (value < float(${threshold})) { return color${i-1}; }\n`
-        }
-        code += `  return color${colors.length-1};\n`
-    } else {
-        code += `  if (value < float(${thresholds[0]})) { return color0; }\n`
-        for (let i = 1; i < thresholds.length; ++i) {
-            const t0 = thresholds[i-1]
-            const t1 = thresholds[i]
-            const dt = t1 - t0
-            code += `  if (value <= float(${t1})) { float t = (value - float(${t0})) / float(${dt}); return mix(color${i-1}, color${i}, t); }\n`
-        }
-        code += `  return color${colors.length-1};\n`
+  if (!interpolate) {
+    for (let i = 1; i < thresholds.length - 1; ++i) {
+      const threshold = thresholds[i]
+      code += `  if (value < float(${threshold})) { return color${i - 1}; }\n`
     }
-    code += '}'
-    return code
+    code += `  return color${colors.length - 1};\n`
+  } else {
+    code += `  if (value < float(${thresholds[0]})) { return color0; }\n`
+    for (let i = 1; i < thresholds.length; ++i) {
+      const t0 = thresholds[i - 1]
+      const t1 = thresholds[i]
+      const dt = t1 - t0
+      code += `  if (value <= float(${t1})) { float t = (value - float(${t0})) / float(${dt}); return mix(color${i - 1}, color${i}, t); }\n`
+    }
+    code += `  return color${colors.length - 1};\n`
+  }
+  code += '}'
+  return code
 }
 
 export class ColorMapHook {
