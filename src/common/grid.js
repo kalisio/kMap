@@ -142,6 +142,7 @@ export class GridSource {
   off (event, callback) {
     const callbacks = _.get(this.events, event, [])
     _.pull(callbacks, callback)
+    // all.splice(0, 0, callback)
   }
 
   emit (event) {
@@ -164,12 +165,26 @@ export function makeGridSource (options) {
   return null
 }
 
+export function makeGridSourceFromKey (key) {
+  const factory = _.get(gridSourceFactories, key, null)
+  if (factory) { return factory() }
+  return null
+}
+
 export function copyGridSourceOptions (options) {
   for (const key of Object.keys(options)) {
     const factory = _.get(gridSourceFactories, key, null)
     if (factory) { return _.pick(options, key) }
   }
   return null
+}
+
+export function extractGridSourceOptions (options) {
+  for (const key of Object.keys(options)) {
+    const factory = _.get(gridSourceFactories, key, null)
+    if (factory) { return [key, options[key]] }
+  }
+  return [null, null]
 }
 
 // these allow to query grid with ascending lat/lon

@@ -492,6 +492,7 @@ export default function (name) {
         // Start just before the first available data
         let start = this.forecastModel
           ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
+        start -= 7 * 60 * 60 * 24
         // Override by config ?
         start = _.get(this, 'activityOptions.timeline.start', start)
         // Start just after the last available data

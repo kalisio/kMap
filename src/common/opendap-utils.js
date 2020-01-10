@@ -194,6 +194,10 @@ export class OpenDAPGrid extends BaseGrid {
     this.latIndex = latIndex
     this.lonIndex = lonIndex
 
+    // if (converter) {
+
+    // }
+
     const index = lonSortOrder + (latSortOrder * 2)
     this.makeIndices = makeIndicesFunctions[index]
   }

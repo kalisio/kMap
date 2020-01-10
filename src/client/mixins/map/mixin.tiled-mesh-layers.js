@@ -8,6 +8,7 @@ import AbortController from 'abort-controller'
 
 import { makeGridSource, copyGridSourceOptions } from '../../../common/grid'
 import { ColorMapHook, RawValueHook, buildPixiMeshFromGrid } from '../../pixi-utils'
+// import { TimeBasedGridSource } from '../../../common/time-based-grid-source'
 
 const vtxShaderSrc = `
   precision mediump float;
@@ -181,9 +182,9 @@ const TiledMeshLayer = L.GridLayer.extend({
     // keep ref on callback to be able to remove it
     this.onDataChangedCallback = this.onDataChanged.bind(this)
     this.gridSource.on('data-changed', this.onDataChangedCallback)
-    this.gridOptions = gridOptions
-    this.gridUrlCompiler = (gridOptions.url ? _.template(gridOptions.url) : null)
-    // this.gridSource.setup(gridOptions)
+    // this.gridOptions = gridOptions
+    // this.gridUrlCompiler = (gridOptions.url ? _.template(gridOptions.url) : null)
+    this.gridSource.setup(gridOptions)
   },
 
   onAdd (map) {
@@ -273,12 +274,6 @@ const TiledMeshLayer = L.GridLayer.extend({
 
     return tile
   },
-
-  /*
-      async setCurrentTime (datetime) {
-
-      },
-    */
 
   onTileLoad (event) {
     // tile loaded
@@ -373,7 +368,23 @@ const TiledMeshLayer = L.GridLayer.extend({
     }
   },
 
+  setTime (time) {
+    if (typeof this.gridSource.setTime === 'function') {
+      this.gridSource.setTime(time)
+    }
+  },
+
+  setModel (model) {
+    if (typeof this.gridSource.setModel === 'function') {
+      this.gridSource.setModel(model)
+    }
+  }
+
+  /*
   async setCurrentTime (datetime) {
+    if (typeof this.gridSource.setTime === 'function') {
+      this.gridSource.setTime(datetime)
+    }
     if (typeof this.gridSource.setCurrentTime === 'function') this.gridSource.setCurrentTime(datetime)
     // Perform URL templating with context
     if (this.gridUrlCompiler) {
@@ -393,6 +404,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     }
     this.gridSource.setup(this.gridOptions)
   }
+  */
 })
 
 export default {
@@ -432,6 +444,10 @@ export default {
           this.$on('selected-level-changed', this.setCutValue)
           this.setSelectableLevels(layer, levels)
         }
+        this.currentTiledMeshLayer.setModel(this.forecastModel)
+        this.currentTiledMeshLayer.setTime(this.currentTime)
+        this.$on('forecast-model-changed', this.currentTiledMeshLayer.setModel.bind(this.currentTiledMeshLayer))
+        this.$on('current-time-changed', this.currentTiledMeshLayer.setTime.bind(this.currentTiledMeshLayer))
       }
     },
 
