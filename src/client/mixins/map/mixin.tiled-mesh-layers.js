@@ -7,7 +7,7 @@ import 'leaflet-pixi-overlay'
 import AbortController from 'abort-controller'
 
 import { makeGridSource, copyGridSourceOptions } from '../../../common/grid'
-import { RawValueHook, buildPixiMeshFromGrid, buildColorMapFunction, buildShaderCode, WEBGL_FUNCTIONS } from '../../pixi-utils'
+import { RawValueHook, buildPixiMeshFromGrid, buildColorMapShaderCodeFromClasses, buildColorMapShaderCodeFromDomain, buildShaderCode, WEBGL_FUNCTIONS } from '../../pixi-utils'
 
 // TODO
 // figure out initialZoom stuff
@@ -245,54 +245,40 @@ const TiledMeshLayer = L.GridLayer.extend({
   },
 
   updateColorMap () {
-    // if domain/classes were specified in the layer options
-    // then nothing to update if colormap already exists
-    const domain = _.get(this.options, 'chromajs.domain', null)
+    // create color map using domain or classes
+    // domain and classes can be specified from options
+    // if not, domain can be gathered from grid source
+    this.colorMap = null
+    this.colorMapShaderCode = null
+
+    let domain = null
     const classes = _.get(this.options, 'chromajs.classes', null)
-    if (domain || classes) {
-      if (!this.colorMap) {
-        if (domain) {
-          this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
-            this.options.chromajs.invertScale ? domain.reverse() : domain)
-        } else {
-          this.colorMap = chroma.scale(this.options.chromajs.scale).classes(
-            this.options.chromajs.invertScale ? classes.reverse() : classes)
-        }
+    if (!classes) {
+      domain = _.get(this.options, 'chromajs.domain', null)
+      if (!domain) {
+        domain = this.gridSource.getDataBounds()
       }
+    }
+
+    const invert = _.get(this.options, 'chromajs.invertScale', false)
+    const colors = _.get(this.options, 'chromajs.scale', null)
+    // translate to glsl style colors for shader code
+    const glcolors = colors ? colors.map(c => chroma(c).gl()) : null
+
+    if (domain) {
+      this.colorMap = chroma.scale(colors).domain(invert ? domain.reverse() : domain)
+      this.colorMapShaderCode = buildColorMapShaderCodeFromDomain(domain, glcolors, invert)
+    } else if (classes) {
+      this.colorMap = chroma.scale(colors).classes(invert ? classes.reverse() : classes)
+      this.colorMapShaderCode = buildColorMapShaderCodeFromClasses(classes, glcolors, invert)
     } else {
-      // colormap is based on grid source bounds
-      const bounds = this.gridSource.getDataBounds()
-      if (bounds) {
-        this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
-          this.options.chromajs.invertScale ? bounds.reverse() : bounds)
-      } else {
-        console.error('Grid source has no data bounds, can\'t create color map!')
-      }
+      console.error("Couldn't find any domain or classes to build color map!")
     }
   },
 
   updateShader () {
-    let colorMapCode
-    const domain = _.get(this.options.chromajs, 'domain')
-    const classes = _.get(this.options.chromajs, 'classes')
-    if (domain || classes) {
-      const options = {}
-      if (domain) {
-        options.domain = domain
-      } else {
-        options.classes = classes
-      }
-
-      options.invertScale = this.options.chromajs.invertScale
-      options.colors = []
-      for (const c of this.colorMap.colors()) {
-        options.colors.push(chroma(c).gl())
-      }
-
-      colorMapCode = buildColorMapFunction(options)
-    }
-
     const features = [
+      // feature projecting layer position
       {
         name: 'layerPosition',
         varyings: ['vec2 frg_layerPosition'],
@@ -311,6 +297,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     discard;`
         }
       },
+      // feature defining layer's scalar value
       {
         name: 'layerValue',
         varyings: ['float frg_layerValue'],
@@ -321,6 +308,7 @@ const TiledMeshLayer = L.GridLayer.extend({
       }
     ]
 
+    // feature discarding fragments when scalar value is > threshold
     if (this.options.render.cutOver) {
       features.push({
         name: 'cutOver',
@@ -330,6 +318,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
       })
     }
+    // feature discarding fragments when scalar value is < threshold
     if (this.options.render.cutUnder) {
       features.push({
         name: 'cutUnder',
@@ -339,6 +328,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
       })
     }
+    // feature discarding fragments when scalar value is nodata
     if (this.gridSource.supportsNoData()) {
       features.push({
         name: 'nodata',
@@ -352,27 +342,33 @@ const TiledMeshLayer = L.GridLayer.extend({
         }
       })
     }
-    if (this.options.render.pixelColorMapping) {
-      features.push({
-        name: 'colormap',
-        fragment: {
-          functions: [colorMapCode],
-          code: '  vec4 color = ColorMap(frg_layerValue);'
-        }
-      })
-    } else {
-      features.push({
-        name: 'colormap',
-        varyings: ['vec4 frg_color'],
-        vertex: {
-          functions: [colorMapCode],
-          code: '  frg_color = ColorMap(frg_layerValue);'
-        },
-        fragment: {
-          code: '  vec4 color = frg_color;'
-        }
-      })
+    // feature performing color mapping ...
+    if (this.colorMapShaderCode) {
+      if (this.options.render.pixelColorMapping) {
+        // ... per fragment
+        features.push({
+          name: 'colormap',
+          fragment: {
+            functions: [this.colorMapShaderCode],
+            code: '  vec4 color = ColorMap(frg_layerValue);'
+          }
+        })
+      } else {
+        // ... or per vertex
+        features.push({
+          name: 'colormap',
+          varyings: ['vec4 frg_color'],
+          vertex: {
+            functions: [this.colorMapShaderCode],
+            code: '  frg_color = ColorMap(frg_layerValue);'
+          },
+          fragment: {
+            code: '  vec4 color = frg_color;'
+          }
+        })
+      }
     }
+    // feature computing final fragment color
     features.push({
       name: 'tail',
       fragment: {

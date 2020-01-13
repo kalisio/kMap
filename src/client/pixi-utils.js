@@ -122,32 +122,20 @@ export function buildShaderCode (features) {
   return [vtxCode, frgCode]
 }
 
-export function buildColorMapFunction (options) {
-  let thresholds = []
-  let colors = []
-  let interpolate = false
-  if (options.domain) {
-    colors = options.colors.slice()
-    if (options.domain.length === options.colors.length) {
-      thresholds = options.domain.slice()
-    } else if (options.domain.length < options.colors.length) {
-      const step = (options.domain[options.domain.length - 1] - options.domain[0]) / (options.colors.length - 1)
-      for (let i = 0; i < options.colors.length; ++i) {
-        thresholds.push(options.domain[0] + (i * step))
-      }
-    }
-    interpolate = true
-  } else if (options.classes) {
-    // expect one color less than classes
-    colors = options.colors.slice()
-    thresholds = options.classes.slice()
-    interpolate = false
-  }
-
-  if (options.invertScale) {
-    thresholds = thresholds.reverse()
-    colors = colors.reverse()
-  }
+function buildColorMapShaderCode (thresholds, colors, interpolate) {
+  // thresholds values are expected in ascending order
+  //
+  // expects N threshold values and N-1 colors
+  // builds the following colormap:
+  //
+  //    [ color0 [ color1 [ ..... [ colorn-1 ]
+  //    |        |        |       |          |
+  // thresh0  thresh1  thresh2 threshn-1  threshn
+  //
+  // below thresh0, color will be color0
+  // above threshn, color will be colorn-1
+  // when interpolate is true, colors are interpolated between
+  // thresholds based on actual value
 
   let code = 'vec4 ColorMap(float value) {\n'
   for (let i = 0; i < colors.length; ++i) {
@@ -156,12 +144,15 @@ export function buildColorMapFunction (options) {
   code += '\n'
 
   if (!interpolate) {
+    // skip threshold0 thest since any value < thresh1 will get color0
     for (let i = 1; i < thresholds.length - 1; ++i) {
       const threshold = thresholds[i]
       code += `  if (value < float(${threshold})) { return color${i - 1}; }\n`
     }
+    // skip thresholdn test since any value >= threshn-1 will get colorn-1
     code += `  return color${colors.length - 1};\n`
   } else {
+    // below thresh0 => color0
     code += `  if (value < float(${thresholds[0]})) { return color0; }\n`
     for (let i = 1; i < thresholds.length; ++i) {
       const t0 = thresholds[i - 1]
@@ -169,10 +160,50 @@ export function buildColorMapFunction (options) {
       const dt = t1 - t0
       code += `  if (value <= float(${t1})) { float t = (value - float(${t0})) / float(${dt}); return mix(color${i - 1}, color${i}, t); }\n`
     }
+    // above threshn => colorn-1
     code += `  return color${colors.length - 1};\n`
   }
   code += '}'
   return code
+}
+
+export function buildColorMapShaderCodeFromDomain (domain, colors, invertScale) {
+  let thresholds = []
+  let mapping = colors.slice()
+
+  if (domain.length === colors.length) {
+    thresholds = domain.slice()
+  } else if (domain.length < colors.length) {
+    // insert additional thresholds
+    const step = (domain[domain.length - 1] - domain[0]) / (colors.length - 1)
+    for (let i = 0; i < colors.length; ++i) {
+      thresholds.push(domain[0] + (i * step))
+    }
+  }
+
+  if (invertScale) {
+    thresholds = thresholds.reverse()
+    mapping = mapping.reverse()
+  }
+
+  return buildColorMapShaderCode(thresholds, mapping, true)
+}
+
+export function buildColorMapShaderCodeFromClasses (breaks, colors, invertScale) {
+  // expects N breaks and N-1 colors
+  //   [  color0 [ color1 [ .... [ colorn-1 ]
+  //   |         |        |      |          |
+  // break0    break1   break2 breakn-1   breakn
+
+  let thresholds = breaks.slice()
+  let mapping = colors.slice()
+
+  if (invertScale) {
+    thresholds = thresholds.reverse()
+    mapping = mapping.reverse()
+  }
+
+  return buildColorMapShaderCode(thresholds, mapping, false)
 }
 
 export class ColorMapHook {
