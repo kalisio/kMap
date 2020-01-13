@@ -31,18 +31,29 @@ export const LeafletStyleMappings = {
 }
 export const LeafletStyleOptions = _.values(LeafletStyleMappings)
 
+// Get the unique global symbol to store event listeners on a leaflet object
+const LISTENERS_KEY = Symbol.for('leaflet-event-listeners')
 // Bind a set of events on given Leaflet object to a vue component
 export function bindLeafletEvents (object, events, component, options) {
+  object[LISTENERS_KEY] = []
   events.forEach(eventName => {
-    object.on(eventName, (...args) => {
+    const listener = (...args) => {
       if (options) component.$emit(eventName, options, ...args)
       else component.$emit(eventName, ...args)
-    })
+    }
+    object[LISTENERS_KEY].push(listener)
+    object.on(eventName, listener)
   })
 }
 
-export function unbindLeafletEvents (object) {
-  object.off()
+export function unbindLeafletEvents (object, events) {
+  const listeners = object[LISTENERS_KEY]
+  if (listeners) {
+    events.forEach((eventName, index) => {
+      object.off(eventName, object[LISTENERS_KEY][index])
+    })
+    delete object[LISTENERS_KEY]
+  }
 }
 
 export const LeafletEvents = {

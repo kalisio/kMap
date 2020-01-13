@@ -223,7 +223,8 @@ export default {
     getGeoJsonOptions (options = {}) {
       const geojsonOptions = {
         onEachFeature: (feature, layer) => {
-          unbindLeafletEvents(layer)
+          // Need to restone event listeners as context has changed
+          unbindLeafletEvents(layer, LeafletEvents.Feature)
           // Check for custom onEachFeature function
           if (typeof this.onLeafletFeature === 'function') this.onLeafletFeature(feature, layer, options)
           // Then for tooltip/popup
