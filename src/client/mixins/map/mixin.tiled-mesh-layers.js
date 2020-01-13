@@ -261,8 +261,9 @@ const TiledMeshLayer = L.GridLayer.extend({
 
     const invert = _.get(this.options, 'chromajs.invertScale', false)
     const colors = _.get(this.options, 'chromajs.scale', null)
+    const scale = chroma.scale(colors)
     // translate to glsl style colors for shader code
-    const glcolors = colors ? colors.map(c => chroma(c).gl()) : null
+    const glcolors = scale.colors().map(c => chroma(c).gl())
 
     if (domain) {
       this.colorMap = chroma.scale(colors).domain(invert ? domain.reverse() : domain)
