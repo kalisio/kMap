@@ -11,7 +11,6 @@ import { RawValueHook, buildPixiMeshFromGrid, buildColorMapShaderCodeFromClasses
 
 // TODO
 // figure out initialZoom stuff
-// check why when i store options it screw leaflet up
 
 const TiledMeshLayer = L.GridLayer.extend({
   async initialize (options) {
@@ -155,10 +154,10 @@ const TiledMeshLayer = L.GridLayer.extend({
         if (grid && this.options.debug.showTileInfos) {
           const dims = grid.getDimensions()
           const res = grid.getResolution()
-          tile.innerHTML = `
-                      req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
-                      got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
-                      ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
+          tile.innerHTML =
+            `req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
+             got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
+             ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
           tile.style.outline = '1px solid red'
         }
 
@@ -293,8 +292,7 @@ const TiledMeshLayer = L.GridLayer.extend({
         fragment: {
           uniforms: ['vec4 in_layerBounds'],
           code: `  bvec4 outside = bvec4(lessThan(frg_layerPosition, in_layerBounds.xy), greaterThan(frg_layerPosition, in_layerBounds.zw));
-  if (any(outside))
-    discard;`
+  if (any(outside)) discard;`
         }
       },
       // feature defining layer's scalar value
