@@ -14,16 +14,17 @@ import { RawValueHook, buildPixiMeshFromGrid, buildColorMapShaderCodeFromClasses
 
 const TiledMeshLayer = L.GridLayer.extend({
   async initialize (options) {
+    this.conf = {}
     // keep color scale options
-    this.options.chromajs = options.chromajs
+    this.conf.chromajs = options.chromajs
     // keep rendering options
-    this.options.render = {
+    this.conf.render = {
       cutOver: options.cutOver,
       cutUnder: options.cutUnder,
       pixelColorMapping: options.pixelColorMapping
     }
     // keep debug options
-    this.options.debug = {
+    this.conf.debug = {
       showTileInfos: options.showTileInfos,
       meshAsPoints: options.meshAsPoints,
       showShader: options.showShader
@@ -147,11 +148,11 @@ const TiledMeshLayer = L.GridLayer.extend({
           }
 
           const shader = new PIXI.Shader(this.program, uniforms)
-          const mode = this.options.debug.meshAsPoints ? PIXI.DRAW_MODES.POINTS : PIXI.DRAW_MODES.TRIANGLE_STRIP
+          const mode = this.conf.debug.meshAsPoints ? PIXI.DRAW_MODES.POINTS : PIXI.DRAW_MODES.TRIANGLE_STRIP
           tile.mesh = new PIXI.Mesh(geometry, shader, this.pixiState, mode)
         }
 
-        if (grid && this.options.debug.showTileInfos) {
+        if (grid && this.conf.debug.showTileInfos) {
           const dims = grid.getDimensions()
           const res = grid.getResolution()
           tile.innerHTML =
@@ -251,16 +252,16 @@ const TiledMeshLayer = L.GridLayer.extend({
     this.colorMapShaderCode = null
 
     let domain = null
-    const classes = _.get(this.options, 'chromajs.classes', null)
+    const classes = _.get(this.conf, 'chromajs.classes', null)
     if (!classes) {
-      domain = _.get(this.options, 'chromajs.domain', null)
+      domain = _.get(this.conf, 'chromajs.domain', null)
       if (!domain) {
         domain = this.gridSource.getDataBounds()
       }
     }
 
-    const invert = _.get(this.options, 'chromajs.invertScale', false)
-    const colors = _.get(this.options, 'chromajs.scale', null)
+    const invert = _.get(this.conf, 'chromajs.invertScale', false)
+    const colors = _.get(this.conf, 'chromajs.scale', null)
     const scale = chroma.scale(colors)
     // translate to glsl style colors for shader code
     const glcolors = scale.colors().map(c => chroma(c).gl())
@@ -308,7 +309,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     ]
 
     // feature discarding fragments when scalar value is > threshold
-    if (this.options.render.cutOver) {
+    if (this.conf.render.cutOver) {
       features.push({
         name: 'cutOver',
         fragment: {
@@ -318,7 +319,7 @@ const TiledMeshLayer = L.GridLayer.extend({
       })
     }
     // feature discarding fragments when scalar value is < threshold
-    if (this.options.render.cutUnder) {
+    if (this.conf.render.cutUnder) {
       features.push({
         name: 'cutUnder',
         fragment: {
@@ -343,7 +344,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     }
     // feature performing color mapping ...
     if (this.colorMapShaderCode) {
-      if (this.options.render.pixelColorMapping) {
+      if (this.conf.render.pixelColorMapping) {
         // ... per fragment
         features.push({
           name: 'colormap',
@@ -380,7 +381,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     const [vtxCode, frgCode] = buildShaderCode(features)
     this.program = new PIXI.Program(vtxCode, frgCode)
 
-    if (this.options.debug.showShader) {
+    if (this.conf.debug.showShader) {
       console.log('Generated vertex shader:')
       console.log(vtxCode)
       console.log('Generated fragment shader:')
