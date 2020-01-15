@@ -25,28 +25,30 @@ describe('kMap:alerts', () => {
   let webhookCount = 0
 
   function checkAlertEvent (event) {
-    const { alert, triggers } = event
+    const { status } = event
     eventCount++
-    if (_.get(alert, 'status.active')) {
+    if (_.get(status, 'active')) {
+      const triggers = status.triggers
       activeEventCount++
       expect(triggers).toExist()
       expect(triggers.length > 0).beTrue()
       expect(triggers[0].geometry).toExist()
     } else {
-      expect(triggers).beUndefined()
+      expect(status.triggers).beUndefined()
     }
   }
   function checkAlertWebhook (req, res) {
-    const { type, alert, triggers } = req.body
+    const { type, alert } = req.body
     webhookCount++
     expect(type === 'event').beTrue()
     if (_.get(alert, 'status.active')) {
+      const triggers = _.get(alert, 'status.triggers')
       activeWebhookCount++
       expect(triggers).toExist()
       expect(triggers.length > 0).beTrue()
       expect(triggers[0].geometry).toExist()
     } else {
-      expect(triggers).beUndefined()
+      expect(_.get(alert, 'status.triggers')).beUndefined()
     }
     res.sendStatus(200)
   }
