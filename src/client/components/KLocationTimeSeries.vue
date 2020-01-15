@@ -208,10 +208,10 @@ export default {
     },
     hasAvailableDatasets () {
       const keys = Object.keys(this.kActivity.probedLocation.properties)
-      console.log(keys)
       for (let i = 0; i < this.variables.length; i++) {
-        console.log(this.variables[i].name)
-        if (_.indexOf(keys, this.variables[i].name) !== -1) return true
+        let name = this.variables[i].name
+        name = (this.kActivity.forecastLevel ? `${name}-${this.kActivity.forecastLevel}` : name)
+        if (_.indexOf(keys, name) !== -1) return true
       }
       return false
     },
