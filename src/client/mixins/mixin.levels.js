@@ -5,8 +5,13 @@ import KLevelSlider from '../components/KLevelSlider.vue'
 export default {
   data () {
     return {
-      selectedLevel: 0,
+      selectedLevel: null,
       selectableLevels: {}
+    }
+  },
+  computed: {
+    hasSelectableLevels () {
+      return _.get(this.selectableLevels, 'values', []).length > 0
     }
   },
   methods: {
@@ -21,7 +26,7 @@ export default {
     },
     clearSelectableLevels (layer) {
       if (this.selectableLevelsLayer && (this.selectableLevelsLayer._id === layer._id)) {
-        this.selectedLevel = 0
+        this.setSelectedLevel(null)
         this.selectableLevels = {}
         this.selectableLevelsLayer = null
         // level slider was associated with given layer

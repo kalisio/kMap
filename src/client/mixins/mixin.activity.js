@@ -27,10 +27,10 @@ export default function (name) {
         return 'width: 100%; height: 100%; fontWeight: normal; zIndex: 0; position: absolute;'
       },
       variablesForCurrentLevel () {
-        return this.variables.map(variable => Object.assign({ name: `${variable.name}-${this.forecastLevel}` }, _.omit(variable, ['name'])))
+        return this.variables.map(variable => Object.assign({ name: `${variable.name}-${this.selectedLevel}` }, _.omit(variable, ['name'])))
       },
       currentVariables () {
-        return this.hasForecastLevels ? this.variablesForCurrentLevel : this.variables
+        return this.hasSelectableLevels ? this.variablesForCurrentLevel : this.variables
       },
       timelineEnabled () {
         // For now only weather forecast requires timeline
