@@ -242,6 +242,7 @@ const TiledMeshLayer = L.GridLayer.extend({
 
     // clear tiles and request again
     this.redraw()
+    this.fire('data', this.gridSource)
   },
 
   updateColorMap () {
