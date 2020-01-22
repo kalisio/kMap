@@ -31,6 +31,9 @@ import _ from 'lodash'
 import math from 'mathjs'
 const COLOR_STEPS = 10
 
+// Get the unique global symbol to store event listeners on a leaflet object
+const DATA_LISTENER_KEY = Symbol.for('data-listener')
+
 export default {
   name: 'k-color-legend',
   inject: ['kActivity'],
@@ -136,11 +139,14 @@ export default {
       if (!colorMap) return
       // It is required data is here to get color map object ready
       if (engineLayer.hasData) this.addColorLegend(layer, engineLayer)
-      // If not wait until data is here
-      else engineLayer.once('data', () => this.addColorLegend(layer, engineLayer))
+      // Register to data change
+      engineLayer[DATA_LISTENER_KEY] = () => this.addColorLegend(layer, engineLayer)
+      engineLayer.on('data', engineLayer[DATA_LISTENER_KEY])
     },
     onColorLegendHideLayer (layer) {
       if (this.legendLayer && ((this.legendLayer._id === layer._id) || (this.legendLayer.name === layer.name))) {
+        this.legendEngineLayer.off('data', this.legendEngineLayer[DATA_LISTENER_KEY])
+        delete this.legendEngineLayer[DATA_LISTENER_KEY]
         this.hideColorLegend()
       }
     },
@@ -289,7 +295,7 @@ export default {
     this.resetColorLegend()
     this.kActivity.$on('layer-shown', this.onColorLegendShowLayer)
     this.kActivity.$on('layer-hidden', this.onColorLegendHideLayer)
-    this.kActivity.$on('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
+    //this.kActivity.$on('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
   },
   beforeDestroy () {
     // Delete reference to the legend layer
@@ -298,7 +304,7 @@ export default {
     this.resetColorLegend()
     this.kActivity.$off('layer-shown', this.onColorLegendShowLayer)
     this.kActivity.$off('layer-hidden', this.onColorLegendHideLayer)
-    this.kActivity.$off('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
+    //this.kActivity.$off('forecast-level-changed', this.onColorLegendUpdateForecastLevel)
   }
 }
 </script>
