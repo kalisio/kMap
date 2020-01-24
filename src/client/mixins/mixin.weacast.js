@@ -243,12 +243,12 @@ export default {
       if (engineLayer instanceof L.weacast.ForecastLayer) {
         const levels = _.get(layer, 'levels')
         if (!levels) {
-          this.setForecastLevel(0)
+          this.setForecastLevel(null)
           return
         }
         if (typeof this.setSelectableLevels === 'function') {
-          this.setSelectableLevels(layer, levels)
           this.$on('selected-level-changed', this.setForecastLevel)
+          this.setSelectableLevels(layer, levels)
         }
       }
     },

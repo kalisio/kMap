@@ -208,10 +208,9 @@ export default {
     },
     hasAvailableDatasets () {
       const keys = Object.keys(this.kActivity.probedLocation.properties)
-      console.log(keys)
       for (let i = 0; i < this.variables.length; i++) {
-        console.log(this.variables[i].name)
-        if (_.indexOf(keys, this.variables[i].name) !== -1) return true
+        const name = this.variables[i].name
+        if (_.indexOf(keys, name) !== -1) return true
       }
       return false
     },
@@ -228,7 +227,7 @@ export default {
       this.hasGraph = this.hasAvailableDatasets()
       if (!this.hasGraph) return
 
-      // We need to force a refresh so that the prop is correctly updated by Vuejs in child component
+      // We need to force a refresh so that the prop is correctly updated by Vuejs in components
       await this.$nextTick()
 
       // Setup the graph
@@ -372,8 +371,8 @@ export default {
     updateProbedLocationLayer () {
       if (!this.kActivity.probedLocation) return
       const name = this.$t('mixins.timeseries.PROBED_LOCATION')
-      const windDirection = (this.kActivity.forecastLevel ? `windDirection-${this.kActivity.forecastLevel}` : 'windDirection')
-      const windSpeed = (this.kActivity.forecastLevel ? `windSpeed-${this.kActivity.forecastLevel}` : 'windSpeed')
+      const windDirection = (this.kActivity.selectedLevel ? `windDirection-${this.kActivity.selectedLevel}` : 'windDirection')
+      const windSpeed = (this.kActivity.selectedLevel ? `windSpeed-${this.kActivity.selectedLevel}` : 'windSpeed')
       // Use wind barbs on weather probed features
       const isWeatherProbe = (_.has(this.kActivity.probedLocation, `properties.${windDirection}`) &&
                               _.has(this.kActivity.probedLocation, `properties.${windSpeed}`))
@@ -398,8 +397,8 @@ export default {
     async onProbeFeatureClicked (options, event) {
       const feature = _.get(event, 'target.feature')
       if (!feature) return
-      const windDirection = (this.forecastLevel ? `windDirection-${this.forecastLevel}` : 'windDirection')
-      const windSpeed = (this.forecastLevel ? `windSpeed-${this.forecastLevel}` : 'windSpeed')
+      const windDirection = (this.selectedLevel ? `windDirection-${this.selectedLevel}` : 'windDirection')
+      const windSpeed = (this.selectedLevel ? `windSpeed-${this.selectedLevel}` : 'windSpeed')
       const isWeatherProbe = (_.has(feature, `properties.${windDirection}`) &&
                               _.has(feature, `properties.${windSpeed}`) &&
                               (options.name === this.$t('mixins.timeseries.PROBED_LOCATION')))

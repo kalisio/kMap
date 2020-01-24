@@ -7,108 +7,28 @@ import 'leaflet-pixi-overlay'
 import AbortController from 'abort-controller'
 
 import { makeGridSource, copyGridSourceOptions } from '../../../common/grid'
-import { ColorMapHook, RawValueHook, buildPixiMeshFromGrid } from '../../pixi-utils'
-// import { TimeBasedGridSource } from '../../../common/time-based-grid-source'
-
-const vtxShaderSrc = `
-  precision mediump float;
-
-  attribute vec2 position;
-#if COLORMAPPED_COLOR
-  attribute vec4 color;
-#elif FILL_COLOR
-  uniform vec4 color;
-#endif
-  uniform mat3 translationMatrix;
-  uniform mat3 projectionMatrix;
-  uniform float zoomLevel;
-  uniform vec4 offsetScale;
-  varying vec4 vColor;
-  varying vec2 vLatLon;
-
-#if CUT_OVER || CUT_UNDER
-  attribute float value;
-  varying float vValue;
-#endif
-
-  vec2 LatLonToWebMercator(vec3 latLonZoom) {
-    const float d = 3.14159265359 / 180.0;
-    const float maxLat = 85.0511287798;     // max lat using Web Mercator, used by EPSG:3857 CRS
-    const float R = 6378137.0;              // earth radius
-
-    // project
-    // float lat = max(min(maxLat, latLonZoom[0]), -maxLat);
-    float lat = clamp(latLonZoom[0], -maxLat, maxLat);
-    float sla = sin(lat * d);
-    vec2 point = vec2(R * latLonZoom[1] * d, R * log((1.0 + sla) / (1.0 - sla)) / 2.0);
-
-    // scale
-    float scale = 256.0 * pow(2.0, latLonZoom[2]);
-
-    // transform
-    const float s = 0.5 / (3.14159265359 * R);
-    const vec4 abcd = vec4(s, 0.5, -s, 0.5);
-
-    return scale * ((point * abcd.xz) + abcd.yw);
-  }
-
-  void main() {
-#if CUT_OVER || CUT_UNDER
-    vValue = value;
-#endif
-
-    vColor = color;
-    vLatLon = offsetScale.xy + position.xy * offsetScale.zw;
-    // vLatLon = position.xy;
-    vec2 projected = LatLonToWebMercator(vec3(vLatLon, zoomLevel));
-    gl_Position = vec4((projectionMatrix * translationMatrix * vec3(projected, 1.0)).xy, 0.0, 1.0);
-  }`
-
-const frgShaderSrc = `
-  precision mediump float;
-
-  varying vec4 vColor;
-  varying vec2 vLatLon;
-  uniform float alpha;
-  uniform vec4 latLonBounds;
-
-#if CUT_OVER || CUT_UNDER
-  varying float vValue;
-#if CUT_OVER
-  uniform float cutOver;
-#endif
-#if CUT_UNDER
-  uniform float cutUnder;
-#endif
-#endif
-
-  void main() {
-    bvec4 outside = bvec4(lessThan(vLatLon, latLonBounds.xy), greaterThan(vLatLon, latLonBounds.zw));
-    if (any(outside) || vColor.a != 1.0)
-      discard;
-
-#if CUT_OVER
-    if (vValue > cutOver)
-      discard;
-#endif
-
-#if CUT_UNDER
-    if (vValue < cutUnder)
-      discard;
-#endif
-
-    gl_FragColor.rgb = vColor.rgb * alpha;
-    gl_FragColor.a = alpha;
-  }`
+import { RawValueHook, buildPixiMeshFromGrid, buildColorMapShaderCodeFromClasses, buildColorMapShaderCodeFromDomain, buildShaderCode, WEBGL_FUNCTIONS } from '../../pixi-utils'
 
 // TODO
 // figure out initialZoom stuff
-// check why when i store options it screw leaflet up
 
 const TiledMeshLayer = L.GridLayer.extend({
   async initialize (options) {
+    this.conf = {}
     // keep color scale options
-    this.options.chromajs = options.chromajs
+    this.conf.chromajs = options.chromajs
+    // keep rendering options
+    this.conf.render = {
+      cutOver: options.cutOver,
+      cutUnder: options.cutUnder,
+      pixelColorMapping: options.pixelColorMapping
+    }
+    // keep debug options
+    this.conf.debug = {
+      showTileInfos: options.showTileInfos,
+      meshAsPoints: options.meshAsPoints,
+      showShader: options.showShader
+    }
 
     this.resolutionScale = _.get(options, 'resolutionScale', [1.0, 1.0])
 
@@ -118,62 +38,33 @@ const TiledMeshLayer = L.GridLayer.extend({
       utils => this.renderPixiLayer(utils),
       this.pixiRoot,
       { destroyInteractionManager: true, shouldRedrawOnMove: function () { return true } })
-    this.layerUniforms = new PIXI.UniformGroup({ alpha: options.opacity, zoomLevel: 1.0 })
+    this.layerUniforms = new PIXI.UniformGroup({ in_layerAlpha: options.opacity, in_zoomLevel: 1.0 })
     this.pixiState = new PIXI.State()
     this.pixiState.culling = true
     this.pixiState.blendMode = PIXI.BLEND_MODES.SCREEN
-
-    // build shader code corresponding to enabled options
-    const defines = `
-#define CUT_OVER  ${options.cutOver ? '1' : '0'}
-#define CUT_UNDER ${options.cutUnder ? '1' : '0'}
-#define FILL_COLOR ${options.fillColor ? '1' : '0'}
-#define COLORMAPPED_COLOR ${options.fillColor ? '0' : '1'}
-`
-    const vtxCode = defines + vtxShaderSrc
-    const frgCode = defines + frgShaderSrc
-    this.program = new PIXI.Program(vtxCode, frgCode, 'opendap-mesh-render')
 
     // setup layer global uniforms (as opposed to tile specific uniforms)
     this.cutValueUniform = null
     if (options.cutOver) {
       this.layerUniforms.uniforms.cutOver = 0.0
       if (options.cutOver === 'levels') {
-        this.cutValueUniform = 'cutOver'
+        this.cutValueUniform = 'in_cutOver'
       } else {
-        this.layerUniforms.uniforms.cutOver = options.cutOver
+        this.layerUniforms.uniforms.in_cutOver = options.cutOver
       }
     }
     if (options.cutUnder) {
       this.layerUniforms.uniforms.cutUnder = 0.0
       if (options.cutUnder === 'levels') {
-        this.cutValueUniform = 'cutUnder'
+        this.cutValueUniform = 'in_cutUnder'
       } else {
-        this.layerUniforms.uniforms.cutUnder = options.cutUnder
+        this.layerUniforms.uniforms.in_cutUnder = options.cutUnder
       }
     }
-    if (options.fillColor) {
-      this.layerUniforms.uniforms.color = Float32Array.from(options.fillColor)
-    }
-
-    const self = this
 
     // register event callbacks
-    this.on('tileload', function (event) { self.onTileLoad(event) })
-    this.on('tileunload', function (event) { self.onTileUnload(event) })
-
-    // if a domain is given for the scale, build it now
-    const domain = _.get(this.options.chromajs, 'domain')
-    const classes = _.get(this.options.chromajs, 'classes')
-    if (domain || classes) {
-      if (domain) {
-        this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
-          this.options.chromajs.invertScale ? domain.reverse() : domain)
-      } else {
-        this.colorMap = chroma.scale(this.options.chromajs.scale).classes(
-          this.options.chromajs.invertScale ? classes.reverse() : classes)
-      }
-    }
+    this.on('tileload', (event) => { this.onTileLoad(event) })
+    this.on('tileunload', (event) => { this.onTileUnload(event) })
 
     // instanciate grid source
     const [gridSource, gridOptions] = makeGridSource(options)
@@ -229,46 +120,52 @@ const TiledMeshLayer = L.GridLayer.extend({
     ]
     const resolution = [
       this.resolutionScale[0] * ((reqBBox[2] - reqBBox[0]) / (tileSize.y - 1)),
-      this.resolutionScale[1] * ((reqBBox[3] - reqBBox[1]) / (tileSize.x - 1))]
+      this.resolutionScale[1] * ((reqBBox[3] - reqBBox[1]) / (tileSize.x - 1))
+    ]
     tile.fetchController = new AbortController()
     this.gridSource.fetch(tile.fetchController.signal, reqBBox, resolution)
       .then(grid => {
         // fetch ended, can't abort anymore
         tile.fetchController = null
-        if (grid) {
-          // TODO: not necessary to have both color and value
-          // depends on what options were selected for the shader ..
-          // upload everything for now
-          const colormapper = new ColorMapHook(this.colorMap, 'color')
-          const raw = new RawValueHook('value')
-          const geometry = buildPixiMeshFromGrid(grid, [colormapper, raw])
+        if (grid && grid.hasData()) {
+          // build mesh
+          const raw = new RawValueHook('in_layerValue')
+          const geometry = buildPixiMeshFromGrid(grid, [raw])
 
+          // compute tile specific uniforms
           const dataBBox = grid.getBBox()
-          const offsetScale = [dataBBox[0], dataBBox[1], dataBBox[2] - dataBBox[0], dataBBox[3] - dataBBox[1]]
+          const offsetScale = [
+            dataBBox[0], dataBBox[1],
+            dataBBox[2] - dataBBox[0], dataBBox[3] - dataBBox[1]
+          ]
           const uniforms = {
-            latLonBounds: Float32Array.from(reqBBox),
-            offsetScale: Float32Array.from(offsetScale),
+            in_layerBounds: Float32Array.from(reqBBox),
+            in_layerOffsetScale: Float32Array.from(offsetScale),
             layerUniforms: this.layerUniforms
           }
-          const shader = new PIXI.Shader(this.program, uniforms)
-          const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.TRIANGLE_STRIP)
-          // const mesh = new PIXI.Mesh(geometry, shader, this.pixiState, PIXI.DRAW_MODES.POINTS)
-          tile.mesh = mesh
+          if (grid.nodata !== undefined) {
+            uniforms.in_nodata = grid.nodata
+          }
 
-          /*
-                      const dims = grid.getDimensions()
-                      const res  = grid.getResolution()
-                      tile.innerHTML = `
-                      req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
-                      got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
-                      ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
-                      tile.style.outline = '1px solid red';
-                    */
+          const shader = new PIXI.Shader(this.program, uniforms)
+          const mode = this.conf.debug.meshAsPoints ? PIXI.DRAW_MODES.POINTS : PIXI.DRAW_MODES.TRIANGLE_STRIP
+          tile.mesh = new PIXI.Mesh(geometry, shader, this.pixiState, mode)
+        }
+
+        if (grid && this.conf.debug.showTileInfos) {
+          const dims = grid.getDimensions()
+          const res = grid.getResolution()
+          tile.innerHTML =
+            `req res: ${resolution[0].toPrecision(4)} ${resolution[1].toPrecision(4)}</br>
+             got res: ${res[0].toPrecision(4)} ${res[1].toPrecision(4)}</br>
+             ${dims[0]} x ${dims[1]} vertex for ${tileSize.y} x ${tileSize.x} pixels`
+          tile.style.outline = '1px solid red'
         }
 
         done(null, tile)
       })
       .catch(err => {
+        console.log(err)
         done(err, tile)
       })
 
@@ -278,7 +175,7 @@ const TiledMeshLayer = L.GridLayer.extend({
   onTileLoad (event) {
     // tile loaded
     const mesh = event.tile.mesh
-    if (!mesh) { return }
+    if (!mesh) return
 
     mesh.zoomLevel = event.coords.z
     mesh.visible = (mesh.zoomLevel === this.map.getZoom())
@@ -312,7 +209,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     // when alpha blending is used, this is annoying
     const zoomLevel = this.map.getZoom()
     for (const mesh of this.pixiRoot.children) {
-      if (mesh.zoomLevel === zoomLevel) { mesh.visible = false }
+      if (mesh.zoomLevel === zoomLevel) mesh.visible = false
     }
   },
 
@@ -324,7 +221,7 @@ const TiledMeshLayer = L.GridLayer.extend({
     // because some meshes may not have been evicted yet
     const zoomLevel = this.map.getZoom()
     for (const mesh of this.pixiRoot.children) {
-      if (mesh.zoomLevel === zoomLevel) { mesh.visible = true }
+      if (mesh.zoomLevel === zoomLevel) mesh.visible = true
     }
     this.pixiLayer.redraw()
   },
@@ -338,25 +235,163 @@ const TiledMeshLayer = L.GridLayer.extend({
       this.options.bounds = L.latLngBounds(c1, c2)
     }
 
-    // if a domain was defined in the options, don't bother
-    const domain = _.get(this.options, 'chromajs.domain', null)
-    const classes = _.get(this.options, 'chromajs.classes', null)
-    if (!domain && !classes) {
-      const bounds = this.gridSource.getDataBounds()
-      if (bounds) {
-        this.colorMap = chroma.scale(this.options.chromajs.scale).domain(
-          this.options.chromajs.invertScale ? bounds.reverse() : bounds)
-      } else {
-        console.error('Grid source has no data bounds, can\'t create color map!')
-      }
-    }
+    // eventually, update color map
+    this.updateColorMap()
+    // eventually, update shader
+    this.updateShader()
 
     // clear tiles and request again
     this.redraw()
+    this.fire('data', this.gridSource)
+  },
+
+  updateColorMap () {
+    // create color map using domain or classes
+    // domain and classes can be specified from options
+    // if not, domain can be gathered from grid source
+    this.colorMap = null
+    this.colorMapShaderCode = null
+
+    let domain = null
+    const classes = _.get(this.conf, 'chromajs.classes', null)
+    if (!classes) {
+      domain = _.get(this.conf, 'chromajs.domain', null)
+      if (!domain) {
+        domain = this.gridSource.getDataBounds()
+      }
+    }
+
+    const invert = _.get(this.conf, 'chromajs.invertScale', false)
+    const colors = _.get(this.conf, 'chromajs.scale', null)
+    const scale = chroma.scale(colors)
+    // translate to glsl style colors for shader code
+    const glcolors = scale.colors().map(c => chroma(c).gl())
+
+    if (domain) {
+      this.colorMap = chroma.scale(colors).domain(invert ? domain.reverse() : domain)
+      this.colorMapShaderCode = buildColorMapShaderCodeFromDomain(domain, glcolors, invert)
+    } else if (classes) {
+      this.colorMap = chroma.scale(colors).classes(invert ? classes.reverse() : classes)
+      this.colorMapShaderCode = buildColorMapShaderCodeFromClasses(classes, glcolors, invert)
+    } else {
+      console.error("Couldn't find any domain or classes to build color map!")
+    }
+  },
+
+  updateShader () {
+    const features = [
+      // feature projecting layer position
+      {
+        name: 'layerPosition',
+        varyings: ['vec2 frg_layerPosition'],
+        vertex: {
+          attributes: ['vec2 in_layerPosition'],
+          uniforms: ['mat3 translationMatrix', 'mat3 projectionMatrix', 'float in_zoomLevel', 'vec4 in_layerOffsetScale'],
+          functions: [WEBGL_FUNCTIONS.latLonToWebMercator, WEBGL_FUNCTIONS.unpack2],
+          code: `  frg_layerPosition = unpack2(in_layerPosition, in_layerOffsetScale);
+  vec2 projected = latLonToWebMercator(vec3(frg_layerPosition, in_zoomLevel));
+  gl_Position = vec4((projectionMatrix * translationMatrix * vec3(projected, 1.0)).xy, 0.0, 1.0);`
+        },
+        fragment: {
+          uniforms: ['vec4 in_layerBounds'],
+          code: `  bvec4 outside = bvec4(lessThan(frg_layerPosition, in_layerBounds.xy), greaterThan(frg_layerPosition, in_layerBounds.zw));
+  if (any(outside)) discard;`
+        }
+      },
+      // feature defining layer's scalar value
+      {
+        name: 'layerValue',
+        varyings: ['float frg_layerValue'],
+        vertex: {
+          attributes: ['float in_layerValue'],
+          code: '  frg_layerValue = in_layerValue;'
+        }
+      }
+    ]
+
+    // feature discarding fragments when scalar value is > threshold
+    if (this.conf.render.cutOver) {
+      features.push({
+        name: 'cutOver',
+        fragment: {
+          uniforms: ['float in_cutOver'],
+          code: '  if (frg_layerValue > in_cutOver) discard;'
+        }
+      })
+    }
+    // feature discarding fragments when scalar value is < threshold
+    if (this.conf.render.cutUnder) {
+      features.push({
+        name: 'cutUnder',
+        fragment: {
+          uniforms: ['float in_cutUnder'],
+          code: '  if (frg_layerValue < in_cutUnder) discard;'
+        }
+      })
+    }
+    // feature discarding fragments when scalar value is nodata
+    if (this.gridSource.supportsNoData()) {
+      features.push({
+        name: 'nodata',
+        varyings: ['float frg_validValue'],
+        vertex: {
+          uniforms: ['float in_nodata'],
+          code: '  frg_validValue = (in_layerValue == in_nodata ? 0.0 : 1.0);'
+        },
+        fragment: {
+          code: '  if (frg_validValue != 1.0) discard;'
+        }
+      })
+    }
+    // feature performing color mapping ...
+    if (this.colorMapShaderCode) {
+      if (this.conf.render.pixelColorMapping) {
+        // ... per fragment
+        features.push({
+          name: 'colormap',
+          fragment: {
+            functions: [this.colorMapShaderCode],
+            code: '  vec4 color = ColorMap(frg_layerValue);'
+          }
+        })
+      } else {
+        // ... or per vertex
+        features.push({
+          name: 'colormap',
+          varyings: ['vec4 frg_color'],
+          vertex: {
+            functions: [this.colorMapShaderCode],
+            code: '  frg_color = ColorMap(frg_layerValue);'
+          },
+          fragment: {
+            code: '  vec4 color = frg_color;'
+          }
+        })
+      }
+    }
+    // feature computing final fragment color
+    features.push({
+      name: 'tail',
+      fragment: {
+        uniforms: ['float in_layerAlpha'],
+        code: `  gl_FragColor.rgb = color.rgb * in_layerAlpha;
+  gl_FragColor.a = in_layerAlpha;`
+      }
+    })
+
+    const [vtxCode, frgCode] = buildShaderCode(features)
+    this.program = new PIXI.Program(vtxCode, frgCode)
+
+    if (this.conf.debug.showShader) {
+      console.log('Generated vertex shader:')
+      console.log(vtxCode)
+      console.log('Generated fragment shader:')
+      console.log(frgCode)
+    }
   },
 
   renderPixiLayer (utils) {
-    this.layerUniforms.uniforms.zoomLevel = this.pixiLayer._initialZoom
+    this.layerUniforms.uniforms.in_zoomLevel = this.pixiLayer._initialZoom
     const renderer = utils.getRenderer()
     renderer.render(this.pixiRoot)
   },
@@ -432,7 +467,7 @@ export default {
     },
 
     setCutValue (value) {
-      if (this.currentTiledMeshLayer) { this.currentTiledMeshLayer.setCutValue(value) }
+      if (this.currentTiledMeshLayer) this.currentTiledMeshLayer.setCutValue(value)
     },
 
     onShowTiledMeshLayer (layer, engineLayer) {
