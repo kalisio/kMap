@@ -1,7 +1,4 @@
-// import _ from 'lodash'
-// import moment from 'moment'
 import { GridSource /*, makeGridSource */ } from './grid'
-// import { getNearestForecastTime } from 'weacast-core/common'
 
 export class DynamicGridSource extends GridSource {
   constructor () {
@@ -42,7 +39,7 @@ export class DynamicGridSource extends GridSource {
     if (this.source) this.source.off('data-changed', this.onDataChanged)
     const [source, options] = this.selectSourceAndDeriveOptions(ctx)
     this.source = source
-    if (source) {
+    if (this.source) {
       this.onDataChanged = this.dataChanged.bind(this)
       this.source.on('data-changed', this.onDataChanged)
       this.source.setup(options)

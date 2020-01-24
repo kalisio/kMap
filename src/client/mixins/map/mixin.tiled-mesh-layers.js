@@ -268,10 +268,10 @@ const TiledMeshLayer = L.GridLayer.extend({
     const glcolors = scale.colors().map(c => chroma(c).gl())
 
     if (domain) {
-      this.colorMap = chroma.scale(colors).domain(invert ? domain.reverse() : domain)
+      this.colorMap = chroma.scale(colors).domain(invert ? domain.slice().reverse() : domain)
       this.colorMapShaderCode = buildColorMapShaderCodeFromDomain(domain, glcolors, invert)
     } else if (classes) {
-      this.colorMap = chroma.scale(colors).classes(invert ? classes.reverse() : classes)
+      this.colorMap = chroma.scale(colors).classes(invert ? classes.slice().reverse() : classes)
       this.colorMapShaderCode = buildColorMapShaderCodeFromClasses(classes, glcolors, invert)
     } else {
       console.error("Couldn't find any domain or classes to build color map!")

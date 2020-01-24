@@ -24,20 +24,19 @@ export class MeteoModelGridSource extends DynamicGridSource {
       const source = {
         model: item.model,
         from: moment(item.from),
-        to: moment(item.to),
-        dynprops: {}
+        dynamicProps: {}
       }
 
+      if (item.to) source.to = moment(item.to)
+
       const [key, opts] = extractGridSourceOptions(item)
-      // source.srcKey = key
-      source.src = makeGridSourceFromKey(key)
-      source.srcOpt = opts
+      source.key = key
+      source.staticProps = opts
 
       for (const prop of _.keys(item.dynprops)) {
         const value = item.dynprops[prop]
-        if (value.template) {
-          source.dynprops[prop] = _.template(value.template)
-        }
+        // that's a lodash string template, compile it
+        if (value.template) source.dynamicProps[prop] = _.template(value.template)
       }
 
       this.sources.push(source)
@@ -50,25 +49,32 @@ export class MeteoModelGridSource extends DynamicGridSource {
     ctx.forecastTime = getNearestForecastTime(ctx.time, ctx.model.interval)
 
     let candidate = null
+    // select a source for the requested time
     for (const source of this.sources) {
       if (source.model !== ctx.model.name) continue
-      if (ctx.time.isBetween(source.from, source.to)) {
-        candidate = source
-        break
-      }
+      if (source.to && !ctx.time.isBetween(source.from, source.to)) continue
+      if (!ctx.time.isAfter(source.from)) continue
+
+      candidate = source
+      break
     }
 
     let options = null
     if (candidate) {
-      options = Object.assign({}, candidate.srcOpt)
-      for (const prop of _.keys(candidate.dynprops)) {
-        const value = candidate.dynprops[prop](ctx)
-        if (value) {
-          options[prop] = value
-        }
+      // copy 'static' options
+      options = Object.assign({}, candidate.staticProps)
+      // and compute dynamic ones
+      for (const prop of _.keys(candidate.dynamicProps)) {
+        const value = candidate.dynamicProps[prop](ctx)
+        if (value) options[prop] = value
       }
     }
 
-    return [candidate ? candidate.src : null, options]
+    let source = null
+    if (candidate && options) {
+      source = makeGridSourceFromKey(candidate.key)
+    }
+
+    return [source, options]
   }
 }

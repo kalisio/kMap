@@ -171,6 +171,8 @@ export function buildColorMapShaderCodeFromDomain (domain, colors, invertScale) 
   let thresholds = []
   let mapping = colors.slice()
 
+  // TODO: make sure domain is sorted from smallest to largest
+
   if (domain.length === colors.length) {
     thresholds = domain.slice()
   } else if (domain.length < colors.length) {
@@ -182,7 +184,6 @@ export function buildColorMapShaderCodeFromDomain (domain, colors, invertScale) 
   }
 
   if (invertScale) {
-    thresholds = thresholds.reverse()
     mapping = mapping.reverse()
   }
 
@@ -195,11 +196,12 @@ export function buildColorMapShaderCodeFromClasses (breaks, colors, invertScale)
   //   |         |        |      |          |
   // break0    break1   break2 breakn-1   breakn
 
+  // TODO: make sure breaks are sorted from smallest to largest
+
   let thresholds = breaks.slice()
   let mapping = colors.slice()
 
   if (invertScale) {
-    thresholds = thresholds.reverse()
     mapping = mapping.reverse()
   }
 
