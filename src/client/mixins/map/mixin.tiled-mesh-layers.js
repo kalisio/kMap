@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import moment from 'moment'
 import L from 'leaflet'
 import chroma from 'chroma-js'
 import * as PIXI from 'pixi.js'
@@ -73,8 +72,6 @@ const TiledMeshLayer = L.GridLayer.extend({
     // keep ref on callback to be able to remove it
     this.onDataChangedCallback = this.onDataChanged.bind(this)
     this.gridSource.on('data-changed', this.onDataChangedCallback)
-    // this.gridOptions = gridOptions
-    // this.gridUrlCompiler = (gridOptions.url ? _.template(gridOptions.url) : null)
     this.gridSource.setup(gridOptions)
   },
 
@@ -415,31 +412,6 @@ const TiledMeshLayer = L.GridLayer.extend({
     }
   }
 
-  /*
-  async setCurrentTime (datetime) {
-    if (typeof this.gridSource.setTime === 'function') {
-      this.gridSource.setTime(datetime)
-    }
-    if (typeof this.gridSource.setCurrentTime === 'function') this.gridSource.setCurrentTime(datetime)
-    // Perform URL templating with context
-    if (this.gridUrlCompiler) {
-      const now = moment.utc()
-      const context = { now, current: datetime }
-      // Check if we need to round to some interval
-      if (this.gridOptions.interval) {
-        let value = datetime[this.gridOptions.interval.unit]()
-        value = Math.floor(value / this.gridOptions.interval.value) * this.gridOptions.interval.value
-        context.rounded = datetime.clone()[this.gridOptions.interval.unit](value)
-
-        if (this.gridOptions.timelag) {
-          context.rounded.add(this.gridOptions.timelag.value, this.gridOptions.timelag.unit)
-        }
-      }
-      this.gridOptions.url = this.gridUrlCompiler(context)
-    }
-    this.gridSource.setup(this.gridOptions)
-  }
-  */
 })
 
 export default {
