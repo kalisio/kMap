@@ -3,7 +3,7 @@
 // We tested the workaround given here https://github.com/babel/babel/issues/2877#issuecomment-270700000 with success so far
 import * as errors from './errors'
 import * as permissions from './permissions'
-import { gridSourceFactories /*, gridSourceConverters */ } from './grid'
+import { gridSourceFactories } from './grid'
 import { OpenDapGridSource } from './opendap-grid-source'
 import { WcsGridSource } from './wcs-grid-source'
 import { GeoTiffGridSource } from './geotiff-grid-source'
@@ -20,4 +20,4 @@ gridSourceFactories[WcsGridSource.getKey()] = function () { return new WcsGridSo
 gridSourceFactories[GeoTiffGridSource.getKey()] = function () { return new GeoTiffGridSource() }
 gridSourceFactories[WeacastGridSource.getKey()] = function () { return new WeacastGridSource() }
 gridSourceFactories[MeteoModelGridSource.getKey()] = function () { return new MeteoModelGridSource() }
-gridSourceFactories[TimeBasedGridSource.getKey()] = function() { return new TimeBasedGridSource() }
+gridSourceFactories[TimeBasedGridSource.getKey()] = function () { return new TimeBasedGridSource() }

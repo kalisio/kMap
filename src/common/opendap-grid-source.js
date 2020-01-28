@@ -1,4 +1,4 @@
-import { SortOrder, GridSource, Grid2D, gridSourceConverters } from './grid'
+import { SortOrder, GridSource, Grid2D } from './grid'
 import * as dap from './opendap-utils'
 
 // https://opendap.github.io/documentation/UserGuideComprehensive.html#Constraint_Expressions
@@ -26,8 +26,6 @@ export class OpenDapGridSource extends GridSource {
   async setup (options) {
     this.options = options
     this.usable = false
-
-    // this.converter = gridSourceConverters[options.converter]
 
     this.descriptor = null
     this.indices = null
@@ -113,13 +111,13 @@ export class OpenDapGridSource extends GridSource {
       const subgrid = dap.gridValue(valData, indices)
       return new Grid2D(
         databbox, [latData.length, lonData.length],
-        subgrid, this.latIndex < this.lonIndex, this.latSortOrder, this.lonSortOrder, this.converter)
+        subgrid, this.latIndex < this.lonIndex, this.latSortOrder, this.lonSortOrder)
     }
 
     return new dap.OpenDAPGrid(
       databbox, [latData.length, lonData.length],
       valData, this.indices, this.latIndex, this.lonIndex,
-      this.latSortOrder, this.lonSortOrder, this.converter)
+      this.latSortOrder, this.lonSortOrder)
   }
 
   makeQuery (bbox, resolution) {

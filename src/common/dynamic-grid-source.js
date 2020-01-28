@@ -1,4 +1,4 @@
-import { GridSource /*, makeGridSource */ } from './grid'
+import { GridSource } from './grid'
 
 export class DynamicGridSource extends GridSource {
   constructor () {
