@@ -7,8 +7,8 @@ export class WcsGridSource extends GridSource {
     return 'wcs'
   }
 
-  constructor () {
-    super()
+  constructor (options) {
+    super(options)
 
     this.usable = false
   }

@@ -6,8 +6,8 @@ export class GeoTiffGridSource extends GridSource {
     return 'geotiff'
   }
 
-  constructor () {
-    super()
+  constructor (options) {
+    super(options)
 
     this.usable = false
   }

@@ -9,6 +9,12 @@ export class MeteoModelGridSource extends DynamicGridSource {
     return 'meteo_model'
   }
 
+  /*
+  constructor (options) {
+    super(options)
+  }
+  */
+
   setModel (model) {
     this.queuedCtx.model = model
     this.queueUpdate()

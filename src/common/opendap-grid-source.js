@@ -9,8 +9,8 @@ export class OpenDapGridSource extends GridSource {
     return 'opendap'
   }
 
-  constructor () {
-    super()
+  constructor (options) {
+    super(options)
 
     this.usable = false
   }

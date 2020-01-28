@@ -1,8 +1,8 @@
 import { GridSource } from './grid'
 
 export class DynamicGridSource extends GridSource {
-  constructor () {
-    super()
+  constructor (options) {
+    super(options)
 
     this.sources = []
     this.source = null

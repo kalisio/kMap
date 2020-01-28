@@ -8,6 +8,12 @@ export class TimeBasedGridSource extends DynamicGridSource {
     return 'time_based'
   }
 
+  /*
+  constructor (options) {
+    super(options)
+  }
+  */
+
   setTime (time) {
     this.queuedCtx.time = time
     this.queueUpdate()

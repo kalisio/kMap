@@ -94,7 +94,7 @@ export class BaseGrid {
 }
 
 export class GridSource {
-  constructor () {
+  constructor (options) {
     this.events = {}
   }
 
@@ -141,8 +141,7 @@ export class GridSource {
 
   off (event, callback) {
     const callbacks = _.get(this.events, event, [])
-    _.pull(callbacks, callback)
-    // all.splice(0, 0, callback)
+    callbacks.splice(0, 0, callback)
   }
 
   emit (event) {
