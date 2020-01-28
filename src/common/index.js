@@ -9,7 +9,7 @@ import { WcsGridSource } from './wcs-grid-source'
 import { GeoTiffGridSource } from './geotiff-grid-source'
 import { WeacastGridSource } from './weacast-grid-source'
 import { MeteoModelGridSource } from './meteo-model-grid-source'
-// import { TimeBasedGridSource } from './time-based-grid-source'
+import { TimeBasedGridSource } from './time-based-grid-source'
 
 export { errors }
 export { permissions }
@@ -20,6 +20,4 @@ gridSourceFactories[WcsGridSource.getKey()] = function () { return new WcsGridSo
 gridSourceFactories[GeoTiffGridSource.getKey()] = function () { return new GeoTiffGridSource() }
 gridSourceFactories[WeacastGridSource.getKey()] = function () { return new WeacastGridSource() }
 gridSourceFactories[MeteoModelGridSource.getKey()] = function () { return new MeteoModelGridSource() }
-// gridSourceFactories[TimeBasedGridSource.getKey()] = function() { return new TimeBasedGridSource() }
-
-// gridSourceConverters['degK2degC'] = function (val) { return val - 273.15 }
+gridSourceFactories[TimeBasedGridSource.getKey()] = function() { return new TimeBasedGridSource() }
