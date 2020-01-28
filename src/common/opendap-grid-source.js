@@ -23,8 +23,8 @@ export class OpenDapGridSource extends GridSource {
     return this.minMaxVal
   }
 
-  async setup (options) {
-    this.options = options
+  async setup (config) {
+    this.config = config
     this.usable = false
 
     this.descriptor = null
@@ -44,21 +44,21 @@ export class OpenDapGridSource extends GridSource {
 
     this.canUseGrid2D = false
 
-    const descriptor = await dap.fetchDescriptor(this.options.url)
-    if (!dap.variableIsGrid(descriptor, this.options.query)) throw new Error(`${this.options.query} is not a grid variable!`)
-    if (!dap.variableIsArray(descriptor, this.options.latitude)) throw new Error(`${this.options.latitude} is expected to be an array variable!`)
-    if (!dap.variableIsArray(descriptor, this.options.longitude)) throw new Error(`${this.options.longitude} is expected to be an array variable!`)
+    const descriptor = await dap.fetchDescriptor(this.config.url)
+    if (!dap.variableIsGrid(descriptor, this.config.query)) throw new Error(`${this.config.query} is not a grid variable!`)
+    if (!dap.variableIsArray(descriptor, this.config.latitude)) throw new Error(`${this.config.latitude} is expected to be an array variable!`)
+    if (!dap.variableIsArray(descriptor, this.config.longitude)) throw new Error(`${this.config.longitude} is expected to be an array variable!`)
 
-    const latIndex = dap.getGridDimensionIndex(descriptor, this.options.query, this.options.latitude)
-    const latCount = dap.getGridDimensionLength(descriptor, this.options.query, latIndex)
-    const lonIndex = dap.getGridDimensionIndex(descriptor, this.options.query, this.options.longitude)
-    const lonCount = dap.getGridDimensionLength(descriptor, this.options.query, lonIndex)
+    const latIndex = dap.getGridDimensionIndex(descriptor, this.config.query, this.config.latitude)
+    const latCount = dap.getGridDimensionLength(descriptor, this.config.query, latIndex)
+    const lonIndex = dap.getGridDimensionIndex(descriptor, this.config.query, this.config.longitude)
+    const lonCount = dap.getGridDimensionLength(descriptor, this.config.query, lonIndex)
 
     // build grid indexing array
-    const dimensions = this.options.dimensions
-    dimensions[this.options.latitude] = `0:${latCount - 1}`
-    dimensions[this.options.longitude] = `0:${lonCount - 1}`
-    const indices = dap.makeGridIndices(descriptor, this.options.query, dimensions)
+    const dimensions = this.config.dimensions
+    dimensions[this.config.latitude] = `0:${latCount - 1}`
+    dimensions[this.config.longitude] = `0:${lonCount - 1}`
+    const indices = dap.makeGridIndices(descriptor, this.config.query, dimensions)
     if (indices.length === 0) throw new Error('Couldn\'t create index array for grid')
 
     this.descriptor = descriptor
@@ -166,7 +166,7 @@ export class OpenDapGridSource extends GridSource {
     const indices = [...this.indices]
     indices[this.latIndex] = `${iMinLat}:${strideLat}:${iMaxLat}`
     indices[this.lonIndex] = `${iMinLon}:${strideLon}:${iMaxLon}`
-    return dap.makeGridQuery(this.options.url, this.options.query, indices)
+    return dap.makeGridQuery(this.config.url, this.config.query, indices)
   }
 
   async computeMetaDataFromData () {
@@ -174,7 +174,7 @@ export class OpenDapGridSource extends GridSource {
     const indices = [...this.indices]
     indices[this.latIndex] = `0:${this.latCount - 1}`
     indices[this.lonIndex] = `0:${this.lonCount - 1}`
-    const allQuery = dap.makeGridQuery(this.options.url, this.options.query, indices)
+    const allQuery = dap.makeGridQuery(this.config.url, this.config.query, indices)
     const all = await dap.fetchData(allQuery)
 
     // compute bounds

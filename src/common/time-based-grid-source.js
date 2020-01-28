@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import moment from 'moment'
-import { extractGridSourceOptions, makeGridSourceFromKey } from './grid'
+import { makeGridSource, extractGridSourceConfig } from './grid'
 import { DynamicGridSource } from './dynamic-grid-source'
 
 export class TimeBasedGridSource extends DynamicGridSource {
@@ -8,19 +8,19 @@ export class TimeBasedGridSource extends DynamicGridSource {
     return 'time_based'
   }
 
-  /*
   constructor (options) {
     super(options)
+
+    this.options = options
   }
-  */
 
   setTime (time) {
     this.queuedCtx.time = time
     this.queueUpdate()
   }
 
-  async setup (options) {
-    for (const item of options) {
+  async setup (config) {
+    for (const item of config) {
       const source = {
         from: moment(item.from),
         every: moment.duration(item.every),
@@ -29,7 +29,7 @@ export class TimeBasedGridSource extends DynamicGridSource {
 
       if (item.to) source.to = moment(item.to)
 
-      const [key, opts] = extractGridSourceOptions(item)
+      const [key, opts] = extractGridSourceConfig(item)
       source.key = key
       source.staticProps = opts
 
@@ -43,7 +43,7 @@ export class TimeBasedGridSource extends DynamicGridSource {
     }
   }
 
-  selectSourceAndDeriveOptions (ctx) {
+  selectSourceAndDeriveConfig (ctx) {
     let candidate = null
     // select a source for the requested time
     for (const source of this.sources) {
@@ -54,25 +54,25 @@ export class TimeBasedGridSource extends DynamicGridSource {
       break
     }
 
-    let options = null
+    let config = null
     if (candidate) {
       // update context
       ctx.stepTime = moment(Math.trunc(ctx.time / candidate.every) * candidate.every)
 
-      // copy 'static' options
-      options = Object.assign({}, candidate.staticProps)
+      // copy 'static' config properties
+      config = Object.assign({}, candidate.staticProps)
       // and compute dynamic ones
       for (const prop of _.keys(candidate.dynamicProps)) {
         const value = candidate.dynamicProps[prop](ctx)
-        if (value) options[prop] = value
+        if (value) config[prop] = value
       }
     }
 
     let source = null
-    if (candidate && options) {
-      source = makeGridSourceFromKey(candidate.key)
+    if (candidate && config) {
+      source = makeGridSource(candidate.key, this.options)
     }
 
-    return [source, options]
+    return [source, config]
   }
 }

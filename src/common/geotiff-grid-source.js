@@ -20,15 +20,15 @@ export class GeoTiffGridSource extends GridSource {
     return this.minMaxVal
   }
 
-  async setup (options) {
-    this.nodata = options.nodata
+  async setup (config) {
+    this.nodata = config.nodata
     this.usable = false
 
     this.minMaxLat = null
     this.minMaxLon = null
     this.minMaxVal = null
 
-    this.geotiff = await GeoTIFF.fromUrl(options.url)
+    this.geotiff = await GeoTIFF.fromUrl(config.url)
 
     // for now only consider first image
     // const count = await this.geotiff.getImageCount()

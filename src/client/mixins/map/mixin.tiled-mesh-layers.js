@@ -5,7 +5,7 @@ import * as PIXI from 'pixi.js'
 import 'leaflet-pixi-overlay'
 import AbortController from 'abort-controller'
 
-import { makeGridSource, copyGridSourceOptions } from '../../../common/grid'
+import { makeGridSource, extractGridSourceConfig } from '../../../common/grid'
 import { RawValueHook, buildPixiMeshFromGrid, buildColorMapShaderCodeFromClasses, buildColorMapShaderCodeFromDomain, buildShaderCode, WEBGL_FUNCTIONS } from '../../pixi-utils'
 
 // TODO
@@ -66,13 +66,13 @@ const TiledMeshLayer = L.GridLayer.extend({
     this.on('tileunload', (event) => { this.onTileUnload(event) })
 
     // instanciate grid source
-    const [gridSource, gridOptions] = makeGridSource(options)
-    // keept track of it and required options
-    this.gridSource = gridSource
+    const [gridKey, gridConf] = extractGridSourceConfig(options)
+    // instanciate grid source
+    this.gridSource = makeGridSource(gridKey, { weacastApi: options.weacastApi })
     // keep ref on callback to be able to remove it
     this.onDataChangedCallback = this.onDataChanged.bind(this)
     this.gridSource.on('data-changed', this.onDataChangedCallback)
-    this.gridSource.setup(gridOptions)
+    this.gridSource.setup(gridConf)
   },
 
   onAdd (map) {
@@ -425,15 +425,10 @@ export default {
       // Copy options
       const colorMap = _.get(options, 'variables[0].chromajs', null)
       if (colorMap) Object.assign(leafletOptions, { chromajs: colorMap })
-      const gridSourceOptions = copyGridSourceOptions(options)
-      // We need to pass dynamic weacast objects
-      const weacast = _.get(gridSourceOptions, 'weacast', null)
-      if (weacast) {
-        Object.assign(gridSourceOptions, {
-          weacast: Object.assign({ api: this.weacastApi, model: this.forecastModel }, weacast)
-        })
-      }
-      if (gridSourceOptions) Object.assign(leafletOptions, gridSourceOptions)
+      const [gridKey, gridConf] = extractGridSourceConfig(options)
+      leafletOptions[gridKey] = gridConf
+
+      leafletOptions.weacastApi = this.weacastApi
 
       return new TiledMeshLayer(leafletOptions)
     },

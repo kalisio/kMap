@@ -15,9 +15,9 @@ export { errors }
 export { permissions }
 
 // register factories for known grid sources
-gridSourceFactories[OpenDapGridSource.getKey()] = function () { return new OpenDapGridSource() }
-gridSourceFactories[WcsGridSource.getKey()] = function () { return new WcsGridSource() }
-gridSourceFactories[GeoTiffGridSource.getKey()] = function () { return new GeoTiffGridSource() }
-gridSourceFactories[WeacastGridSource.getKey()] = function () { return new WeacastGridSource() }
-gridSourceFactories[MeteoModelGridSource.getKey()] = function () { return new MeteoModelGridSource() }
-gridSourceFactories[TimeBasedGridSource.getKey()] = function () { return new TimeBasedGridSource() }
+gridSourceFactories[OpenDapGridSource.getKey()] = function (options) { return new OpenDapGridSource(options) }
+gridSourceFactories[WcsGridSource.getKey()] = function (options) { return new WcsGridSource(options) }
+gridSourceFactories[GeoTiffGridSource.getKey()] = function (options) { return new GeoTiffGridSource(options) }
+gridSourceFactories[WeacastGridSource.getKey()] = function (options) { return new WeacastGridSource(options) }
+gridSourceFactories[MeteoModelGridSource.getKey()] = function (options) { return new MeteoModelGridSource(options) }
+gridSourceFactories[TimeBasedGridSource.getKey()] = function (options) { return new TimeBasedGridSource(options) }

@@ -1,5 +1,5 @@
+import moment from 'moment'
 import { SortOrder, GridSource, Grid1D, TiledGrid } from './grid'
-import { getNearestForecastTime } from 'weacast-core/common'
 
 export class WeacastGridSource extends GridSource {
   static getKey () {
@@ -9,7 +9,7 @@ export class WeacastGridSource extends GridSource {
   constructor (options) {
     super(options)
 
-    //this.api = options.api
+    this.api = options.weacastApi
     this.usable = false
   }
 
@@ -21,23 +21,26 @@ export class WeacastGridSource extends GridSource {
     return this.minMaxVal
   }
 
-  async setup (options) {
-    this.options = options
-    this.api = options.api
-    this.model = options.model
-    this.service = options.model.name + '/' + options.element
+  async setup (config) {
     this.usable = false
 
-    // Find nearest available data
-    this.currentForecastTime = getNearestForecastTime(this.currentTime, this.model.interval)
-    this.minMaxLat = [this.model.bounds[1], this.model.bounds[3]]
+    if (!this.api) return
+
+    // find the model
+    const model = this.api.models.find(model => model.name === config.model)
+    if (!model) return
+
+    this.time = moment(config.forecastTime).format()
+    this.service = config.model + '/' + config.element
+
+    this.minMaxLat = [model.bounds[1], model.bounds[3]]
     // Internal tile management requires longitude in [-180, 180]
-    const wrapLongitude = (this.model.bounds[2] === 360)
-    this.minMaxLon = [wrapLongitude ? -180 : this.model.bounds[0], wrapLongitude ? 180 : this.model.bounds[2]]
+    const wrapLongitude = (model.bounds[2] === 360)
+    this.minMaxLon = [wrapLongitude ? -180 : model.bounds[0], wrapLongitude ? 180 : model.bounds[2]]
     this.minMaxVal = null
 
     const query = {
-      time: this.currentForecastTime.format(),
+      time: this.time,
       $select: ['forecastTime', 'minValue', 'maxValue'],
       $paginate: false
     }
@@ -50,10 +53,6 @@ export class WeacastGridSource extends GridSource {
     this.dataChanged()
   }
 
-  setCurrentTime (datetime) {
-    this.currentTime = datetime
-  }
-
   async fetch (abort, bbox, resolution) {
     if (!this.usable) { return null }
 
@@ -61,7 +60,7 @@ export class WeacastGridSource extends GridSource {
     // const height = 1 + Math.trunc((bbox[2] - bbox[0]) / resolution[0])
 
     const query = {
-      time: this.currentForecastTime.format(),
+      time: this.time,
       $select: ['forecastTime', 'data', 'geometry', 'size'],
       $paginate: false,
       // This is to target tiles instead of raw data

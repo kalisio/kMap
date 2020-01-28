@@ -53,6 +53,8 @@ export default {
       if (!this.weacastApi) return
       const response = await this.weacastApi.getService('forecasts').find()
       this.forecastModels = response.data
+      // store forecast models on the weacast api object too (useful in the weacast grid source)
+      this.weacastApi.models = this.forecastModels
       // Select default if any or first one
       let forecastModel = this.forecastModels.find(forecast => forecast.isDefault)
       if (!forecastModel) {

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import moment from 'moment'
 import { getNearestRunTime, getNearestForecastTime } from 'weacast-core/common'
-import { extractGridSourceOptions, makeGridSourceFromKey } from './grid'
+import { makeGridSource, extractGridSourceConfig } from './grid'
 import { DynamicGridSource } from './dynamic-grid-source'
 
 export class MeteoModelGridSource extends DynamicGridSource {
@@ -9,11 +9,11 @@ export class MeteoModelGridSource extends DynamicGridSource {
     return 'meteo_model'
   }
 
-  /*
   constructor (options) {
     super(options)
+
+    this.options = options
   }
-  */
 
   setModel (model) {
     this.queuedCtx.model = model
@@ -25,8 +25,9 @@ export class MeteoModelGridSource extends DynamicGridSource {
     this.queueUpdate()
   }
 
-  async setup (options) {
-    for (const item of options) {
+  async setup (config) {
+    console.log(config)
+    for (const item of config) {
       const source = {
         model: item.model,
         from: moment(item.from),
@@ -35,9 +36,9 @@ export class MeteoModelGridSource extends DynamicGridSource {
 
       if (item.to) source.to = moment(item.to)
 
-      const [key, opts] = extractGridSourceOptions(item)
+      const [key, conf] = extractGridSourceConfig(item)
       source.key = key
-      source.staticProps = opts
+      source.staticProps = conf
 
       for (const prop of _.keys(item.dynprops)) {
         const value = item.dynprops[prop]
@@ -49,7 +50,7 @@ export class MeteoModelGridSource extends DynamicGridSource {
     }
   }
 
-  selectSourceAndDeriveOptions (ctx) {
+  selectSourceAndDeriveConfig (ctx) {
     // update context
     ctx.runTime = getNearestRunTime(ctx.time, ctx.model.runInterval)
     ctx.forecastTime = getNearestForecastTime(ctx.time, ctx.model.interval)
@@ -65,22 +66,22 @@ export class MeteoModelGridSource extends DynamicGridSource {
       break
     }
 
-    let options = null
+    let config = null
     if (candidate) {
-      // copy 'static' options
-      options = Object.assign({}, candidate.staticProps)
+      // copy 'static' config properties
+      config = Object.assign({}, candidate.staticProps)
       // and compute dynamic ones
       for (const prop of _.keys(candidate.dynamicProps)) {
         const value = candidate.dynamicProps[prop](ctx)
-        if (value) options[prop] = value
+        if (value) config[prop] = value
       }
     }
 
     let source = null
-    if (candidate && options) {
-      source = makeGridSourceFromKey(candidate.key)
+    if (candidate && config) {
+      source = makeGridSource(candidate.key, this.options)
     }
 
-    return [source, options]
+    return [source, config]
   }
 }

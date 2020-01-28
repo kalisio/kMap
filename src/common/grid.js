@@ -125,7 +125,7 @@ export class GridSource {
     }
   }
 
-  async setup (options) {
+  async setup (config) {
     throw new Error('Not implemented')
   }
 
@@ -156,29 +156,13 @@ export class GridSource {
   }
 }
 
-export function makeGridSource (options) {
-  for (const key of Object.keys(options)) {
-    const factory = _.get(gridSourceFactories, key, null)
-    if (factory) { return [factory(), options[key]] }
-  }
-  return null
-}
-
-export function makeGridSourceFromKey (key) {
+export function makeGridSource (key, options) {
   const factory = _.get(gridSourceFactories, key, null)
-  if (factory) { return factory() }
+  if (factory) { return factory(options) }
   return null
 }
 
-export function copyGridSourceOptions (options) {
-  for (const key of Object.keys(options)) {
-    const factory = _.get(gridSourceFactories, key, null)
-    if (factory) { return _.pick(options, key) }
-  }
-  return null
-}
-
-export function extractGridSourceOptions (options) {
+export function extractGridSourceConfig (options) {
   for (const key of Object.keys(options)) {
     const factory = _.get(gridSourceFactories, key, null)
     if (factory) { return [key, options[key]] }

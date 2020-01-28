@@ -21,8 +21,8 @@ export class WcsGridSource extends GridSource {
     return this.minMaxVal
   }
 
-  async setup (options) {
-    this.options = options
+  async setup (config) {
+    this.config = config
     this.usable = false
 
     this.minMaxLat = null
@@ -31,7 +31,7 @@ export class WcsGridSource extends GridSource {
 
     this.queryFormat = null
 
-    // const caps = await wcs.GetCapabilities(this.options.url)
+    // const caps = await wcs.GetCapabilities(this.config.url)
 
     // check image/tiff is supported
     // const formats = wcs.GetSupportedFormats(caps)
@@ -39,7 +39,7 @@ export class WcsGridSource extends GridSource {
     // const coverages = wcs.GetOfferedCoverages(caps)
 
     // use DescribeCoverage to find out bbox
-    const coverage = await wcs.DescribeCoverage(this.options.url, this.options.coverage)
+    const coverage = await wcs.DescribeCoverage(this.config.url, this.config.coverage)
     const bounds = wcs.GetCoverageSpatialBounds(coverage)
     const formats = wcs.GetSupportedFormats(coverage)
 
@@ -64,7 +64,7 @@ export class WcsGridSource extends GridSource {
 
     const wcsbbox = [reqMinLon, reqMinLat, reqMaxLon, reqMaxLat]
 
-    const image = await wcs.GetCoverage(abort, this.options.url, this.options.coverage, this.queryFormat, wcsbbox, width, height)
+    const image = await wcs.GetCoverage(abort, this.config.url, this.config.coverage, this.queryFormat, wcsbbox, width, height)
     // geotiff.js will try to use a FileReader to read from the blob
     // this class doesn't exist in node.js so we use fromArrayBuffer
       .then(blob => blob.arrayBuffer())

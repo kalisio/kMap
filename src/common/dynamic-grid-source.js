@@ -37,16 +37,16 @@ export class DynamicGridSource extends GridSource {
 
   update (ctx) {
     if (this.source) this.source.off('data-changed', this.onDataChanged)
-    const [source, options] = this.selectSourceAndDeriveOptions(ctx)
+    const [source, config] = this.selectSourceAndDeriveConfig(ctx)
     this.source = source
     if (this.source) {
       this.onDataChanged = this.dataChanged.bind(this)
       this.source.on('data-changed', this.onDataChanged)
-      this.source.setup(options)
+      this.source.setup(config)
     }
   }
 
-  selectSourceAndDeriveOptions (ctx) {
+  selectSourceAndDeriveConfig (ctx) {
     throw new Error('Not implemented')
   }
 }
