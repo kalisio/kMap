@@ -26,7 +26,6 @@ export class MeteoModelGridSource extends DynamicGridSource {
   }
 
   async setup (config) {
-    console.log(config)
     for (const item of config) {
       const source = {
         model: item.model,
