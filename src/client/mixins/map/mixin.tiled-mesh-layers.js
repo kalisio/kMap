@@ -433,42 +433,67 @@ export default {
       return new TiledMeshLayer(leafletOptions)
     },
 
-    setCutValue (value) {
-      if (this.currentTiledMeshLayer) this.currentTiledMeshLayer.setCutValue(value)
-    },
-
     onShowTiledMeshLayer (layer, engineLayer) {
-      // layer being shown, display slider if 'levels' are present
-      if (engineLayer instanceof TiledMeshLayer) {
-        this.currentTiledMeshLayer = engineLayer
-        const levels = _.get(layer, 'levels')
-        if (levels) {
-          this.$on('selected-level-changed', this.setCutValue)
-          this.setSelectableLevels(layer, levels)
-        }
-        this.currentTiledMeshLayer.setModel(this.forecastModel)
-        this.currentTiledMeshLayer.setTime(this.currentTime)
-        this.$on('forecast-model-changed', this.currentTiledMeshLayer.setModel.bind(this.currentTiledMeshLayer))
-        this.$on('current-time-changed', this.currentTiledMeshLayer.setTime.bind(this.currentTiledMeshLayer))
-      }
+      const isTiledMeshLayer = engineLayer instanceof TiledMeshLayer
+      if (!isTiledMeshLayer) return
+
+      // store displayed layers
+      this.tiledMeshLayers.set(layer._id, engineLayer)
+      const levels = _.get(layer, 'levels')
+      if (levels) { this.setSelectableLevels(layer, levels) }
+
+      // setup layer
+      engineLayer.setModel(this.forecastModel)
+      engineLayer.setTime(this.currentTime)
     },
 
     onHideTiledMeshLayer (layer) {
+      this.tiledMeshLayers.delete(layer._id)
       // layer being hidden, hide slider if any was required
-      if (this.clearSelectableLevels(layer)) {
-        this.$off('selected-level-changed', this.setCutValue)
-      }
+      this.clearSelectableLevels(layer)
+    },
+
+    onSelectedLevelChangedTiledMeshLayer (value) {
+      if (!this.selectableLevelsLayer) return
+
+      // send selected value only to associated layer
+      const layer = this.tiledMeshLayers[this.selectableLevelsLayer._id]
+      if (!layer) return
+
+      layer.setCutValue(value)
+    },
+
+    onForecastModelChangedTiledMeshLayer (model) {
+      // broadcast to visible layers
+      this.tiledMeshLayers.forEach(function (value, key, map) {
+        value.setModel(model)
+      })
+    },
+
+    onCurrentTimeChangedTiledMeshLayer (time) {
+      // broadcast to visible layers
+      this.tiledMeshLayers.forEach(function (value, key, map) {
+        value.setTime(time)
+      })
     }
   },
 
   created () {
+    this.tiledMeshLayers = new Map()
     this.registerLeafletConstructor(this.createLeafletTiledMeshLayer)
+
     this.$on('layer-shown', this.onShowTiledMeshLayer)
     this.$on('layer-hidden', this.onHideTiledMeshLayer)
+    this.$on('selected-level-changed', this.onSelectedLevelChangedTiledMeshLayer)
+    this.$on('forecast-model-changed', this.onForecastModelChangedTiledMeshLayer)
+    this.$on('current-time-changed', this.onCurrentTimeChangedTiledMeshLayer)
   },
 
   beforeDestroy () {
     this.$off('layer-shown', this.onShowTiledMeshLayer)
     this.$off('layer-hidden', this.onHideTiledMeshLayer)
+    this.$off('selected-level-changed', this.onSelectedLevelChangedTiledMeshLayer)
+    this.$off('forecast-model-changed', this.onForecastModelChangedTiledMeshLayer)
+    this.$off('current-time-changed', this.onCurrentTimeChangedTiledMeshLayer)
   }
 }

@@ -6,7 +6,8 @@ export default {
   data () {
     return {
       selectedLevel: null,
-      selectableLevels: {}
+      selectableLevels: {},
+      selectableLevelsLayer: null
     }
   },
   computed: {
