@@ -255,12 +255,12 @@ describe('kMap:grid-source', () => {
       weacastApi.createElementService(model, element, memory({ store, matcher }))
       const elementService = weacastApi.getService(service)
       expect(elementService).toExist()
-      weacastOptions.weacast.api = weacastApi
+      weacastOptions.weacastApi = weacastApi
     })
 
     it('is possible to create a Weacast source from makeGridSource', () => {
       const [key, conf] = extractGridSourceConfig(weacastOptions)
-      source = makeGridSource(key)
+      source = makeGridSource(key, { weacastApi: weacastOptions.weacastApi })
       expect(source).to.exist
       expect(conf).to.deep.equal(weacastOptions.weacast)
       sourceConfig = conf
