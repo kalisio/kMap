@@ -107,10 +107,16 @@ describe('kMap:grid-source', () => {
 
     it('setup correctly', async () => {
       const scope = nock('http://kMap.test')
+      // whole dataset dds
         .get('/dataset.grb.dds')
         .replyWithFile(200, __dirname + '/data/dataset.grb.dds')
+      // whole dataset das
         .get('/dataset.grb.das')
         .replyWithFile(200, __dirname + '/data/dataset.grb.das')
+      // request made to fetch min/max lat/lon
+        .get(uri => uri.includes('?lat'))
+        .replyWithFile(200, __dirname + '/data/lat_lon_bounds.grb.dods')
+      // fetching data
         .get('/dataset.grb.dods')
         .query(true)
         .replyWithFile(200, __dirname + '/data/dataset.grb.dods')
