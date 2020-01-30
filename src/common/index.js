@@ -8,7 +8,7 @@ import { OpenDapGridSource } from './opendap-grid-source'
 import { WcsGridSource } from './wcs-grid-source'
 import { GeoTiffGridSource } from './geotiff-grid-source'
 import { WeacastGridSource } from './weacast-grid-source'
-import { MeteoModelGridSource } from './meteo-model-grid-source'
+import { MeteoModelGridSource } from './meteo-model-grid-source'
 import { TimeBasedGridSource } from './time-based-grid-source'
 
 export { errors }
