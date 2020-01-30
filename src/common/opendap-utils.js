@@ -1,5 +1,5 @@
+import _ from 'lodash'
 import fetch from 'node-fetch'
-import jsdap from 'jsdap'
 import parser from 'jsdap/src/parser'
 import xdr from 'jsdap/src/xdr'
 import { BaseGrid } from './grid.js'
@@ -7,51 +7,65 @@ import { BaseGrid } from './grid.js'
 export const opendapTypes = new Set(['Float32', 'Float64'])
 
 export async function fetchDescriptor (url) {
-  return new Promise((resolve, reject) => {
-    jsdap.loadDataset(url, descriptor => {
-      resolve(descriptor)
-    })
-  })
+  // request dds & das concurrently
+  const ddsReq = fetch(`${url}.dds`).then(response => response.text())
+  const dasReq = fetch(`${url}.das`).then(response => response.text())
+  const [ddsTxt, dasTxt] = await Promise.all([ddsReq, dasReq])
+
+  /* eslint new-cap: ["error", { "newIsCap": false }] */
+  const dds = new parser.ddsParser(ddsTxt).parse()
+  const das = new parser.dasParser(dasTxt, dds).parse()
+
+  return das
 }
 
 export async function fetchData (query, abort = null) {
-  /*
-  return new Promise((resolve, reject) => {
-    jsdap.loadData(query, data => {
-      resolve(data)
-    })
-  })
-  */
-
   // rewritten to use fetch and support aborting request
   const init = abort ? { signal: abort } : { }
-  const data = await fetch(query, init)
-    .then(response => response.arrayBuffer())
-  const view = new DataView(data)
 
-  // accumulate string till '\nData:\n' marker
-  let dds = ''
-  let byteIndex = 0
-  while (byteIndex < view.byteLength) {
-    const u8 = view.getUint8(byteIndex)
-    if (u8 === '\n' || u8 === 10) {
-      const str = String.fromCodePoint(
-        view.getUint8(byteIndex + 1),
-        view.getUint8(byteIndex + 2),
-        view.getUint8(byteIndex + 3),
-        view.getUint8(byteIndex + 4),
-        view.getUint8(byteIndex + 5),
-        view.getUint8(byteIndex + 6))
-      if (str === 'Data:\n') { break }
+  // it sometimes happens that the opendap response is somehow truncated
+  // jsdap lib can't parse the buffer because some data is missing ..
+  // in this case, let the code make a few attempts before failing for good
+  let dap = null
+  let attempt = 0
+
+  while (!dap) {
+    ++attempt
+
+    try {
+      const data = await fetch(query, init).then(response => response.arrayBuffer())
+      const view = new DataView(data)
+
+      // accumulate string till '\nData:\n' marker
+      let ddsTxt = ''
+      let byteIndex = 0
+      while (byteIndex < view.byteLength) {
+        const u8 = view.getUint8(byteIndex)
+        if (u8 === '\n' || u8 === 10) {
+          const str = String.fromCodePoint(
+            view.getUint8(byteIndex + 1),
+            view.getUint8(byteIndex + 2),
+            view.getUint8(byteIndex + 3),
+            view.getUint8(byteIndex + 4),
+            view.getUint8(byteIndex + 5),
+            view.getUint8(byteIndex + 6))
+          if (str === 'Data:\n') { break }
+        }
+
+        ddsTxt += String.fromCodePoint(u8)
+        ++byteIndex
+      }
+
+      /* eslint new-cap: ["error", { "newIsCap": false }] */
+      const dds = new parser.ddsParser(ddsTxt).parse()
+      dap = new xdr.dapUnpacker(data.slice(byteIndex + 7), dds).getValue()
+    } catch (err) {
+      // on second attempt, rethrow error ...
+      if (attempt >= 2) throw err
     }
-
-    dds += String.fromCodePoint(u8)
-    ++byteIndex
   }
 
-  /* eslint new-cap: ["error", { "newIsCap": false }] */
-  const dapvar = new parser.ddsParser(dds).parse()
-  return new xdr.dapUnpacker(data.slice(byteIndex + 7), dapvar).getValue()
+  return dap
 }
 
 export function variableIsGrid (descriptor, variable) {
@@ -89,8 +103,12 @@ export function makeGridIndices (descriptor, variable, dimensions) {
   return indices
 }
 
-export function makeGridQuery (base, variable, indices) {
-  return encodeURI(base + '.dods?' + variable + '[' + indices.join('][') + ']')
+export function makeQuery (base, config) {
+  // config is expected to be an object with variables to query as keys
+  // and indices to fetch as associated values
+  const variables = _.keys(config).map(variable => `${variable}[${config[variable]}]`)
+  const url = `${base}.dods?` + variables.join(',')
+  return encodeURI(url)
 }
 
 export function getGridDimensionIndex (descriptor, variable, dimension) {

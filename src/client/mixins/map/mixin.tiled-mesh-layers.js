@@ -162,8 +162,8 @@ const TiledMeshLayer = L.GridLayer.extend({
         done(null, tile)
       })
       .catch(err => {
-        console.log(err)
         done(err, tile)
+        throw err
       })
 
     return tile

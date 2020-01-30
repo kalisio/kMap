@@ -45,6 +45,8 @@ export class OpenDapGridSource extends GridSource {
     this.canUseGrid2D = false
 
     const descriptor = await dap.fetchDescriptor(this.config.url)
+      .catch(e => { throw new Error(`Failed fetching descriptor from ${this.config.url}`) })
+
     if (!dap.variableIsGrid(descriptor, this.config.query)) throw new Error(`${this.config.query} is not a grid variable!`)
     if (!dap.variableIsArray(descriptor, this.config.latitude)) throw new Error(`${this.config.latitude} is expected to be an array variable!`)
     if (!dap.variableIsArray(descriptor, this.config.longitude)) throw new Error(`${this.config.longitude} is expected to be an array variable!`)
@@ -59,7 +61,7 @@ export class OpenDapGridSource extends GridSource {
     dimensions[this.config.latitude] = `0:${latCount - 1}`
     dimensions[this.config.longitude] = `0:${lonCount - 1}`
     const indices = dap.makeGridIndices(descriptor, this.config.query, dimensions)
-    if (indices.length === 0) throw new Error('Couldn\'t create index array for grid')
+    if (indices.length === 0) throw new Error("Couldn't create index array for grid")
 
     this.descriptor = descriptor
     this.indices = indices
@@ -163,30 +165,32 @@ export class OpenDapGridSource extends GridSource {
       iMaxLon = Math.min(this.lonCount - 1, iMaxLon + strideLon)
     }
 
+    // These are indices to index in the opendap variable grid, we're filling the
+    // latitude/longitude indices with correct values to cover the requested
+    // bounding box with the requested resolution
     const indices = [...this.indices]
     indices[this.latIndex] = `${iMinLat}:${strideLat}:${iMaxLat}`
     indices[this.lonIndex] = `${iMinLon}:${strideLon}:${iMaxLon}`
-    return dap.makeGridQuery(this.config.url, this.config.query, indices)
+
+    const conf = {}
+    conf[this.config.query] = indices.join('][')
+    return dap.makeQuery(this.config.url, conf)
   }
 
   async computeMetaDataFromData () {
-    // fetch whole variable to compute metadata
-    const indices = [...this.indices]
-    indices[this.latIndex] = `0:${this.latCount - 1}`
-    indices[this.lonIndex] = `0:${this.lonCount - 1}`
-    const allQuery = dap.makeGridQuery(this.config.url, this.config.query, indices)
-    const all = await dap.fetchData(allQuery)
+    // Query first and last latitude and longitude
+    const query = {}
+    query[this.config.latitude] = `0:${this.latCount - 1}:${this.latCount - 1}`
+    query[this.config.longitude] = `0:${this.lonCount - 1}:${this.lonCount - 1}`
+    const url = dap.makeQuery(this.config.url, query)
+    const res = await dap.fetchData(url)
 
-    // compute bounds
-    const valData = all[0][0]
-    const latData = all[0][this.latIndex + 1]
-    const lonData = all[0][this.lonIndex + 1]
-    this.minMaxVal = dap.getMinMaxGrid(valData, indices.length)
-    // this.minMaxLat = dap.getMinMaxArray(latData)
+    const latData = res[0]
+    const lonData = res[1]
+
     const lat0 = latData[0]
     const lat1 = latData[latData.length - 1]
     this.minMaxLat = [Math.min(lat0, lat1), Math.max(lat0, lat1)]
-    // this.minMaxLon = dap.getMinMaxArray(lonData)
     const lon0 = lonData[0] > 180.0 ? lonData[0] - 360.0 : lonData[0]
     const lon1 = lonData[lonData.length - 1] > 180.0 ? lonData[lonData.length - 1] - 360.0 : lonData[lonData.length - 1]
     this.minMaxLon = [Math.min(lon0, lon1), Math.max(lon0, lon1)]
