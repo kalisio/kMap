@@ -197,7 +197,11 @@ describe('kMap:grid-source', () => {
     const element = { name: 'gust' }
     const service = `${model.name}/${element.name}`
     const weacastOptions = {
-      weacast: { element: element.name, model }
+      weacast: {
+        element: element.name,
+        model: model.name,
+        forecastTime: '2019-01-04T01:25:00.000Z'
+      }
     }
 
     const store = {
@@ -267,7 +271,6 @@ describe('kMap:grid-source', () => {
     })
 
     it('setup correctly', async () => {
-      source.setCurrentTime(moment.utc('2019-01-04T01:25:00.000Z'))
       await source.setup(sourceConfig)
       const bbox = source.getBBox()
       expect(bbox[0]).to.be.equal(-90.0)
