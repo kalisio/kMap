@@ -256,6 +256,7 @@ describe('kMap:grid-source', () => {
         }
       })
       const weacastApi = weacast()
+      weacastApi.models = [model]
       weacastApi.createElementService(model, element, memory({ store, matcher }))
       const elementService = weacastApi.getService(service)
       expect(elementService).toExist()
