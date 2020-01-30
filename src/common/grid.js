@@ -156,7 +156,7 @@ export class GridSource {
   }
 }
 
-export function makeGridSource (key, options) {
+export function makeGridSource (key, options = null) {
   const factory = _.get(gridSourceFactories, key, null)
   if (factory) { return factory(options) }
   return null

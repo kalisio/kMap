@@ -9,7 +9,7 @@ import feathers from '@feathersjs/feathers'
 import memory from 'feathers-memory'
 import intersect from '@turf/intersect'
 import { weacast, createElementService } from 'weacast-core'
-import { makeGridSource } from '../src/common/grid'
+import { makeGridSource, extractGridSourceConfig } from '../src/common/grid'
 import * as wcs from '../src/common/wcs-utils'
 
 // returns the required byte range of the given file
@@ -36,7 +36,7 @@ function contains (bboxa, bboxb) {
 
 describe('kMap:grid-source', () => {
   let source
-  let sourceOptions
+  let sourceConfig
 
   before(() => {
     chailint(chai, util)
@@ -51,11 +51,11 @@ describe('kMap:grid-source', () => {
     }
 
     it('is possible to create a WCS source from makeGridSource', () => {
-      const ret = makeGridSource(wcsOptions)
-      source = ret[0]
-      sourceOptions = ret[1]
+      const [key, conf] = extractGridSourceConfig(wcsOptions)
+      source = makeGridSource(key)
       expect(source).to.exist
-      expect(sourceOptions).to.deep.equal(wcsOptions.wcs)
+      expect(conf).to.deep.equal(wcsOptions.wcs)
+      sourceConfig = conf
     })
 
     it('setup correctly', async () => {
@@ -64,7 +64,7 @@ describe('kMap:grid-source', () => {
         .query({ SERVICE: 'WCS', VERSION: '1.0.0', REQUEST: 'DescribeCoverage', COVERAGE: wcsOptions.wcs.coverage })
         .replyWithFile(200, __dirname + '/data/DescribeCoverage.xml')
 
-      await source.setup(sourceOptions)
+      await source.setup(sourceConfig)
       const bbox = source.getBBox()
       expect(bbox[0]).to.be.closeTo(-60.009, 0.001)
       expect(bbox[1]).to.be.closeTo(-180.009, 0.001)
@@ -98,11 +98,11 @@ describe('kMap:grid-source', () => {
     }
 
     it('is possible to create an OPeNDAP source from makeGridSource', () => {
-      const ret = makeGridSource(opendapOptions)
-      source = ret[0]
-      sourceOptions = ret[1]
+      const [key, conf] = extractGridSourceConfig(opendapOptions)
+      source = makeGridSource(key)
       expect(source).to.exist
-      expect(sourceOptions).to.deep.equal(opendapOptions.opendap)
+      expect(conf).to.deep.equal(opendapOptions.opendap)
+      sourceConfig = conf
     })
 
     it('setup correctly', async () => {
@@ -115,7 +115,7 @@ describe('kMap:grid-source', () => {
         .query(true)
         .replyWithFile(200, __dirname + '/data/dataset.grb.dods')
 
-      await source.setup(sourceOptions)
+      await source.setup(sourceConfig)
       const bbox = source.getBBox()
       expect(bbox[0]).to.be.closeTo(-90, 0.001)
       expect(bbox[1]).to.be.closeTo(-180, 0.001)
@@ -145,11 +145,11 @@ describe('kMap:grid-source', () => {
     }
 
     it('is possible to create a GeoTiff source from makeGridSource', () => {
-      const ret = makeGridSource(geotiffOptions)
-      source = ret[0]
-      sourceOptions = ret[1]
+      const [key, conf] = extractGridSourceConfig(geotiffOptions)
+      source = makeGridSource(key)
       expect(source).to.exist
-      expect(sourceOptions).to.deep.equal(geotiffOptions.geotiff)
+      expect(conf).to.deep.equal(geotiffOptions.geotiff)
+      sourceConfig = conf
     })
 
     it('setup correctly', async () => {
@@ -161,7 +161,7 @@ describe('kMap:grid-source', () => {
           return [404]
         })
 
-      await source.setup(sourceOptions)
+      await source.setup(sourceConfig)
       const bbox = source.getBBox()
       expect(bbox[0]).to.be.closeTo(-10, 0.001)
       expect(bbox[1]).to.be.closeTo(-10, 0.001)
@@ -253,16 +253,16 @@ describe('kMap:grid-source', () => {
     })
 
     it('is possible to create a Weacast source from makeGridSource', () => {
-      const ret = makeGridSource(weacastOptions)
-      source = ret[0]
-      sourceOptions = ret[1]
+      const [key, conf] = extractGridSourceConfig(weacastOptions)
+      source = makeGridSource(key)
       expect(source).to.exist
-      expect(sourceOptions).to.deep.equal(weacastOptions.weacast)
+      expect(conf).to.deep.equal(weacastOptions.weacast)
+      sourceConfig = conf
     })
 
     it('setup correctly', async () => {
       source.setCurrentTime(moment.utc('2019-01-04T01:25:00.000Z'))
-      await source.setup(sourceOptions)
+      await source.setup(sourceConfig)
       const bbox = source.getBBox()
       expect(bbox[0]).to.be.equal(-90.0)
       expect(bbox[1]).to.be.equal(-180.0)
