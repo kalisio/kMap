@@ -404,6 +404,8 @@ describe('kMap:alerts', () => {
   after(async () => {
     if (externalServer) await externalServer.close()
     if (server) await server.close()
+    distribution.finalize(app)
+    distribution.finalize(weacastApp)
     await weacastApp.getService('forecasts').Model.drop()
     await uService.Model.drop()
     await vService.Model.drop()
