@@ -217,7 +217,7 @@ describe('kMap', () => {
     expect(position.longitude).toExist()
   })
   // Let enough time to process
-    .timeout(5000)
+    .timeout(10000)
 
   it('reverse geocode a position', async () => {
     const response = await geocoderService.create(position, { user: userObject, checkAuthorisation: true })
@@ -226,7 +226,7 @@ describe('kMap', () => {
     expect(response[0].streetName).toExist()
   })
   // Let enough time to process
-    .timeout(5000)
+    .timeout(10000)
 
   it('clears the layers', async () => {
     for (let i = 0; i < layersArray.length; ++i) {

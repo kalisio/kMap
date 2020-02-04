@@ -16,6 +16,7 @@ notifications:
     on_failure: always
 before_script:
 - npm install -g codeclimate-test-reporter
+- git clone -b master https://github.com/kalisio/feathers-distributed.git && cd feathers-distributed && yarn && yarn link && cd .. && yarn link @kalisio/feathers-distributed
 - git clone -b $TRAVIS_BRANCH https://github.com/kalisio/kCore.git && cd kCore && yarn && yarn link && cd .. && yarn link @kalisio/kdk-core
 - git clone -b master https://github.com/weacast/weacast-core.git && cd weacast-core && yarn && yarn link && cd .. && yarn link weacast-core
 - git clone -b master https://github.com/weacast/weacast-gfs.git && cd weacast-gfs && yarn && yarn link && cd .. && yarn link weacast-gfs
