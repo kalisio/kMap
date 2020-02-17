@@ -126,8 +126,18 @@ export function getMinMaxArray (vec) {
   return bounds
 }
 
+export function getGridValue (grid, indices) {
+  let dim = 0
+  let array = grid
+  for (; dim < indices.length - 1; ++dim) { array = array[indices[dim]] }
+  return array[indices[dim]]
+}
+
 function getFirstGridValue (grid, dimension) {
-  return dimension > 1 ? getFirstGridValue(grid[0], dimension - 1) : grid[0]
+  let dim = 0
+  let array = grid
+  for (; dim < dimension - 1; ++dim) { array = array[0] }
+  return array[0]
 }
 
 /*
@@ -164,14 +174,6 @@ export function getMinMaxGrid (grid, dimension) {
   }
 }
 
-export function gridValue (grid, indices, offset = 0) {
-  if (offset < indices.length - 1) {
-    return gridValue(grid[indices[offset]], indices, offset + 1)
-  } else {
-    return grid[indices[offset]]
-  }
-}
-
 const makeIndicesFunctions = [
   // latSortOrder = SortOrder.ASCENDING, lonSortOrder = SortOrder.ASCENDING
   function (indices, latIndex, lonIndex, ilat, ilon, latCount, lonCount) {
@@ -204,7 +206,7 @@ const makeIndicesFunctions = [
 ]
 
 export class OpenDAPGrid extends BaseGrid {
-  constructor (bbox, dimensions, data, indices, latIndex, lonIndex, latSortOrder, lonSortOrder, nodata = undefined) {
+  constructor (bbox, dimensions, data, indices, latIndex, lonIndex, latSortOrder, lonSortOrder, nodata = undefined, converter = null) {
     super(bbox, dimensions, nodata)
 
     this.data = data
@@ -214,10 +216,24 @@ export class OpenDAPGrid extends BaseGrid {
 
     const index = lonSortOrder + (latSortOrder * 2)
     this.makeIndices = makeIndicesFunctions[index]
+
+    if (converter) {
+      const idx = [...indices]
+      for (let la = 0; la < dimensions[0]; ++la) {
+        idx[latIndex] = la
+        for (let lo = 0; lo < dimensions[1]; ++lo) {
+          idx[lonIndex] = lo
+          // get last dimension array
+          const array = getGridValue(data, idx.slice(0, idx.length - 1))
+          // update value there
+          array[idx[idx.length - 1]] = converter(array[idx[idx.length - 1]])
+        }
+      }
+    }
   }
 
   getValue (ilat, ilon) {
     const indices = this.makeIndices(this.indices, this.latIndex, this.lonIndex, ilat, ilon, this.dimensions[0], this.dimensions[1])
-    return gridValue(this.data, indices)
+    return getGridValue(this.data, indices)
   }
 }

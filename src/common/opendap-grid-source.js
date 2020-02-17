@@ -112,7 +112,7 @@ export class OpenDapGridSource extends GridSource {
 
     if (this.canUseGrid2D) {
       const indices = this.indices.slice(0, this.indices.length - 2)
-      const subgrid = dap.gridValue(valData, indices)
+      const subgrid = dap.getGridValue(valData, indices)
       return new Grid2D(
         databbox, [latData.length, lonData.length],
         subgrid, this.latIndex < this.lonIndex, this.latSortOrder, this.lonSortOrder,
