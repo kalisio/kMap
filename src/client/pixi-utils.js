@@ -198,7 +198,7 @@ export function buildColorMapShaderCodeFromClasses (breaks, colors, invertScale)
 
   // TODO: make sure breaks are sorted from smallest to largest
 
-  let thresholds = breaks.slice()
+  const thresholds = breaks.slice()
   let mapping = colors.slice()
 
   if (invertScale) {
