@@ -105,7 +105,7 @@ export class WeacastGridSource extends GridSource {
           tile.data, true, SortOrder.DESCENDING, SortOrder.ASCENDING,
           this.nodata, this.converter))
       }
-      return new TiledGrid(tiles)
+      return new TiledGrid(tiles, this.nodata)
     }
   }
 }
