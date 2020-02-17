@@ -1,4 +1,4 @@
-import { SortOrder, GridSource, Grid2D } from './grid'
+import { unitConverters, SortOrder, GridSource, Grid2D } from './grid'
 import * as dap from './opendap-utils'
 
 // https://opendap.github.io/documentation/UserGuideComprehensive.html#Constraint_Expressions
@@ -24,7 +24,6 @@ export class OpenDapGridSource extends GridSource {
   }
 
   async setup (config) {
-    this.config = config
     this.usable = false
 
     this.descriptor = null
@@ -43,6 +42,9 @@ export class OpenDapGridSource extends GridSource {
     this.lonSortOrder = SortOrder.ASCENDING
 
     this.canUseGrid2D = false
+
+    this.config = config
+    this.converter = unitConverters[this.config.converter]
 
     const descriptor = await dap.fetchDescriptor(this.config.url)
       .catch(e => { throw new Error(`Failed fetching descriptor from ${this.config.url}`) })
@@ -113,13 +115,15 @@ export class OpenDapGridSource extends GridSource {
       const subgrid = dap.gridValue(valData, indices)
       return new Grid2D(
         databbox, [latData.length, lonData.length],
-        subgrid, this.latIndex < this.lonIndex, this.latSortOrder, this.lonSortOrder)
+        subgrid, this.latIndex < this.lonIndex, this.latSortOrder, this.lonSortOrder,
+        this.nodata, this.converter)
     }
 
     return new dap.OpenDAPGrid(
       databbox, [latData.length, lonData.length],
       valData, this.indices, this.latIndex, this.lonIndex,
-      this.latSortOrder, this.lonSortOrder)
+      this.latSortOrder, this.lonSortOrder,
+      this.nodata, this.converter)
   }
 
   makeQuery (bbox, resolution) {

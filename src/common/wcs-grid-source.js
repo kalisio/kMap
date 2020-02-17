@@ -1,5 +1,5 @@
 import * as GeoTIFF from 'geotiff'
-import { SortOrder, GridSource, Grid1D } from './grid'
+import { unitConverters, SortOrder, GridSource, Grid1D } from './grid'
 import * as wcs from './wcs-utils'
 
 export class WcsGridSource extends GridSource {
@@ -22,7 +22,6 @@ export class WcsGridSource extends GridSource {
   }
 
   async setup (config) {
-    this.config = config
     this.usable = false
 
     this.minMaxLat = null
@@ -30,6 +29,9 @@ export class WcsGridSource extends GridSource {
     this.minMaxVal = null
 
     this.queryFormat = null
+
+    this.config = config
+    this.converter = unitConverters[config.converter]
 
     // const caps = await wcs.GetCapabilities(this.config.url)
 
@@ -74,6 +76,9 @@ export class WcsGridSource extends GridSource {
     const databbox = image.getBoundingBox()
     const gridbbox = [databbox[1], databbox[0], databbox[3], databbox[2]]
     const dimensions = [image.getHeight(), image.getWidth()]
-    return new Grid1D(gridbbox, dimensions, (await data)[0], true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+    return new Grid1D(
+      gridbbox, dimensions,
+      (await data)[0], true, SortOrder.DESCENDING, SortOrder.ASCENDING,
+      this.nodata, this.converter)
   }
 }

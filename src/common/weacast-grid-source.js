@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { SortOrder, GridSource, Grid1D, TiledGrid } from './grid'
+import { unitConverters, SortOrder, GridSource, Grid1D, TiledGrid } from './grid'
 
 export class WeacastGridSource extends GridSource {
   static getKey () {
@@ -30,6 +30,7 @@ export class WeacastGridSource extends GridSource {
     const model = this.api.models.find(model => model.name === config.model)
     if (!model) return
 
+    this.converter = unitConverters[config.converter]
     this.time = moment(config.forecastTime).format()
     this.service = config.model + '/' + config.element
 
@@ -90,13 +91,19 @@ export class WeacastGridSource extends GridSource {
     if (results.length === 0) return null
     else {
       // This is to target raw data
-      // return new Grid1D(bbox, [width, height], results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING)
+      // return new Grid1D(
+      //   bbox, [width, height],
+      //   results[0].data, true, SortOrder.DESCENDING, SortOrder.ASCENDING,
+      //   this.nodata, this.converter)
       // This is to target tiles instead of raw data
       const tiles = []
       for (const tile of results) {
         const tileBBox = tile.geometry.coordinates[0] // BBox as a polygon
         const tileBounds = [tileBBox[0][1], tileBBox[0][0], tileBBox[2][1], tileBBox[2][0]]
-        tiles.push(new Grid1D(tileBounds, tile.size, tile.data, true, SortOrder.DESCENDING, SortOrder.ASCENDING))
+        tiles.push(new Grid1D(
+          tileBounds, tile.size,
+          tile.data, true, SortOrder.DESCENDING, SortOrder.ASCENDING,
+          this.nodata, this.converter))
       }
       return new TiledGrid(tiles)
     }

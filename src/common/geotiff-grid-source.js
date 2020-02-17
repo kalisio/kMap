@@ -1,5 +1,5 @@
 import * as GeoTIFF from 'geotiff'
-import { SortOrder, GridSource, Grid1D } from './grid'
+import { unitConverters, SortOrder, GridSource, Grid1D } from './grid'
 
 export class GeoTiffGridSource extends GridSource {
   static getKey () {
@@ -21,13 +21,14 @@ export class GeoTiffGridSource extends GridSource {
   }
 
   async setup (config) {
-    this.nodata = config.nodata
     this.usable = false
 
     this.minMaxLat = null
     this.minMaxLon = null
     this.minMaxVal = null
 
+    this.nodata = config.nodata
+    this.converter = unitConverters[config.converter]
     this.geotiff = await GeoTIFF.fromUrl(config.url)
 
     // for now only consider first image
@@ -68,6 +69,9 @@ export class GeoTiffGridSource extends GridSource {
       fillValue: this.nodata
     })
 
-    return new Grid1D(bbox, [height, width], data[0], true, SortOrder.DESCENDING, SortOrder.ASCENDING, this.nodata)
+    return new Grid1D(
+      bbox, [height, width],
+      data[0], true, SortOrder.DESCENDING, SortOrder.ASCENDING,
+      this.nodata, this.converter)
   }
 }
