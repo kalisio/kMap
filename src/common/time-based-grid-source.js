@@ -20,19 +20,20 @@ export class TimeBasedGridSource extends DynamicGridSource {
   }
 
   async setup (config) {
+    this.sources = []
+
     for (const item of config) {
+      const [key, conf] = extractGridSourceConfig(item)
       const source = {
-        from: moment(item.from),
-        every: moment.duration(item.every),
-        dynamicProps: {}
+        key: key,
+        staticProps: conf,
+        dynamicProps: {},
+        from: this.readAsTimeOrDuration(item.from),
+        to: this.readAsTimeOrDuration(item.to),
+        every: moment.duration(item.every)
       }
 
-      if (item.to) source.to = moment(item.to)
-
-      const [key, opts] = extractGridSourceConfig(item)
-      source.key = key
-      source.staticProps = opts
-
+      // handle dynamic properties
       for (const prop of _.keys(item.dynprops)) {
         const value = item.dynprops[prop]
         // that's a lodash string template, compile it
@@ -44,34 +45,33 @@ export class TimeBasedGridSource extends DynamicGridSource {
   }
 
   selectSourceAndDeriveConfig (ctx) {
+    const now = moment()
+
     let candidate = null
     // select a source for the requested time
     for (const source of this.sources) {
-      if (source.to && !ctx.time.isBetween(source.from, source.to)) continue
-      if (!ctx.time.isAfter(source.from)) continue
+      const from = source.from ? this.makeTime(source.from, now) : null
+      const to = source.to ? this.makeTime(source.to, now) : null
+      if (from && to) {
+        candidate = ctx.time.isBetween(from, to) ? source : null
+      } else if (from) {
+        candidate = ctx.time.isAfter(from) ? source : null
+      } else if (to) {
+        candidate = ctx.time.isBefore(to) ? source : null
+      }
 
-      candidate = source
-      break
+      if (candidate) break
     }
 
     let config = null
     if (candidate) {
       // update context
       ctx.stepTime = moment(Math.trunc(ctx.time / candidate.every) * candidate.every)
-
-      // copy 'static' config properties
-      config = Object.assign({}, candidate.staticProps)
-      // and compute dynamic ones
-      for (const prop of _.keys(candidate.dynamicProps)) {
-        const value = candidate.dynamicProps[prop](ctx)
-        if (value) config[prop] = value
-      }
+      // derive config for candidate
+      config = this.deriveConfig(ctx, candidate.staticProps, candidate.dynamicProps)
     }
 
-    let source = null
-    if (candidate && config) {
-      source = makeGridSource(candidate.key, this.options)
-    }
+    const source = (candidate && config) ? makeGridSource(candidate.key, this.options) : null
 
     return [source, config]
   }
