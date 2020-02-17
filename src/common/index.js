@@ -3,7 +3,7 @@
 // We tested the workaround given here https://github.com/babel/babel/issues/2877#issuecomment-270700000 with success so far
 import * as errors from './errors'
 import * as permissions from './permissions'
-import { gridSourceFactories } from './grid'
+import { gridSourceFactories, unitConverters } from './grid'
 import { OpenDapGridSource } from './opendap-grid-source'
 import { WcsGridSource } from './wcs-grid-source'
 import { GeoTiffGridSource } from './geotiff-grid-source'
@@ -21,3 +21,5 @@ gridSourceFactories[GeoTiffGridSource.getKey()] = function (options) { return ne
 gridSourceFactories[WeacastGridSource.getKey()] = function (options) { return new WeacastGridSource(options) }
 gridSourceFactories[MeteoModelGridSource.getKey()] = function (options) { return new MeteoModelGridSource(options) }
 gridSourceFactories[TimeBasedGridSource.getKey()] = function (options) { return new TimeBasedGridSource(options) }
+
+unitConverters.kelvin2celsius = function (kelvin) { return kelvin - 273.15 }

@@ -6,11 +6,12 @@ export const SortOrder = {
 }
 
 export const gridSourceFactories = { }
+export const unitConverters = { }
 
 // Base 2d grid class
 // TODO: add interpolate/bilinearInterpolate and other missing stuff from weacast grid
 export class BaseGrid {
-  constructor (bbox, dimensions, nodata = undefined) {
+  constructor (bbox, dimensions, nodata) {
     this.bbox = bbox
     this.dimensions = dimensions
     this.resolution = [(bbox[2] - bbox[0]) / (dimensions[0] - 1), (bbox[3] - bbox[1]) / (dimensions[1] - 1)]
@@ -192,13 +193,19 @@ const grid1DAccessFunctions = [
 ]
 
 export class Grid1D extends BaseGrid {
-  constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder, nodata = undefined) {
+  constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder, nodata = undefined, converter = null) {
     super(bbox, dimensions, nodata)
 
     this.data = data
 
     const index = lonSortOrder + (latSortOrder * 2) + ((latFirst ? 1 : 0) * 4)
     this.getByIndex = grid1DAccessFunctions[index]
+
+    if (converter) {
+      for (let i = 0; i < data.length; ++i) {
+        data[i] = converter(data[i])
+      }
+    }
   }
 
   getValue (ilat, ilon) {
@@ -228,12 +235,21 @@ const grid2DAccessFunctions = [
 ]
 
 export class Grid2D extends BaseGrid {
-  constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder, nodata = undefined) {
+  constructor (bbox, dimensions, data, latFirst, latSortOrder, lonSortOrder, nodata = undefined, converter = null) {
     super(bbox, dimensions, nodata)
     this.data = data
 
     const index = lonSortOrder + (latSortOrder * 2) + ((latFirst ? 1 : 0) * 4)
     this.getByIndex = grid2DAccessFunctions[index]
+
+    if (converter) {
+      for (let l = 0; l < data.length; ++l) {
+        const line = data[l]
+        for (let r = 0; r < line.length; ++r) {
+          line[r] = converter(line[r])
+        }
+      }
+    }
   }
 
   getValue (ilat, ilon) {
