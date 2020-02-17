@@ -125,17 +125,34 @@ export function buildShaderCode (features) {
 function buildColorMapShaderCode (thresholds, colors, interpolate) {
   // thresholds values are expected in ascending order
   //
-  // expects N threshold values and N-1 colors
-  // builds the following colormap:
+  // when not interpolating colors:
+  //   expects N threshold values and N-1 colors
+  //   builds the following colormap:
   //
   //    [ color0 [ color1 [ ..... [ colorn-1 ]
   //    |        |        |       |          |
   // thresh0  thresh1  thresh2 threshn-1  threshn
   //
-  // below thresh0, color will be color0
-  // above threshn, color will be colorn-1
-  // when interpolate is true, colors are interpolated between
-  // thresholds based on actual value
+  //   below thresh0, color will be color0
+  //   above threshn, color will be colorn-1
+  //
+  // when interpolate is true, colors are interpolated between thresholds
+  //   expects N threshold values and N colors
+  //   builds the following colormap:
+  //
+  //  color0 .. color1 .. color2 ..... colorn-1 .. colorn
+  //    |         |         |            |           |
+  // thresh0   thresh1   thresh2      threshn-1   threshn
+  //
+  //   below thresh0, color will be color0
+  //   above threshn, color will be colorn
+
+  // make sure thresholds array is sorted in ascending order
+  for (let i = 1; i < thresholds.length; ++i) {
+    if (thresholds[i - 1] > thresholds[i]) {
+      throw new Error('Threshold array is not correctly sorted, color map shader code will be buggy!')
+    }
+  }
 
   let code = 'vec4 ColorMap(float value) {\n'
   for (let i = 0; i < colors.length; ++i) {
@@ -144,7 +161,7 @@ function buildColorMapShaderCode (thresholds, colors, interpolate) {
   code += '\n'
 
   if (!interpolate) {
-    // skip threshold0 thest since any value < thresh1 will get color0
+    // skip threshold0 test since any value < thresh1 will get color0
     for (let i = 1; i < thresholds.length - 1; ++i) {
       const threshold = thresholds[i]
       code += `  if (value < float(${threshold})) { return color${i - 1}; }\n`
@@ -160,7 +177,7 @@ function buildColorMapShaderCode (thresholds, colors, interpolate) {
       const dt = t1 - t0
       code += `  if (value <= float(${t1})) { float t = (value - float(${t0})) / float(${dt}); return mix(color${i - 1}, color${i}, t); }\n`
     }
-    // above threshn => colorn-1
+    // above threshn => colorn
     code += `  return color${colors.length - 1};\n`
   }
   code += '}'
@@ -168,19 +185,30 @@ function buildColorMapShaderCode (thresholds, colors, interpolate) {
 }
 
 export function buildColorMapShaderCodeFromDomain (domain, colors, invertScale) {
+  // expects N values in domain an N colors
+  //  color0 .. color1 .. color2 ..... colorn-1 .. colorn
+  //    |         |         |            |           |
+  //  dom0      dom1      dom2         domn-1      domn
+  // colors will be interpolated between domain values
+  // domain array is assumed to be sorted (ascending or descending)
+
   let thresholds = []
   let mapping = colors.slice()
-
-  // TODO: make sure domain is sorted from smallest to largest
 
   if (domain.length === colors.length) {
     thresholds = domain.slice()
   } else if (domain.length < colors.length) {
-    // insert additional thresholds
+    // insert additional thresholds so that num colors = num thresholds
     const step = (domain[domain.length - 1] - domain[0]) / (colors.length - 1)
     for (let i = 0; i < colors.length; ++i) {
       thresholds.push(domain[0] + (i * step))
     }
+  }
+
+  // make sure thresholds array is sorted in ascending order
+  if (thresholds[0] > thresholds[thresholds.length - 1]) {
+    thresholds = thresholds.reverse()
+    invertScale = !invertScale
   }
 
   if (invertScale) {
@@ -195,11 +223,16 @@ export function buildColorMapShaderCodeFromClasses (breaks, colors, invertScale)
   //   [  color0 [ color1 [ .... [ colorn-1 ]
   //   |         |        |      |          |
   // break0    break1   break2 breakn-1   breakn
+  // breaks array is assumed to be sorted (ascending or descending)
 
-  // TODO: make sure breaks are sorted from smallest to largest
-
-  const thresholds = breaks.slice()
+  let thresholds = breaks.slice()
   let mapping = colors.slice()
+
+  // make sure thresholds array is sorted in ascending order
+  if (thresholds[0] > thresholds[thresholds.length - 1]) {
+    thresholds = thresholds.reverse()
+    invertScale = !invertScale
+  }
 
   if (invertScale) {
     mapping = mapping.reverse()
