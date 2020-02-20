@@ -148,9 +148,10 @@ export default {
     },
     async createCesiumRealtimeGeoJsonLayer (dataSource, options) {
       const cesiumOptions = options.cesium
-      // Default is to start fetching except if qe don't have a source => manual update
+      // Default is to start fetching except if we don't have a source/service => manual update
+      const service = _.get(options, 'service')
       const source = _.get(cesiumOptions, 'source')
-      const start = _.get(cesiumOptions, 'start', !!source)
+      const start = _.get(cesiumOptions, 'start', service || source)
       // Add update capabilities
       dataSource.updateGeoJson = async (geoJson) => {
         await this.updateRealtimeGeoJsonData(dataSource, options, geoJson)

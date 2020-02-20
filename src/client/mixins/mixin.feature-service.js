@@ -117,7 +117,11 @@ export default {
     async createFeatures (geoJson, layerId) {
       if (!layerId) return
       const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
-      features.forEach(feature => { feature.layer = layerId })
+      features.forEach(feature => {
+        // Remove any temporary ID as we will use the one from MongoDB
+        delete feature._id
+        feature.layer = layerId
+      })
       const createdFeatures = await this.$api.getService('features').create(features)
       return (geoJson.type === 'FeatureCollection' ? Object.assign(geoJson, { features: createdFeatures }) : createdFeatures)
     },
