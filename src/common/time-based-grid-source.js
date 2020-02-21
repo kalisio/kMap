@@ -2,6 +2,7 @@ import _ from 'lodash'
 import moment from 'moment'
 import { makeGridSource, extractGridSourceConfig } from './grid'
 import { DynamicGridSource } from './dynamic-grid-source'
+import { readAsTimeOrDuration, makeTime } from './moment-utils'
 
 export class TimeBasedGridSource extends DynamicGridSource {
   static getKey () {
@@ -28,8 +29,8 @@ export class TimeBasedGridSource extends DynamicGridSource {
         key: key,
         staticProps: conf,
         dynamicProps: {},
-        from: this.readAsTimeOrDuration(item.from),
-        to: this.readAsTimeOrDuration(item.to),
+        from: readAsTimeOrDuration(item.from),
+        to: readAsTimeOrDuration(item.to),
         every: moment.duration(item.every)
       }
 
@@ -50,8 +51,8 @@ export class TimeBasedGridSource extends DynamicGridSource {
     let candidate = null
     // select a source for the requested time
     for (const source of this.sources) {
-      const from = source.from ? this.makeTime(source.from, now) : null
-      const to = source.to ? this.makeTime(source.to, now) : null
+      const from = source.from ? makeTime(source.from, now) : null
+      const to = source.to ? makeTime(source.to, now) : null
       if (from && to) {
         candidate = ctx.time.isBetween(from, to) ? source : null
       } else if (from) {
