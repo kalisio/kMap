@@ -37,6 +37,12 @@ export default {
     setPlayMode (mode) {
       this.playMode = mode
 
+      if (mode !== PLAY_MODES.LIVE && this.liveUpdater) {
+        clearInterval(this.liveUpdater)
+        this.liveUpdater = null
+      }
+
+      /*
       if (mode === PLAY_MODES.LIVE) {
         this.timelineLayers.forEach(name => {
           const layer = this.getLayerByName(name)
@@ -54,6 +60,7 @@ export default {
           }
         })
       }
+      */
     },
     scanMeteoModelLayer (layer) {
       const source = layer.meteo_model
