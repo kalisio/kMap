@@ -31,12 +31,14 @@ export default function (name) {
       },
       currentVariables () {
         return this.hasSelectableLevels ? this.variablesForCurrentLevel : this.variables
-      },
+      }
+      /*,
       timelineEnabled () {
         // For now only weather forecast requires timeline
         return (_.values(this.layers).find(layer => layer.isVisible && layer.tags && layer.tags.includes('weather')) ||
             ((typeof this.isTimeseriesOpen === 'function') && this.isTimeseriesOpen()))
       }
+      */
     },
     methods: {
       setNavigationBar (locationInput, beforeActions, afterActions) {
@@ -78,6 +80,7 @@ export default function (name) {
         const hasTrackLocationTool = (typeof this.createLocationIndicator === 'function') && tools.includes('track-location')
         const hasLocationTool = tools.includes('location-bar')
         const hasCatalogTool = tools.includes('catalog')
+        const hasPlayModeTool = true
         const beforeActions = []
         if (hasSideNavTool) {
           beforeActions.push({
@@ -122,6 +125,13 @@ export default function (name) {
           afterActions.push({
             name: 'fullscreen-toggle', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
           })
+        }
+        if (hasPlayModeTool) {
+          // requires play-mode mixin
+          afterActions.push({
+            name: 'play-mode', label: this.$t('mixins.activity.PLAY_MODE'), icon: 'add', handler: this.togglePlayMode
+          })
+          this.setLiveMode()
         }
         if (hasCatalogTool) {
           afterActions.push({ name: 'separator' })
