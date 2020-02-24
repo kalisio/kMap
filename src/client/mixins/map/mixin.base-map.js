@@ -39,8 +39,14 @@ export default {
       // Initialize the map
       this.map = L.map(domEl, Object.assign({ zoomControl: false }, viewerOptions))
       bindLeafletEvents(this.map, LeafletEvents.Map, this, viewerOptions)
-      this.setupGeolocateControl()
+      if (_.get(viewerOptions, 'scale', true)) this.setupScaleControl()
+      if (_.get(viewerOptions, 'geolocate', true)) this.setupGeolocateControl()
       this.$emit('map-ready')
+    },
+    setupScaleControl () {
+      // Add a scale control
+      this.scaleControl = new L.control.scale()
+      this.scaleControl.addTo(this.map)
     },
     setupGeolocateControl () {
       this.locateControl = new L.control.locate({
