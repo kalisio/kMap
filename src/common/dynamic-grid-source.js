@@ -43,6 +43,9 @@ export class DynamicGridSource extends GridSource {
       this.onDataChanged = this.dataChanged.bind(this)
       this.source.on('data-changed', this.onDataChanged)
       this.source.setup(config)
+    } else {
+      // emit 'data-changed' ourselves since no underlying source will
+      this.dataChanged()
     }
   }
 

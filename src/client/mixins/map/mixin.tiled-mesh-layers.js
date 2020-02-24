@@ -192,7 +192,9 @@ const TiledMeshLayer = L.GridLayer.extend({
     if (event.tile.mesh) {
       // remove and destroy tile mesh
       this.pixiRoot.removeChild(event.tile.mesh)
-      // this.pixiLayer.redraw()
+      if (event.tile.mesh.visible) {
+        this.pixiLayer.redraw()
+      }
       event.tile.mesh.destroy()
       event.tile.mesh = null
     }

@@ -24,6 +24,10 @@ export default {
     convertFromSimpleStyleSpec (style, inPlace) {
       if (!style) return {}
       const convertedStyle = (inPlace ? style : {})
+      // Compute flags first because if updating in place options in style spec will be replaced
+      const isHtml = _.has(style, 'icon-html')
+      const hasClass = _.has(style, 'icon-class')
+      const isFontAwesome = _.has(style, 'icon-classes')
       let isIconSpec = false
       _.forOwn(style, (value, key) => {
         if (_.has(LeafletStyleMappings, key)) {
@@ -46,11 +50,9 @@ export default {
       })
       // Select the right icon type based on options
       if (isIconSpec) {
-        const isHtml = _.has(style, 'icon-html')
-        const isFontAwesome = _.has(style, 'icon-classes')
         _.set(convertedStyle, 'icon.type', (isFontAwesome ? 'icon.fontAwesome' : isHtml ? 'divIcon' : 'icon'))
         // Leaflet adds a default background style but we prefer to remove it
-        if (isHtml && !_.has(style, 'icon-class')) _.set(convertedStyle, 'icon.options.className', '')
+        if (isHtml && !hasClass) _.set(convertedStyle, 'icon.options.className', '')
         _.set(convertedStyle, 'type', 'marker')
       }
       // Manage panes to make z-index work for all types of layers,
@@ -124,7 +126,7 @@ export default {
     this.popupFactory = []
     this.registerLeafletStyle('markerStyle', this.getDefaultMarker)
     this.registerLeafletStyle('featureStyle', this.getDefaultStyle)
-    // Performe required conversion for default feature styling
+    // Perform required conversion for default feature styling
     if (this.options.featureStyle) this.convertFromSimpleStyleSpec(this.options.featureStyle, 'update-in-place')
     if (this.options.pointStyle) this.convertFromSimpleStyleSpec(this.options.pointStyle, 'update-in-place')
   }

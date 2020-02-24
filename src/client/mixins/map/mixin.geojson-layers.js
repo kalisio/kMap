@@ -3,7 +3,7 @@ import _ from 'lodash'
 import logger from 'loglevel'
 import 'leaflet-realtime'
 import { GradientPath } from '../../leaflet/GradientPath'
-import { fetchGeoJson, LeafletEvents, bindLeafletEvents } from '../../utils'
+import { fetchGeoJson, LeafletEvents, bindLeafletEvents, unbindLeafletEvents } from '../../utils'
 
 // Override default Leaflet GeoJson utility to manage some specific use cases
 const geometryToLayer = L.GeoJSON.geometryToLayer
@@ -151,7 +151,8 @@ export default {
       if (leafletOptions.type !== 'geoJson') return
 
       try {
-        if (this.options.cluster) {
+        // If not explicitely disable use defaults for clustering
+        if (!_.has(leafletOptions, 'cluster') && this.options.cluster) {
           // Merge existing config or create a new one on layer
           if (leafletOptions.cluster) Object.assign(leafletOptions.cluster, this.options.cluster)
           else leafletOptions.cluster = Object.assign({}, this.options.cluster)
@@ -196,6 +197,12 @@ export default {
           // Bind event
           layer.on('update', (data) => this.$emit('layer-updated', Object.assign({ layer: options, leafletLayer: layer }, data)))
           if (leafletOptions.container) layer.once('add', () => leafletOptions.container.addTo(this.map))
+          // Add FeatureGroup interface so that layer edition works as well
+          layer.toGeoJSON = () => ({ type: 'FeatureCollection', features: _.values(layer._features) })
+          layer.clearLayers = () => layer._onNewData(true, { type: 'FeatureCollection', features: [] })
+          layer.addLayer = (geoJsonLayer) => layer._onNewData(true, geoJsonLayer.toGeoJSON())
+          // If no interval given this is a manual update, we launch a first update though to initialize data
+          if (!_.has(leafletOptions, 'interval')) layer.update()
         } else {
           // Specific case of clustered layer where the group is added instead of the geojson layer
           if (leafletOptions.cluster && leafletOptions.container) {
@@ -216,6 +223,8 @@ export default {
     getGeoJsonOptions (options = {}) {
       const geojsonOptions = {
         onEachFeature: (feature, layer) => {
+          // Need to restone event listeners as context has changed
+          unbindLeafletEvents(layer, LeafletEvents.Feature)
           // Check for custom onEachFeature function
           if (typeof this.onLeafletFeature === 'function') this.onLeafletFeature(feature, layer, options)
           // Then for tooltip/popup
@@ -239,14 +248,13 @@ export default {
             bindLeafletEvents(layer.getTooltip(), LeafletEvents.Tooltip, this, options)
             if (wasOpen) layer.openTooltip()
           }
+          bindLeafletEvents(layer, LeafletEvents.Feature, this, options)
         },
         style: (feature) => {
           return this.generateLeafletStyle('featureStyle', feature, options)
         },
         pointToLayer: (feature, latlng) => {
-          const marker = this.generateLeafletStyle('markerStyle', feature, latlng, options)
-          if (latlng && marker) bindLeafletEvents(marker, LeafletEvents.Marker, this, options)
-          return marker
+          return this.generateLeafletStyle('markerStyle', feature, latlng, options)
         }
       }
 
@@ -268,7 +276,9 @@ export default {
       if (remove && (typeof layer.remove === 'function')) layer.remove(geoJson)
       else if (typeof layer.update === 'function') layer.update(geoJson)
       */
-      if (typeof layer._onNewData === 'function') layer._onNewData(layer.options.removeMissing, geoJson)
+      if (typeof layer._onNewData === 'function') {
+        layer._onNewData(layer.options.removeMissing, geoJson || this.toGeoJson(name))
+      }
     }
   },
   created () {

@@ -3,6 +3,7 @@ import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
+import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
 
 export default function (name) {
   return {
@@ -149,9 +150,20 @@ export default function (name) {
         return []
       },
       async getCatalogLayers () {
+        let layers = []
+        // We get layers coming from global catalog first if any
+        const globalCatalogService = this.$api.getService('catalog', '')
+        if (globalCatalogService) {
+          const response = await globalCatalogService.find()
+          layers = layers.concat(response.data)
+        }
+        // Then we get layers coming from contextual catalog if any
         const catalogService = this.$api.getService('catalog')
-        const response = await catalogService.find()
-        return response.data
+        if (catalogService && (catalogService !== globalCatalogService)) {
+          const response = await catalogService.find()
+          layers = layers.concat(response.data)
+        }
+        return layers
       },
       async refreshLayers () {
         this.layers = {}
@@ -362,11 +374,12 @@ export default function (name) {
               type: 'OverlayLayer',
               icon: 'insert_drive_file',
               service: 'features',
+              featureId: '_id',
               [this.engine]: {
                 type: 'geoJson',
                 isVisible: true,
-                source: '/api/features',
-                cluster: { disableClusteringAtZoom: 18 }
+                realtime: true,
+                source: '/api/features'
               }
             }
           }
@@ -427,23 +440,28 @@ export default function (name) {
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
       },
+      shouldRestoreView() {
+        // Use user settings except if the view has explicitly revoked restoration
+        if (_.has(this, 'activityOptions.restore.view')) {
+          if (!_.get(this, 'activityOptions.restore.view')) return false
+        }
+        return this.$store.get('restore.view')
+      },
       storeView () {
         const bounds = this.getBounds()
         const south = bounds[0][0]
         const west = bounds[0][1]
         const north = bounds[1][0]
         const east = bounds[1][1]
-        // Store both in URL and local storage, except if the user has explicitly revoked restoration
-        const restoreView = this.$store.get('restore.view')
-        if (restoreView) {
-          this.$router.push({ query: { south, west, north, east } })
+        // Store both in URL and local storage, except if the user/view has explicitly revoked restoration
+        if (this.shouldRestoreView()) {
+          this.$router.push({ query: Object.assign({ south, west, north, east }, this.$route.query) })
           window.localStorage.setItem(this.getViewKey(), JSON.stringify(bounds))
         }
       },
       restoreView () {
         let bounds
-        const restoreView = this.$store.get('restore.view')
-        if (restoreView) {
+        if (this.shouldRestoreView()) {
           const savedBounds = window.localStorage.getItem(this.getViewKey())
           if (savedBounds) bounds = JSON.parse(savedBounds)
         } else if (_.get(this.$route, 'query.south') && _.get(this.$route, 'query.west') &&
@@ -459,7 +477,7 @@ export default function (name) {
           const west = bounds[0][1]
           const north = bounds[1][0]
           const east = bounds[1][1]
-          this.$router.push({ query: { south, west, north, east } })
+          this.$router.push({ query: Object.assign({ south, west, north, east }, this.$route.query) })
           this.zoomToBounds(bounds)
         }
         return bounds
