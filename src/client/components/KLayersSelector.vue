@@ -5,6 +5,7 @@
         :id="layer.name"
         :key="layer.name"
         :active="layer.isVisible"
+        :disabled="layer.isDisabled"
         active-class="selected"
         class="cursor-pointer"
         dense>
@@ -63,6 +64,8 @@ export default {
       if (toggleAction) toggleAction.handler()
     },
     onLayerClicked (layer) {
+      if (layer.isDisabled) return
+
       if (this.options.exclusive) {
         const selectedLayer = _.find(this.layers, { isVisible: true })
         if (selectedLayer) this.toggleLayer(selectedLayer)
