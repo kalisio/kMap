@@ -62,10 +62,13 @@ export default {
         ranges: {}
       }
       for (const item of source) {
+        const model = this.forecastModels.find(model => model.name === item.model)
+        if (!model) continue
+
         const range = {
           from: readAsTimeOrDuration(item.from),
           to: readAsTimeOrDuration(item.to),
-          step: moment.duration('PT1H')
+          step: moment.duration(model.interval, 's')
         }
         if (playRange.ranges[item.model] === undefined) {
           playRange.ranges[item.model] = []
@@ -73,7 +76,7 @@ export default {
         const ranges = playRange.ranges[item.model]
         ranges.push(range)
       }
-      layer.playRange = playRange
+      return playRange
     },
     scanTimeBasedLayer (layer) {
       const source = layer.time_based
@@ -88,17 +91,22 @@ export default {
         }
         playRange.ranges.push(range)
       }
-      layer.playRange = playRange
+      return playRange
     },
     scanWeacastLayer (layer) {
-      /*
       const playRange = {
         dependsOnForecastModel: true,
         ranges: {}
       }
 
-      ranges[]
-      */
+      for (const model of this.forecastModels) {
+        playRange.ranges[model.name] = [{
+          from: moment.duration(model.lowerLimit - model.interval, 's'),
+          to: moment.duration(model.upperLimit + model.interval, 's'),
+          step: moment.duration(model.interval, 's')
+        }]
+      }
+      return playRange
     },
     makeTimelineConfig (playRange, reference) {
       let absoluteFrom = null
@@ -168,13 +176,16 @@ export default {
       if (layer.tags.indexOf('live') !== -1 || layer.tags.indexOf('replay') !== -1) {
         this.timelineLayers.add(layer.name)
 
+        let playRange = null
         if (layer.meteo_model) {
-          this.scanMeteoModelLayer(layer)
+          playRange = this.scanMeteoModelLayer(layer)
         } else if (layer.time_based) {
-          this.scanTimeBasedLayer(layer)
-        } else if (layer.leaflet && layer.leaflet.type.indexOf('weacast')) {
-          this.scanWeacastLayer(layer)
+          playRange = this.scanTimeBasedLayer(layer)
+        } else if (layer.leaflet && layer.leaflet.type.indexOf('weacast') !== -1) {
+          playRange = this.scanWeacastLayer(layer)
         }
+
+        if (playRange) layer.playRange = playRange
       }
     },
     onPlayModeLayerShown (layer, engineLayer) {
