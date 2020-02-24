@@ -19,13 +19,13 @@ export default {
       } else {
         // Otherwise we update data
         const valueField = _.get(layer, 'options.valueField')
-        const values = (valueField ? geoJson.features.map(feature => _.get(feature, valueField)): [])
+        const values = (valueField ? geoJsonOrConfig.features.map(feature => _.get(feature, valueField)): [])
         // By default our intensity is based on the number of points only
         // otherwise when provided we use target value
         layer.setData({
           min: (valueField ? _.min(values) : 0),
           max: (valueField ? _.max(values) : 1),
-          data: geoJson.features.map(feature => ({
+          data: geoJsonOrConfig.features.map(feature => ({
             lng: _.get(feature, 'geometry.coordinates[0]'),
             lat: _.get(feature, 'geometry.coordinates[1]'),
             value: (valueField ? _.get(feature, valueField) : 1)
