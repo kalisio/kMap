@@ -12,6 +12,8 @@ export function readAsTimeOrDuration (conf) {
     }
 
     ret = ret.isValid() ? ret : null
+  } else if (!conf) {
+    ret = moment.duration(0)
   }
 
   return ret
