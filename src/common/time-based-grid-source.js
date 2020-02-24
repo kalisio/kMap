@@ -16,7 +16,7 @@ export class TimeBasedGridSource extends DynamicGridSource {
   }
 
   setTime (time) {
-    this.queuedCtx.time = time
+    this.queuedCtx.time = time.clone()
     this.queueUpdate()
   }
 
@@ -68,6 +68,11 @@ export class TimeBasedGridSource extends DynamicGridSource {
     if (candidate) {
       // update context
       ctx.stepTime = moment(Math.trunc(ctx.time / candidate.every) * candidate.every)
+
+      // switch to utc mode, all display methods will display in UTC
+      ctx.time.utc()
+      ctx.stepTime.utc()
+
       // derive config for candidate
       config = this.deriveConfig(ctx, candidate.staticProps, candidate.dynamicProps)
     }

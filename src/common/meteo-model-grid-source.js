@@ -22,7 +22,7 @@ export class MeteoModelGridSource extends DynamicGridSource {
   }
 
   setTime (time) {
-    this.queuedCtx.time = time
+    this.queuedCtx.time = time.clone()
     this.queueUpdate()
   }
 
@@ -57,6 +57,11 @@ export class MeteoModelGridSource extends DynamicGridSource {
     // update context
     ctx.runTime = getNearestRunTime(ctx.time, ctx.model.runInterval)
     ctx.forecastTime = getNearestForecastTime(ctx.time, ctx.model.interval)
+
+    // switch to utc mode, all display methods will display in UTC
+    ctx.time.utc()
+    ctx.runTime.utc()
+    ctx.forecastTime.utc()
 
     let candidate = null
     // select a source for the requested time
