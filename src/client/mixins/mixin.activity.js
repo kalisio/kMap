@@ -3,7 +3,7 @@ import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
-import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
+import { setGatewayJwt } from '../utils'
 
 export default function (name) {
   return {
@@ -153,7 +153,8 @@ export default function (name) {
           const response = await catalogService.find()
           layers = layers.concat(response.data)
         }
-        return layers
+        const gatewayToken = this.$api.get('storage').getItem(this.$config('gatewayJwt'))
+        return (gatewayToken ? setGatewayJwt(layers, gatewayToken) : layers)
       },
       async refreshLayers () {
         this.layers = {}
