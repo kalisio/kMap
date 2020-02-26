@@ -4,7 +4,8 @@ import { marshallSpatialQuery, aggregateFeaturesQuery, asGeoJson } from '../../h
 module.exports = {
   before: {
     all: [coreHooks.marshallTimeQuery, coreHooks.convertObjectIDs(['layer'])],
-    find: [coreHooks.marshallComparisonQuery, coreHooks.marshallSortQuery, marshallSpatialQuery, aggregateFeaturesQuery],
+    find: [coreHooks.marshallComparisonQuery, coreHooks.marshallSortQuery, marshallSpatialQuery,
+           coreHooks.distinct, aggregateFeaturesQuery],
     get: [],
     create: [coreHooks.processTimes(['time'])],
     update: [coreHooks.processTimes(['time'])],

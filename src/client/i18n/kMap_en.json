@@ -201,5 +201,17 @@
   },
   "KFeaturesTable": {
     "TITLE": "Data for layer {{layer}}"
+  },
+  "KFeaturesChart": {
+    "TITLE": "Graph for layer {{layer}}",
+    "PROPERTY_LABEL": "Target property",
+    "CHART_LABEL": "Chart type",
+    "PAGINATION_LABEL": "Number of values",
+    "CHART_LABEL_PIE": "Pie",
+    "CHART_LABEL_POLARAREA": "Polar",
+    "CHART_LABEL_RADAR": "Radar",
+    "CHART_LABEL_BAR": "Bar",
+    "NULL_VALUE_LABEL": "None",
+    "ALL_VALUES": "All"
   }
 }

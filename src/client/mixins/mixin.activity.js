@@ -234,6 +234,14 @@ export default function (name) {
               handler: () => this.onViewLayerData(layer)
             })
           }
+          if (this.isLayerEditable(layer) && layerActions.includes('chart-data')) {
+            actions.push({
+              name: 'chart-data',
+              label: this.$t('mixins.activity.CHART_DATA_LABEL'),
+              icon: 'pie_chart',
+              handler: () => this.onChartLayerData(layer)
+            })
+          }
           if (this.isLayerEditable(layer) && layerActions.includes('edit')) {
             actions.push({
               name: 'edit',
@@ -327,6 +335,19 @@ export default function (name) {
         this.viewModal.open()
         this.viewModal.$on('closed', () => {
           this.viewModal = null
+        })
+      },
+      async onChartLayerData (layer) {
+        this.chartModal = await this.$createComponent('KFeaturesChart', {
+          propsData: {
+            contextId: this.contextId,
+            layer
+          }
+        })
+        this.chartModal.$mount()
+        this.chartModal.open()
+        this.chartModal.$on('closed', () => {
+          this.chartModal = null
         })
       },
       async onEditLayer (layer) {

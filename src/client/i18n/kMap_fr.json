@@ -201,5 +201,17 @@
   },
   "KFeaturesTable": {
     "TITLE": "Données de la couche {{layer}}"
+  },
+  "KFeaturesChart": {
+    "TITLE": "Graphiques de la couche {{layer}}",
+    "PROPERTY_LABEL": "Propriété cible",
+    "CHART_LABEL": "Type de graphique",
+    "PAGINATION_LABEL": "Nombre de valeurs",
+    "CHART_LABEL_PIE": "Camembert",
+    "CHART_LABEL_POLARAREA": "Polaire",
+    "CHART_LABEL_RADAR": "Traceur",
+    "CHART_LABEL_BAR": "Histogramme",
+    "NULL_VALUE_LABEL": "Aucune",
+    "ALL_VALUES": "Toutes"
   }
 }

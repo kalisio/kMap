@@ -44,7 +44,10 @@ export function marshallSpatialQuery (hook) {
 
 export function asGeoJson (options = {}) {
   return function (hook) {
-    if (!options.force && !hook.params.asGeoJson) return
+    const params = hook.params
+    const query = params.query
+    if (!options.force && !params.asGeoJson) return
+    if (query.$distinct) return // Not applicable in this case
     let results = hook.result
     const pagination = _.pick(results, ['total', 'skip', 'limit'])
     results = Array.isArray(results) ? results : results.data
