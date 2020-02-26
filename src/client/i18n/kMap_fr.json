@@ -31,6 +31,8 @@
       "CREATE_LAYER": "Créer une nouvelle couche",
       "SAVE_LABEL": "Sauvegarder",
       "EDIT_LABEL": "Editer",
+      "VIEW_DATA_LABEL": "Voir les données",
+      "CHART_DATA_LABEL": "Graphique des données",
       "START_EDIT_DATA_LABEL": "Editer les données",
       "STOP_EDIT_DATA_LABEL": "Clôturer l'édition des données",
       "REMOVE_LABEL": "Supprimer",
@@ -196,5 +198,8 @@
     "METEO_LAYERS": "Prévisions météo",
     "BUSINESS_LAYERS": "Couches métier",
     "FORECASTS_LABEL": "Modèles de prévision"
+  },
+  "KFeaturesTable": {
+    "TITLE": "Données de la couche {{layer}}"
   }
 }

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
+import centroid from '@turf/centroid'
 import { Dialog } from 'quasar'
 import { setGatewayJwt } from '../utils'
 
@@ -225,6 +226,14 @@ export default function (name) {
               handler: () => this.onSaveLayer(layer)
             })
           }
+          if (this.isLayerEditable(layer) && layerActions.includes('view-data')) {
+            actions.push({
+              name: 'view-data',
+              label: this.$t('mixins.activity.VIEW_DATA_LABEL'),
+              icon: 'view_list',
+              handler: () => this.onViewLayerData(layer)
+            })
+          }
           if (this.isLayerEditable(layer) && layerActions.includes('edit')) {
             actions.push({
               name: 'edit',
@@ -297,6 +306,28 @@ export default function (name) {
         // Reset layer with new setup
         await this.removeLayer(layer.name)
         await this.addLayer(createdLayer)
+      },
+      async onViewLayerData (layer) {
+        this.viewModal = await this.$createComponent('KFeaturesTable', {
+          propsData: {
+            contextId: this.contextId,
+            layer,
+            featureActions: [{
+              name: 'zoom-to',
+              label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
+              icon: 'zoom_out_map',
+              handler: (feature) => {
+                this.center(..._.get(centroid(feature), 'geometry.coordinates'))
+                this.viewModal.close()
+              }
+            }]
+          }
+        })
+        this.viewModal.$mount()
+        this.viewModal.open()
+        this.viewModal.$on('closed', () => {
+          this.viewModal = null
+        })
       },
       async onEditLayer (layer) {
         this.editModal = await this.$createComponent('editor/KModalEditor', {

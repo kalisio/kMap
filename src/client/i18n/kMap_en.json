@@ -31,6 +31,8 @@
       "CREATE_LAYER": "Create a new layer",
       "SAVE_LABEL": "Save",
       "EDIT_LABEL": "Edit",
+      "VIEW_DATA_LABEL": "View data",
+      "CHART_DATA_LABEL": "Chart data",
       "START_EDIT_DATA_LABEL": "Start data edit",
       "STOP_EDIT_DATA_LABEL": "Stop data edit",
       "REMOVE_LABEL": "Remove",
@@ -196,5 +198,8 @@
     "METEO_LAYERS": "Meteo forecasts",
     "BUSINESS_LAYERS": "Business layers",
     "FORECASTS_LABEL": "Forecast models"
+  },
+  "KFeaturesTable": {
+    "TITLE": "Data for layer {{layer}}"
   }
 }
