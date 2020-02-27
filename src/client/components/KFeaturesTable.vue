@@ -1,7 +1,7 @@
 <template>
-  <k-modal ref="modal" :title="title" content-style="min-width: 90vw; max-height: 90vh" :toolbar="toolbar" :buttons="[]" >
+  <k-modal ref="modal" :title="title" :toolbar="toolbar" :buttons="[]" >
     <div slot="modal-content">
-      <k-table service="features" :contextId="contextId" :schema-json="schema" :item-actions="featureActions" :nb-items-per-page="10" :base-query="baseQuery" />
+      <k-table service="features" :contextId="contextId" :schema-json="schema" :item-actions="featureActions" :base-query="baseQuery" />
     </div>
   </k-modal>
 </template>
@@ -52,7 +52,7 @@ export default {
   methods: {
     async open () {
       await this.loadRefs()
-      this.$refs.modal.open()
+      this.$refs.modal.openMaximized()
     },
     close () {
       this.$refs.modal.close()

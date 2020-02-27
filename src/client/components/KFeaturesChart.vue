@@ -1,5 +1,5 @@
 <template>
-  <k-modal ref="modal" content-style="min-width: 100vw; max-height: 100vh" :toolbar="toolbar" :buttons="[]" >
+  <k-modal ref="modal" :title="title" :toolbar="toolbar" :buttons="[]" >
     <div slot="modal-content">
       <div class="row justify-center">
         <q-select class="col-2" v-model="property" :label="$t('KFeaturesChart.PROPERTY_LABEL')" stack-label
@@ -82,7 +82,7 @@ export default {
   methods: {
     async open () {
       await this.loadRefs()
-      this.$refs.modal.open()
+      this.$refs.modal.openMaximized()
     },
     close () {
       this.$refs.modal.close()
