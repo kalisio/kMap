@@ -203,6 +203,7 @@
     "TITLE": "Data for layer {{layer}}"
   },
   "KFeaturesChart": {
+    "SELECT_PROPERTY_LABEL": "Select a target property to start",
     "TITLE": "Graph for layer {{layer}}",
     "PROPERTY_LABEL": "Target property",
     "CHART_LABEL": "Chart type",
@@ -212,6 +213,9 @@
     "CHART_LABEL_RADAR": "Radar",
     "CHART_LABEL_BAR": "Bar",
     "NULL_VALUE_LABEL": "None",
-    "ALL_VALUES": "All"
+    "ALL_VALUES": "All",
+    "RENDER_LABEL": "Display type",
+    "VALUE_LABEL": "Count",
+    "PERCENTAGE_LABEL": "Percentage"
   }
 }

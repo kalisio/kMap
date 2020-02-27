@@ -203,6 +203,7 @@
     "TITLE": "Données de la couche {{layer}}"
   },
   "KFeaturesChart": {
+    "SELECT_PROPERTY_LABEL": "Sélectionnez une propriété cible pour démarrer",
     "TITLE": "Graphiques de la couche {{layer}}",
     "PROPERTY_LABEL": "Propriété cible",
     "CHART_LABEL": "Type de graphique",
@@ -212,6 +213,9 @@
     "CHART_LABEL_RADAR": "Traceur",
     "CHART_LABEL_BAR": "Histogramme",
     "NULL_VALUE_LABEL": "Aucune",
-    "ALL_VALUES": "Toutes"
+    "ALL_VALUES": "Toutes",
+    "RENDER_LABEL": "Type d'affichage",
+    "VALUE_LABEL": "Nombre",
+    "PERCENTAGE_LABEL": "Pourcentage"
   }
 }
