@@ -29,8 +29,8 @@
     },
     "activity": {
       "CREATE_LAYER": "Créer une nouvelle couche",
-      "SAVE_LABEL": "Sauvegarder",
-      "EDIT_LABEL": "Editer",
+      "SAVE_LABEL": "Sauvegarder la couche",
+      "EDIT_LABEL": "Editer la couche",
       "VIEW_DATA_LABEL": "Voir les données",
       "CHART_DATA_LABEL": "Graphique des données",
       "START_EDIT_DATA_LABEL": "Editer les données",

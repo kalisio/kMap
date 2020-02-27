@@ -29,8 +29,8 @@
     },
     "activity": {
       "CREATE_LAYER": "Create a new layer",
-      "SAVE_LABEL": "Save",
-      "EDIT_LABEL": "Edit",
+      "SAVE_LABEL": "Save layer",
+      "EDIT_LABEL": "Edit layer",
       "VIEW_DATA_LABEL": "View data",
       "CHART_DATA_LABEL": "Chart data",
       "START_EDIT_DATA_LABEL": "Start data edit",
