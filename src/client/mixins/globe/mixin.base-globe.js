@@ -221,9 +221,10 @@ export default {
 
       this.viewer.flyTo(layer.entities, { duration: 0 })
     },
-    center (longitude, latitude, altitude = 5000, heading = 0, pitch = -90, roll = 0) {
+    center (longitude, latitude, altitude, heading = 0, pitch = -90, roll = 0) {
+      const center = this.viewer.camera.positionCartographic
       const target = {
-        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude),
+        destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude || center.height),
         orientation: {
           heading: Cesium.Math.toRadians(heading),
           pitch: Cesium.Math.toRadians(pitch),

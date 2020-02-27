@@ -276,7 +276,7 @@ export default {
       this.map.fitBounds(bounds)
     },
     center (longitude, latitude, zoomLevel, options) {
-      this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || 16, options)
+      this.map.setView(new L.LatLng(latitude, longitude), zoomLevel || this.map.getZoom(), options)
     },
     getCenter () {
       const center = this.map.getCenter()
