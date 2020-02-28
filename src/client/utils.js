@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import math from 'mathjs'
 import config from 'config'
 import { buildUrl } from '@kalisio/kdk-core/common'

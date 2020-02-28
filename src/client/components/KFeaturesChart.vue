@@ -155,42 +155,36 @@ export default {
         }
       }
       // ticks.precision = 0 means round displayed values to integers
-      switch (type) {
-        case 'radar': {
-          _.set(config, 'options.legend.display', false)
-          _.set(config, 'data.datasets[0].fill', true)
-          _.set(config, 'data.datasets[0].borderColor', colors[0])
-          _.set(config, 'data.datasets[0].backgroundColor', chroma(colors[0]).alpha(0.5).hex())
-          _.set(config, 'data.datasets[0].pointBorderColor', '#fff')
-          _.set(config, 'data.datasets[0].pointBackgroundColor', colors[0])
-          _.set(config, 'options.scale.ticks.beginAtZero', true)
-          _.set(config, 'options.scale.ticks.precision', 0)
-          break
-        }
-        case 'bar': {
-          _.set(config, 'options.legend.display', false)
-          _.set(config, 'options.scales.xAxes[0].ticks.maxRotation', 90)
-          _.set(config, 'options.scales.xAxes[0].ticks.minRotation', 70)
-          _.set(config, 'options.scales.yAxes[0].ticks.beginAtZero', true)
-          _.set(config, 'options.scales.yAxes[0].ticks.precision', 0)
-          //_.set(config, 'options.plugins.labels.fontSize', 0)
-        }
-        case 'pie': {
-        }
-        case 'polarArea': {
-          // FIXME: does not work in this case
-          //_.set(config, 'options.scale.display', false)
-        }
-        default:
-          _.set(config, 'data.datasets[0].backgroundColor', colors)
-          _.set(config, 'options.plugins.labels.render', this.render.value)
-          _.set(config, 'options.plugins.labels.position', 'border')
-          _.set(config, 'options.plugins.labels.overlap', false)
-          _.set(config, 'options.plugins.labels.showActualPercentages', true)
-          _.set(config, 'options.plugins.labels.precision', 0)
-          _.set(config, 'options.plugins.labels.textShadow', true)
-          _.set(config, 'options.plugins.labels.fontSize', 24)
-          _.set(config, 'options.plugins.labels.fontColor', (type === 'bar' ? '#000' : '#fff'))
+      if (type === 'radar') {
+        _.set(config, 'options.legend.display', false)
+        _.set(config, 'data.datasets[0].fill', true)
+        _.set(config, 'data.datasets[0].borderColor', colors[0])
+        _.set(config, 'data.datasets[0].backgroundColor', chroma(colors[0]).alpha(0.5).hex())
+        _.set(config, 'data.datasets[0].pointBorderColor', '#fff')
+        _.set(config, 'data.datasets[0].pointBackgroundColor', colors[0])
+        _.set(config, 'options.scale.ticks.beginAtZero', true)
+        _.set(config, 'options.scale.ticks.precision', 0)
+      } else {
+        _.set(config, 'data.datasets[0].backgroundColor', colors)
+        _.set(config, 'options.plugins.labels.render', this.render.value)
+        _.set(config, 'options.plugins.labels.position', 'border')
+        _.set(config, 'options.plugins.labels.overlap', false)
+        _.set(config, 'options.plugins.labels.showActualPercentages', true)
+        _.set(config, 'options.plugins.labels.precision', 0)
+        _.set(config, 'options.plugins.labels.textShadow', true)
+        _.set(config, 'options.plugins.labels.fontSize', 24)
+        _.set(config, 'options.plugins.labels.fontColor', (type === 'bar' ? '#000' : '#fff'))
+      }
+      if (type === 'bar') {
+        _.set(config, 'options.legend.display', false)
+        _.set(config, 'options.scales.xAxes[0].ticks.maxRotation', 90)
+        _.set(config, 'options.scales.xAxes[0].ticks.minRotation', 70)
+        _.set(config, 'options.scales.yAxes[0].ticks.beginAtZero', true)
+        _.set(config, 'options.scales.yAxes[0].ticks.precision', 0)
+        //_.set(config, 'options.plugins.labels.fontSize', 0)
+      } else if (type === 'polarArea') {
+        // FIXME: does not work in this case
+        //_.set(config, 'options.scale.display', false)
       }
 
       return config
