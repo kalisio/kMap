@@ -8,15 +8,16 @@ export default {
         offset: moment.duration('PT0M'),
         step: moment.duration('PT1H'),
         reference: moment.utc(),
-        enabled: false
+        enabled: true
       }
     }
   },
   computed: {
     absoluteTimeline () {
-      const halfSpan = this.timeline.span / 2
-      const begin = this.timeline.reference.clone().subtract(halfSpan).add(this.timeline.offset)
-      const end = this.timeline.reference.clone().add(halfSpan).subtract(this.timeline.offset)
+      const begin = this.timeline.reference.clone()
+      const end = begin.clone().add(this.timeline.span)
+      begin.subtract(this.timeline.offset)
+      end.subtract(this.timeline.offset)
       return {
         begin: begin,
         end: end,
@@ -32,11 +33,15 @@ export default {
     disableTimeline () {
       this.timeline.enabled = false
     },
-    setupTimeline (span, reference, step, offset) {
-      this.timeline.span = span
+    updateTimeline ({ span, offset, step, reference } = {}) {
+      if (span) this.timeline.span = span
+      if (reference) this.timeline.reference = reference
+      if (offset) this.timeline.offset = offset
+      if (step) this.timeline.step = step
+      this.$emit('timeline-changed', this.absoluteTimeline)
+    },
+    centerTimeline (reference) {
       this.timeline.reference = reference
-      this.timeline.offset = offset
-      this.timeline.step = step
       this.$emit('timeline-changed', this.absoluteTimeline)
     }
   },

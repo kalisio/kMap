@@ -81,7 +81,6 @@ export default function (name) {
         const hasTrackLocationTool = (typeof this.createLocationIndicator === 'function') && tools.includes('track-location')
         const hasLocationTool = tools.includes('location-bar')
         const hasCatalogTool = tools.includes('catalog')
-        const hasPlayModeTool = true
         const beforeActions = []
         if (hasSideNavTool) {
           beforeActions.push({
@@ -126,13 +125,6 @@ export default function (name) {
           afterActions.push({
             name: 'fullscreen-toggle', label: this.$t('mixins.activity.TOGGLE_FULLSCREEN'), icon: 'fullscreen', handler: this.onToggleFullscreen
           })
-        }
-        if (hasPlayModeTool) {
-          // requires play-mode mixin
-          afterActions.push({
-            name: 'play-mode', label: this.$t('mixins.activity.PLAY_MODE'), icon: 'add', handler: this.togglePlayMode
-          })
-          this.setLiveMode()
         }
         if (hasCatalogTool) {
           afterActions.push({ name: 'separator' })
@@ -514,6 +506,18 @@ export default function (name) {
         } catch (error) {
           logger.error(error)
         }
+        // Initialize timeline based on settings
+        const span = parseInt(this.$store.get('timeline.span'))
+        const offset = parseInt(this.$store.get('timeline.offset'))
+        const step = parseInt(this.$store.get('timeline.step'))
+        const ref = this.$store.get('timeline.reference')
+        const timeline = {
+          span: moment.duration(span, 'd'),
+          offset: moment.duration(offset, 'd'),
+          step: moment.duration(step, 'm'),
+          reference: ref ? moment(ref) : moment()
+        }
+        this.updateTimeline(timeline)
       },
       getTimeRange () {
         const now = moment.utc()
