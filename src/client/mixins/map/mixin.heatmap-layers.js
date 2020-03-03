@@ -5,7 +5,7 @@ export default {
     createLeafletHeatmapLayer (options) {
       const leafletOptions = options.leaflet || options
       // Check for valid types
-      if (leafletOptions.type !== 'Heatmap') return
+      if (leafletOptions.type !== 'heatmap') return
       const layer = this.createLeafletLayer(options)
       return layer
     },
