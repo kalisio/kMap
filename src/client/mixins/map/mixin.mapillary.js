@@ -10,7 +10,6 @@ export default {
           console.log(event)
           if (event.latlng) {
             let url = "https://images.mapillary.com/" + event.layer.properties.ikey  + "/thumb-320.jpg"
-            console.log(event.latlng)
             L.popup()
               .setContent("<img src='" + url + "' width='300'/>")
               .setLatLng(event.latlng)
