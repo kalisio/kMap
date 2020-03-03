@@ -15,7 +15,7 @@
 <script>
 import _ from 'lodash'
 import { QScrollArea, colors } from 'quasar'
-import { mixins as kCoreMixins, utils as kCoreUtils } from '@kalisio/kdk-core/client'
+import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
   name: 'k-feature-info-box',
