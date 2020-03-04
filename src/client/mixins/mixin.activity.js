@@ -329,8 +329,9 @@ export default function (name) {
         return { begin, end, step }
       },
       getWeacastTimeRange (layer) {
-        const begin = this.currentTime.clone().add(this.forecastModel.lowerLimit - this.forecastModel.interval, 's')
-        const end = this.currentTime.clone().add(this.forecastModel.upperLimit + this.forecastModel.interval, 's')
+        const now = moment()
+        const begin = now.clone().add(this.forecastModel.lowerLimit - this.forecastModel.interval, 's')
+        const end = now.clone().add(this.forecastModel.upperLimit + this.forecastModel.interval, 's')
         const step = moment.duration(this.forecastModel.interval, 's')
 
         return { begin, end, step }
@@ -339,7 +340,7 @@ export default function (name) {
         let timeRange = null
         if (layer.meteo_model) timeRange = this.getMeteoModelSourceTimeRange(layer)
         else if (layer.time_based) timeRange = this.getTimeBasedSourceTimeRange(layer)
-        else if (layer.weacast && layer.weacast.type.indexOf('weacast') !== -1) timeRange = this.getWeacastTimeRange(layer)
+        else if (layer.leaflet && layer.leaflet.type.indexOf('weacast') !== -1) timeRange = this.getWeacastTimeRange(layer)
         if (!timeRange) return
 
         // put reference time in the middle of the timeline
