@@ -1,12 +1,12 @@
 <template>
   <q-card v-show="properties">
-    <q-scroll-area style="height: 40vh">
+    <q-scroll-area :thumb-style="thumbStyle" :bar-style="barStyle" style="height: 40vh">
       <q-btn class="float-right" flat round small color="primary" @click="onClose">
         <q-icon name="close" />
         <q-tooltip>{{$t('CLOSE')}}</q-tooltip>
       </q-btn>
-      <div class="row items-center full-height">
-        <k-view class="q-pa-xs" ref="view" :schema="schema" @view-ready="onViewReady" />
+      <div>
+        <k-view ref="view" :schema="schema" :display="options" @view-ready="onViewReady" />
       </div>
     </q-scroll-area>
   </q-card>
@@ -14,7 +14,7 @@
 
 <script>
 import _ from 'lodash'
-import { QScrollArea } from 'quasar'
+import { QScrollArea, colors } from 'quasar'
 import { mixins as kCoreMixins } from '@kalisio/kdk-core/client'
 
 export default {
@@ -28,6 +28,24 @@ export default {
   inject: ['kActivity'],
   data () {
     return {
+      thumbStyle: {
+        right: '4px',
+        borderRadius: '5px',
+        backgroundColor: colors.getBrand('secondary'),
+        width: '5px',
+        opacity: 0.75
+      },
+      barStyle: {
+        right: '2px',
+        borderRadius: '9px',
+        backgroundColor: colors.getBrand('primary'),
+        width: '9px',
+        opacity: 0.2
+      },
+      options: {
+        labelWidth: 5,
+        separators: true
+      },
       schema: null,
       properties: null
     }

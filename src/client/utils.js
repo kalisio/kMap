@@ -1,4 +1,7 @@
+import _ from 'lodash'
 import math from 'mathjs'
+import config from 'config'
+import { buildUrl } from '@kalisio/kdk-core/common'
 export * from './leaflet/utils'
 export * from './cesium/utils'
 
@@ -56,4 +59,36 @@ export function formatGeocodingResult (element) {
     if (element.zipcode) label += (' (' + element.zipcode + ')')
   }
   return label
+}
+
+// Helper to set a JWT as query param in a target URL
+export function setGatewayUrlJwt (item, path, jwt) {
+  let url = _.get(item, path)
+  if (!url) return
+  if (!url.startsWith(config.gateway)) return
+  // FIXME: specific case of Cesium OpenStreetMap provider
+  // Because Cesium generates the final url as base url + tile scheme + extension
+  // updating the base url property breaks it, for now we modify the extension 
+  if ((path === 'cesium.url') && _.get(item, 'cesium.type') === 'OpenStreetMap') {
+    const ext = _.get(item, 'cesium.fileExtension', 'png')
+    _.set(item, 'cesium.fileExtension', ext + `?${config.gatewayJwtField}=${jwt}`)
+  } else {
+    _.set(item, path, buildUrl(url, { [config.gatewayJwtField]: jwt }))
+  }
+}
+
+// Helper to set a JWT as query param in a given set of layers
+export function setGatewayJwt (layers, jwt) {
+  // If we need to use API gateway forward token as query parameter
+  // (Leaflet does not support anything else by default as it mainly uses raw <img> tags)
+  layers.forEach(layer => {
+    setGatewayUrlJwt(layer, 'iconUrl', jwt)
+    setGatewayUrlJwt(layer, 'leaflet.source', jwt)
+    setGatewayUrlJwt(layer, 'opendap.url', jwt)
+    setGatewayUrlJwt(layer, 'geotiff.url', jwt)
+    setGatewayUrlJwt(layer, 'wcs.url', jwt)
+    setGatewayUrlJwt(layer, 'cesium.url', jwt)
+    setGatewayUrlJwt(layer, 'cesium.source', jwt)
+  })
+  return layers
 }

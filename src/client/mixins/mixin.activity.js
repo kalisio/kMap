@@ -2,7 +2,9 @@ import _ from 'lodash'
 import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
+import centroid from '@turf/centroid'
 import { Dialog } from 'quasar'
+import { setGatewayJwt } from '../utils'
 import { readAsTimeOrDuration, makeTime } from '../../common/moment-utils'
 
 export default function (name) {
@@ -155,7 +157,8 @@ export default function (name) {
           const response = await catalogService.find()
           layers = layers.concat(response.data)
         }
-        return layers
+        const gatewayToken = this.$api.get('storage').getItem(this.$config('gatewayJwt'))
+        return (gatewayToken ? setGatewayJwt(layers, gatewayToken) : layers)
       },
       async refreshLayers () {
         this.layers = {}
@@ -224,6 +227,22 @@ export default function (name) {
               label: this.$t('mixins.activity.SAVE_LABEL'),
               icon: 'save',
               handler: () => this.onSaveLayer(layer)
+            })
+          }
+          if (this.isLayerEditable(layer) && layerActions.includes('view-data')) {
+            actions.push({
+              name: 'view-data',
+              label: this.$t('mixins.activity.VIEW_DATA_LABEL'),
+              icon: 'view_list',
+              handler: () => this.onViewLayerData(layer)
+            })
+          }
+          if (this.isLayerEditable(layer) && layerActions.includes('chart-data')) {
+            actions.push({
+              name: 'chart-data',
+              label: this.$t('mixins.activity.CHART_DATA_LABEL'),
+              icon: 'pie_chart',
+              handler: () => this.onChartLayerData(layer)
             })
           }
           if (this.isLayerEditable(layer) && layerActions.includes('edit')) {
@@ -372,6 +391,41 @@ export default function (name) {
         // Reset layer with new setup
         await this.removeLayer(layer.name)
         await this.addLayer(createdLayer)
+      },
+      async onViewLayerData (layer) {
+        this.viewModal = await this.$createComponent('KFeaturesTable', {
+          propsData: {
+            contextId: this.contextId,
+            layer,
+            featureActions: [{
+              name: 'zoom-to',
+              label: this.$t('mixins.activity.ZOOM_TO_LABEL'),
+              icon: 'zoom_out_map',
+              handler: (feature) => {
+                this.center(..._.get(centroid(feature), 'geometry.coordinates'))
+                this.viewModal.close()
+              }
+            }]
+          }
+        })
+        this.viewModal.$mount()
+        this.viewModal.open()
+        this.viewModal.$on('closed', () => {
+          this.viewModal = null
+        })
+      },
+      async onChartLayerData (layer) {
+        this.chartModal = await this.$createComponent('KFeaturesChart', {
+          propsData: {
+            contextId: this.contextId,
+            layer
+          }
+        })
+        this.chartModal.$mount()
+        this.chartModal.open()
+        this.chartModal.$on('closed', () => {
+          this.chartModal = null
+        })
       },
       async onEditLayer (layer) {
         this.editModal = await this.$createComponent('editor/KModalEditor', {

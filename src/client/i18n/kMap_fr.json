@@ -29,8 +29,10 @@
     },
     "activity": {
       "CREATE_LAYER": "Créer une nouvelle couche",
-      "SAVE_LABEL": "Sauvegarder",
-      "EDIT_LABEL": "Editer",
+      "SAVE_LABEL": "Sauvegarder la couche",
+      "EDIT_LABEL": "Editer la couche",
+      "VIEW_DATA_LABEL": "Voir les données",
+      "CHART_DATA_LABEL": "Graphique des données",
       "START_EDIT_DATA_LABEL": "Editer les données",
       "STOP_EDIT_DATA_LABEL": "Clôturer l'édition des données",
       "REMOVE_LABEL": "Supprimer",
@@ -197,5 +199,24 @@
     "METEO_LAYERS": "Prévisions météo",
     "BUSINESS_LAYERS": "Couches métier",
     "FORECASTS_LABEL": "Modèles de prévision"
+  },
+  "KFeaturesTable": {
+    "TITLE": "Données de la couche {{layer}}"
+  },
+  "KFeaturesChart": {
+    "SELECT_PROPERTY_LABEL": "Sélectionnez une propriété cible pour démarrer",
+    "TITLE": "Graphiques de la couche {{layer}}",
+    "PROPERTY_LABEL": "Propriété cible",
+    "CHART_LABEL": "Type de graphique",
+    "PAGINATION_LABEL": "Nombre de valeurs",
+    "CHART_LABEL_PIE": "Camembert",
+    "CHART_LABEL_POLARAREA": "Polaire",
+    "CHART_LABEL_RADAR": "Traceur",
+    "CHART_LABEL_BAR": "Histogramme",
+    "NULL_VALUE_LABEL": "Aucune",
+    "ALL_VALUES": "Toutes",
+    "RENDER_LABEL": "Type d'affichage",
+    "VALUE_LABEL": "Nombre",
+    "PERCENTAGE_LABEL": "Pourcentage"
   }
 }

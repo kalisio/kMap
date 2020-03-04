@@ -29,8 +29,10 @@
     },
     "activity": {
       "CREATE_LAYER": "Create a new layer",
-      "SAVE_LABEL": "Save",
-      "EDIT_LABEL": "Edit",
+      "SAVE_LABEL": "Save layer",
+      "EDIT_LABEL": "Edit layer",
+      "VIEW_DATA_LABEL": "View data",
+      "CHART_DATA_LABEL": "Chart data",
       "START_EDIT_DATA_LABEL": "Start data edit",
       "STOP_EDIT_DATA_LABEL": "Stop data edit",
       "REMOVE_LABEL": "Remove",
@@ -197,5 +199,24 @@
     "METEO_LAYERS": "Meteo forecasts",
     "BUSINESS_LAYERS": "Business layers",
     "FORECASTS_LABEL": "Forecast models"
+  },
+  "KFeaturesTable": {
+    "TITLE": "Data for layer {{layer}}"
+  },
+  "KFeaturesChart": {
+    "SELECT_PROPERTY_LABEL": "Select a target property to start",
+    "TITLE": "Graph for layer {{layer}}",
+    "PROPERTY_LABEL": "Target property",
+    "CHART_LABEL": "Chart type",
+    "PAGINATION_LABEL": "Number of values",
+    "CHART_LABEL_PIE": "Pie",
+    "CHART_LABEL_POLARAREA": "Polar",
+    "CHART_LABEL_RADAR": "Radar",
+    "CHART_LABEL_BAR": "Bar",
+    "NULL_VALUE_LABEL": "None",
+    "ALL_VALUES": "All",
+    "RENDER_LABEL": "Display type",
+    "VALUE_LABEL": "Count",
+    "PERCENTAGE_LABEL": "Percentage"
   }
 }

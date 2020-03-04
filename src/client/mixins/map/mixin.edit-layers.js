@@ -59,7 +59,7 @@ export default {
         this.createdFeatures = []
         this.editedFeatures = []
         this.deletedFeatures = []
-        this.editedLayerSchema = JSON.stringify(this.editedLayer.schema.content)
+        this.editedLayerSchema = JSON.stringify(_.get(this.editedLayer, 'schema.content'))
       }
     },
     async updateFeatureProperties (feature, layer, leafletLayer) {

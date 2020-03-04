@@ -1,14 +1,16 @@
 import _ from 'lodash'
-import { disallow } from 'feathers-hooks-common'
+import { disallow, iff } from 'feathers-hooks-common'
 import { hooks as coreHooks } from '@kalisio/kdk-core'
 import { marshallSpatialQuery } from '../../hooks'
 
 module.exports = {
   before: {
-    all: [coreHooks.convertObjectIDs(['feature'])],
+    all: [],
     find: [marshallSpatialQuery],
     get: [],
     create: [
+      // Don't process external feature ID, we should use it as is, eg number/string
+      iff(hook => !hook.data.featureId, coreHooks.convertObjectIDs(['feature'])),
       coreHooks.processTimes(['expireAt', 'status.checkedAt', 'status.triggeredAt']),
       coreHooks.convertToString(['conditions'])
     ],
