@@ -35,13 +35,6 @@ export default function (name) {
       currentVariables () {
         return this.hasSelectableLevels ? this.variablesForCurrentLevel : this.variables
       }
-      /*,
-      timelineEnabled () {
-        // For now only weather forecast requires timeline
-        return (_.values(this.layers).find(layer => layer.isVisible && layer.tags && layer.tags.includes('weather')) ||
-            ((typeof this.isTimeseriesOpen === 'function') && this.isTimeseriesOpen()))
-      }
-      */
     },
     methods: {
       setNavigationBar (locationInput, beforeActions, afterActions) {
