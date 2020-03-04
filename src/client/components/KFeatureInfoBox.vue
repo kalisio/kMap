@@ -55,9 +55,20 @@ export default {
       this.properties = null
       if (!options || !options.schema) return
       this.schema = options.schema.content
+      // We need to force a refresh so that the prop is correctly updated by Vuejs in child components
+      await this.$nextTick()
       const feature = _.get(event, 'target.feature')
-      if (!feature || _.isEmpty(feature.properties)) return
-      this.properties = feature.properties
+      const entity = _.get(event, 'target')
+      const layer = _.get(event, 'target')
+      if (!feature || !entity) return
+      let properties = (this.kActivity.is2D() ?
+        this.kActivity.generateLeafletStyle('infobox', feature, layer, options) :
+        this.kActivity.generateCesiumStyle('infobox', entity, options))
+      if (!_.isEmpty(properties)) {
+        this.properties = properties
+        // If already shown update values
+        if (this.$refs.view) this.$refs.view.fill(this.properties)
+      }
     },
     onClose () {
       this.properties = null

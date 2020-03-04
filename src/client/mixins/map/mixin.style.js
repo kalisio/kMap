@@ -124,6 +124,7 @@ export default {
     this.featureStyleFactory = []
     this.tooltipFactory = []
     this.popupFactory = []
+    this.infoboxFactory = []
     this.registerLeafletStyle('markerStyle', this.getDefaultMarker)
     this.registerLeafletStyle('featureStyle', this.getDefaultStyle)
     // Perform required conversion for default feature styling

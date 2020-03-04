@@ -41,6 +41,12 @@ export default function (name) {
       }
     },
     methods: {
+      is2D () {
+        return (this.engine === 'leaflet')
+      },
+      is3D () {
+        return (this.engine === 'cesium')
+      },
       setNavigationBar (locationInput, beforeActions, afterActions) {
         const navigationBar = { locationInput, actions: { before: beforeActions, after: afterActions } }
         this.$store.patch('navigationBar', navigationBar)
@@ -52,7 +58,7 @@ export default function (name) {
       registerActivityActions () {
         // FAB
         let defaultActions = ['track-location', 'probe-location']
-        if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['create-layer'])
+        if (this.is2D()) defaultActions = defaultActions.concat(['create-layer'])
         const actions = _.get(this, 'activityOptions.actions', defaultActions)
         const hasProbeLocationAction = (typeof this.onProbeLocation === 'function') && actions.includes('probe-location') && this.weacastApi && this.forecastModel
         const hasCreateLayerAction = (typeof this.onCreateLayer === 'function') && actions.includes('create-layer')
@@ -190,8 +196,8 @@ export default function (name) {
       },
       isLayerStorable (layer) {
         if (_.has(layer, 'isStorable')) return _.get(layer, 'isStorable')
-        // Only possible when export as GeoJson is possible by default
-        else return (!layer._id && (typeof this.toGeoJson === 'function'))
+        // Only possible when not yet saved and GeoJson by default
+        else return (!layer._id && (_.get(layer, `${this.engine}.type`) === 'geoJson'))
       },
       isLayerEditable (layer) {
         if (_.has(layer, 'isEditable')) return _.get(layer, 'isEditable')
@@ -205,7 +211,7 @@ export default function (name) {
       },
       registerLayerActions (layer) {
         let defaultActions = ['zoom-to', 'save', 'edit', 'remove']
-        if (this.engine === 'leaflet') defaultActions = defaultActions.concat(['edit-data'])
+        if (this.is2D()) defaultActions = defaultActions.concat(['edit-data'])
         const layerActions = _.get(this, 'activityOptions.layerActions', defaultActions)
         const actions = [{ name: 'toggle', handler: () => this.onTriggerLayer(layer) }]
         // Add supported actions
@@ -301,7 +307,7 @@ export default function (name) {
           [this.engine]: { source: '/api/features' }
         })
         // When saving from one engine copy options to the other one so that it will be available in both of them
-        _.set(layer, (this.engine === 'leaflet' ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
+        _.set(layer, (this.is2D() ? 'cesium' : 'leaflet'), _.get(layer, this.engine))
         let createdLayer = await this.$api.getService('catalog')
           .create(_.omit(layer, ['actions', 'isVisible']))
         // layer._id = createdLayer._id

@@ -158,6 +158,7 @@ export default {
     this.clusterStyleFactory = []
     this.tooltipFactory = []
     this.popupFactory = []
+    this.infoboxFactory = []
     this.registerCesiumStyle('entityStyle', this.getDefaultEntityStyle)
     this.registerCesiumStyle('clusterStyle', this.getDefaultClusterStyle)
     // Perform required conversion from JSON to Cesium objects
