@@ -416,10 +416,18 @@ export default function (name) {
           this.center(position.longitude, position.latitude)
         }
       },
+      getProbeTimeRange () {
+        const start = this.currentTime.clone()
+        const end = start.clone()
+        const halfSpan = parseInt(this.$store.get('timeseries.span')) / 2
+        start.subtract(halfSpan, 'd')
+        end.add(halfSpan, 'd')
+        return { start, end }
+      },
       onProbeLocation () {
         const probe = async (options, event) => {
           this.unsetCursor('probe-cursor')
-          const { start, end } = this.getTimeRange()
+          const { start, end } = this.getProbeTimeRange()
           await this.getForecastForLocation(event.latlng.lng, event.latlng.lat, start, end)
         }
         this.setCursor('probe-cursor')
@@ -432,7 +440,7 @@ export default function (name) {
       getViewKey () {
         return this.appName.toLowerCase() + `-${this.name}-view`
       },
-      shouldRestoreView() {
+      shouldRestoreView () {
         // Use user settings except if the view has explicitly revoked restoration
         if (_.has(this, 'activityOptions.restore.view')) {
           if (!_.get(this, 'activityOptions.restore.view')) return false
@@ -518,33 +526,6 @@ export default function (name) {
           reference: ref ? moment(ref) : moment()
         }
         this.updateTimeline(timeline)
-      },
-      getTimeRange () {
-        const now = moment.utc()
-        let start = 0
-        let end = 0
-
-        // if user defined a custom width, use it
-        const width = this.$store.get('timelineWidth')
-        if (width) {
-          start = -width * 24 * 60 * 60
-          end = width * 24 * 60 * 60
-        } else {
-          // Start just before the first available data
-          start = this.forecastModel
-            ? this.forecastModel.lowerLimit - this.forecastModel.interval : -7 * 60 * 60 * 24
-          // Override by config ?
-          start = _.get(this, 'activityOptions.timeline.start', start)
-          // Start just after the last available data
-          end = this.forecastModel
-            ? this.forecastModel.upperLimit + this.forecastModel.interval : 7 * 60 * 60 * 24
-          // Override by config ?
-          end = _.get(this, 'activityOptions.timeline.end', end)
-        }
-        return {
-          start: now.clone().add({ seconds: start }),
-          end: now.clone().add({ seconds: end })
-        }
       }
     },
     beforeCreate () {
