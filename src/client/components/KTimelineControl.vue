@@ -101,9 +101,7 @@ export default {
       this.kActivity.setCurrentTime(currentTime)
     },
     onClickReset (event) {
-      const refTime = this.kActivity.$store.get('timeline.reference')
-      const asMoment = refTime ? moment(refTime) : moment()
-      this.kActivity.centerTimeline(asMoment)
+      this.kActivity.resetTimeline()
     },
     onTimelineChanged (timeline) {
       if (timeline.reference.isSame(this.reference)) return

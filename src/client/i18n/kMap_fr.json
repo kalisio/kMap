@@ -46,7 +46,8 @@
       "TOGGLE_GLOBE": "3D",
       "TOGGLE_VR": "VR",
       "TRACK_LOCATION": "Suivi de coordonnées",
-      "PROBE": "Sonder"
+      "PROBE": "Sonder",
+      "SYNCHRONIZE_TIMELINE": "Synchronisation du sélécteur temporel"
     },
     "timeseries": {
       "PROBE": "Sonde",

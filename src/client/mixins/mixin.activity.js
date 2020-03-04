@@ -3,7 +3,7 @@ import sift from 'sift'
 import moment from 'moment'
 import logger from 'loglevel'
 import { Dialog } from 'quasar'
-import { utils as kCoreUtils } from '@kalisio/kdk-core/client'
+import { readAsTimeOrDuration, makeTime } from '../../common/moment-utils'
 
 export default function (name) {
   return {
@@ -254,8 +254,82 @@ export default function (name) {
             })
           }
         }
+        /**/
+        if (layer.meteo_model ||
+            layer.time_based ||
+            (layer.leaflet && layer.leaflet.type.indexOf('weacast') !== -1)) {
+          actions.push({
+            name: 'sync-timeline',
+            label: this.$t('mixins.activity.SYNCHRONIZE_TIMELINE'),
+            icon: 'sync',
+            handler: () => this.onSynchronizeTimeline(layer)
+          })
+        }
+        /**/
         this.$set(layer, 'actions', actions)
         return actions
+      },
+      getMeteoModelSourceTimeRange (layer) {
+        let begin = null
+        let end = null
+
+        const source = layer.meteo_model
+        for (const item of source) {
+          // only consider items for which associated forecast model is the current one
+          if (item.model !== this.forecastModel.name) continue
+
+          const itemBegin = makeTime(readAsTimeOrDuration(item.from), this.currentTime)
+          const itemEnd = makeTime(readAsTimeOrDuration(item.to), this.currentTime)
+
+          begin = begin ? moment.min(begin, itemBegin) : itemBegin
+          end = end ? moment.max(end, itemEnd) : itemEnd
+        }
+
+        return {
+          begin,
+          end,
+          step: moment.duration(this.forecastModel.interval, 's')
+        }
+      },
+      getTimeBasedSourceTimeRange (layer) {
+        let begin = null
+        let end = null
+        let step = null
+
+        const source = layer.time_based
+        for (const item of source) {
+          const itemBegin = makeTime(readAsTimeOrDuration(item.from), this.currentTime)
+          const itemEnd = makeTime(readAsTimeOrDuration(item.to), this.currentTime)
+          const itemStep = moment.duration(item.every)
+
+          begin = begin ? moment.min(begin, itemBegin) : itemBegin
+          end = end ? moment.max(end, itemEnd) : itemEnd
+          step = step ? (step.asSeconds() > itemStep.asSeconds() ? itemStep : step) : itemStep
+        }
+
+        return { begin, end, step }
+      },
+      getWeacastTimeRange (layer) {
+        const begin = this.currentTime.clone().add(this.forecastModel.lowerLimit - this.forecastModel.interval, 's')
+        const end = this.currentTime.clone().add(this.forecastModel.upperLimit + this.forecastModel.interval, 's')
+        const step = moment.duration(this.forecastModel.interval, 's')
+
+        return { begin, end, step }
+      },
+      onSynchronizeTimeline (layer) {
+        let timeRange = null
+        if (layer.meteo_model) timeRange = this.getMeteoModelSourceTimeRange(layer)
+        else if (layer.time_based) timeRange = this.getTimeBasedSourceTimeRange(layer)
+        else if (layer.weacast && layer.weacast.type.indexOf('weacast') !== -1) timeRange = this.getWeacastTimeRange(layer)
+        if (!timeRange) return
+
+        // put reference time in the middle of the timeline
+        const timeline = {}
+        timeline.span = moment.duration(timeRange.end.diff(timeRange.begin))
+        timeline.reference = timeRange.begin.clone().add(timeline.span / 2)
+        timeline.step = timeRange.step
+        timeline.offset = timeline.span / 2
+        this.updateTimeline(timeline)
       },
       onLayerAdded (layer) {
         this.registerLayerActions(layer)
@@ -490,6 +564,20 @@ export default function (name) {
         this.clearStoredView()
         this.restoreView()
       },
+      resetTimeline () {
+        // Initilize timeline based on user settings
+        const span = parseInt(this.$store.get('timeline.span'))
+        const offset = parseInt(this.$store.get('timeline.offset'))
+        const step = parseInt(this.$store.get('timeline.step'))
+        const ref = this.$store.get('timeline.reference')
+        const timeline = {
+          span: moment.duration(span, 'd'),
+          offset: moment.duration(offset, 'd'),
+          step: moment.duration(step, 'm'),
+          reference: ref ? moment(ref) : moment().startOf('day')
+        }
+        this.updateTimeline(timeline)
+      },
       async initialize () {
         // Geolocate by default if view has not been restored
         if (!this.restoreView()) {
@@ -514,18 +602,8 @@ export default function (name) {
         } catch (error) {
           logger.error(error)
         }
-        // Initialize timeline based on settings
-        const span = parseInt(this.$store.get('timeline.span'))
-        const offset = parseInt(this.$store.get('timeline.offset'))
-        const step = parseInt(this.$store.get('timeline.step'))
-        const ref = this.$store.get('timeline.reference')
-        const timeline = {
-          span: moment.duration(span, 'd'),
-          offset: moment.duration(offset, 'd'),
-          step: moment.duration(step, 'm'),
-          reference: ref ? moment(ref) : moment()
-        }
-        this.updateTimeline(timeline)
+
+        this.resetTimeline()
       }
     },
     beforeCreate () {
