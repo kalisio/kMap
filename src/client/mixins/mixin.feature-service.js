@@ -122,7 +122,13 @@ export default {
         delete feature._id
         feature.layer = layerId
       })
-      const createdFeatures = await this.$api.getService('features').create(features)
+      // Create chunks to avoid reaching some limits (DB, etc.)
+      const chunks = _.chunk(features, 5000)
+      // Write the chunks
+      let createdFeatures = []
+      for (let i = 0; i < chunks.length; ++i) {
+        createdFeatures.concat(await this.$api.getService('features').create(chunks[i]))
+      }
       return (geoJson.type === 'FeatureCollection' ? Object.assign(geoJson, { features: createdFeatures }) : createdFeatures)
     },
     async editFeaturesGeometry (geoJson) {
@@ -161,5 +167,9 @@ export default {
         }
       }
     }
+  },
+  created () {
+    // Extend timeout for large write operations
+    this.$api.getService('features').timeout = 60 * 60 * 1000 // 1h should be sufficient since we also have size limits
   }
 }
