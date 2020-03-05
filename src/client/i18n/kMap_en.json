@@ -8,7 +8,8 @@
     "GEOLOCATION_POSITION_UNAVAILABLE": "$t(errors.GEOLOCATION_ERROR)</br>It seems the internal source of position returned an internal error.",
     "GEOLOCATION_POSITION_TIMEOUT": "$t(errors.GEOLOCATION_ERROR)</br>It seems the time allowed to acquire it was reached before the information was obtained.",
     "CANNOT_PROCESS_SCHEMA_DATA": "Invalid or incomplete data scheme",
-    "ALERTS_LIMIT": "Too much alerts to display all of them"
+    "ALERTS_LIMIT": "Too much alerts to display all of them",
+    "FILE_IMPORT_ERROR": "L'import du fichier a échoué"
   },
   "mixins": {
     "geolocation": {

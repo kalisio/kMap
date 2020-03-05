@@ -3,12 +3,13 @@ import logger from 'loglevel'
 import togeojson from 'togeojson'
 import fileLayer from 'leaflet-filelayer'
 import { uid } from 'quasar'
+import { generatePropertiesSchema } from '../../utils'
 
 fileLayer(null, L, togeojson)
 
 export default {
   mounted () {
-    this.$on('map-ready', _ => {
+    this.$on('map-ready', () => {
       this.loader = L.FileLayer.fileLoader(this.map, Object.assign({
         // Allows you to use a customized version of L.geoJson.
         // For example if you are using the Proj4Leaflet leaflet plugin,
@@ -45,8 +46,7 @@ export default {
       }, false)
 
       this.loader.on('data:loaded', async event => {
-        // Create an empty layer used as a container
-        await this.addLayer({
+        const layer = {
           name: event.filename || this.$t('mixins.fileLayers.IMPORTED_DATA_NAME'),
           type: 'OverlayLayer',
           icon: 'insert_drive_file',
@@ -56,17 +56,29 @@ export default {
             isVisible: true,
             realtime: true
           }
-        })
-        // Generate temporary IDs for features
+        }
         const geoJson = event.layer.toGeoJSON()
+        // Generate schema for properties
+        const schema = Object.assign({
+          $id: `http://www.kalisio.xyz/schemas/${layer.name}#`,
+          title: layer.name
+        }, generatePropertiesSchema(geoJson))
+        _.set(layer, 'schema.content', schema)
+        // Create an empty layer used as a container
+        await this.addLayer(layer)
+        // Generate temporary IDs for features
         const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
         features.forEach(feature => feature._id = uid().toString())
+        // Set data
         await this.updateLayer(event.filename, geoJson)
         // Zoom to it
         this.zoomToLayer(event.filename)
       })
       this.loader.on('data:error', event => {
         logger.error(event.error)
+        this.$events.$emit('error', {
+          message: this.$t('errors.FILE_IMPORT_ERROR') + ' : ' + event.error.message
+        })
       })
     })
   }

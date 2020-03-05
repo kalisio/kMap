@@ -92,3 +92,47 @@ export function setGatewayJwt (layers, jwt) {
   })
   return layers
 }
+
+// Get JSON schema from GeoJson feature' properties
+export function generatePropertiesSchema (geoJson) {
+  let schema = {
+    $schema: 'http://json-schema.org/draft-06/schema#',
+    type: 'object',
+    properties: {
+    }
+  }
+  // Enumerate all available properties/values in all features
+  const features = (geoJson.type === 'FeatureCollection' ? geoJson.features : [geoJson])
+  features.forEach(feature => {
+    const properties = _.get(feature, 'properties', {})
+    _.forOwn(properties, (value, key) => {
+      // Property already registered ?
+      if (_.has(schema, `properties.${key}`)) {
+        const property = _.get(schema, `properties.${key}`)
+        // Try to find first non void value to select appropriate type
+        if (_.isNil(property)) _.set(schema, `properties.${key}`, value)
+      } else {
+        _.set(schema, `properties.${key}`, value)
+      }
+    })
+  })
+  _.forOwn(schema.properties, (value, key) => {
+    const type = (typeof value)
+    // FIXME: we don't support nested objects
+    if (type === 'object') {
+      _.unset(schema, `properties.${key}`)
+    } else {
+      // For null/undefined value we will assume string by default
+      _.set(schema, `properties.${key}`, {
+        type, 
+        field: {
+          component: (type === 'number' ? 'form/KNumberField' :
+            (type === 'boolean' ? 'form/KToggleField' : 'form/KTextField')),
+          helper: key,
+          label: key
+        }
+      })
+    }
+  })
+  return schema
+}
