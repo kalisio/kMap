@@ -49,7 +49,8 @@
       "TOGGLE_GLOBE": "3D",
       "TOGGLE_VR": "VR",
       "TRACK_LOCATION": "Track location",
-      "PROBE": "Probe"
+      "PROBE": "Probe",
+      "SYNCHRONIZE_TIMELINE": "Synchronize timeline"
     },
     "timeseries": {
       "PROBE": "Probe",
